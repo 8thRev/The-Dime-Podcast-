@@ -3,7 +3,7 @@ name: Daily Guest Research Automation
 on:
   # Run daily at 7:20 PM UTC (for testing; change back to 6 AM EST = '0 11 * * *' when done)
   schedule:
-    - cron: '20 19 * * *'
+    - cron: '22 19 * * *'
   
   # Allow manual triggering for testing
   workflow_dispatch:
