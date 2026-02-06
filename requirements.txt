@@ -1,0 +1,13 @@
+# The Dime Podcast Automation - Python Dependencies
+
+# Trello API
+requests>=2.31.0
+
+# Anthropic Claude API
+anthropic>=0.40.0
+
+# Word document generation
+python-docx>=1.1.0
+
+# Timezone support (included in Python 3.11+, but listed for clarity)
+# pytz is not needed - using built-in zoneinfo and timezone-aware datetime
