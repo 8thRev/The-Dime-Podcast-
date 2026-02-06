@@ -31,7 +31,7 @@ class Config:
     EMAIL_USERNAME: str = os.getenv("EMAIL_USERNAME", "")
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "")
     EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
-    EMAIL_TO: str = os.getenv("EMAIL_TO", "gs3150007@gmail.com")
+    EMAIL_TO: str = os.getenv("EMAIL_TO", "Bryan.Fields@8threv.com")
 
     # General Configuration
     TIMEZONE: str = os.getenv("TIMEZONE", "UTC")

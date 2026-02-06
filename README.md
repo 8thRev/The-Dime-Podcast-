@@ -24,10 +24,10 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  Start([Card selected]) --> Parse[Parse Company, Title, Recording Date]
-  Parse --> Claude[Call Claude API with research prompt]
+  Start([Card selected]) --> Parse[Company, Title, Rec Date]
+  Parse --> Claude[Call Claude with res. prompt]
   Claude --> Doc[Generate Guest_Research_Name.docx]
-  Doc --> Email[Send email with attachment]
+  Doc --> Email[Send email with attch]
   Email --> Label[Add label to Trello card]
   Label --> Done([Done])
   Claude -->|Fail| Skip[Log error, skip card]
@@ -61,17 +61,17 @@ Card must be in the **Pre** column. **Card title** = guest name.
 **Description — first 3 lines exactly, then any links:**
 
 ```
-Company: LEVIA
+Company: NEWTON
 Title: Founder
 Recording Date: 2026-02-09
 
-https://www.linkedin.com/in/eric-rogers12/
-LEVIA | The Finest Cannabis Goods
+https://www.linkedin.com/in/newton/
+NEWTON | The Finest Cannabis Goods
 ```
 
 | Line | Rule | Example |
 |------|------|--------|
-| 1 | `Company: ` + name | `Company: LEVIA` |
+| 1 | `Company: ` + name | `Company: NEWTON` |
 | 2 | `Title: ` + job title | `Title: Founder` |
 | 3 | `Recording Date: ` + date | `Recording Date: 2026-02-09` or `2026-02-09 17:15` |
 | 4+ | **Links and notes** (recommended) | LinkedIn, company site, articles, etc. — all are passed to Claude to improve research. More links = more useful output. |
@@ -96,7 +96,7 @@ Use these in `.env` locally or as **GitHub Secrets** for Actions.
 | `EMAIL_USERNAME` | Yes | Gmail address |
 | `EMAIL_PASSWORD` | Yes | Gmail app password (Security → App passwords) |
 | `EMAIL_FROM` | Yes | Sender address |
-| `EMAIL_TO` | No | Default `gs3150007@gmail.com` |
+| `EMAIL_TO` | No | Default `Bryan.Fields@8threv.com` |
 | `TIMEZONE` | No | Default `UTC` (dates compared in UTC) |
 
 ---
