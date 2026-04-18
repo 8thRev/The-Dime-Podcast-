@@ -1,14 +1,5 @@
 {
-  "builds": [
-    {
-      "src": "app/package.json",
-      "use": "@vercel/next"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "app/$1"
-    }
-  ]
+  "buildCommand": "cd app && npm run build",
+  "installCommand": "cd app && npm install",
+  "outputDirectory": "app/.next"
 }
