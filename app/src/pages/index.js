@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
-import { fetchEpisodes } from '@/src/lib/simplecast';
+import { fetchEpisodes } from '@/lib/simplecast';
 
 const GUESTS_TICKER = [
   'Gretchen Gailey', 'Jonathan Black', 'Dan McDermitt', 'Margaret Brodie',
