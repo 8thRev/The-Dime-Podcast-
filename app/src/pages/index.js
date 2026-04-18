@@ -10,12 +10,14 @@ import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema } from '@/lib/schema';
 
 const GUESTS_TICKER = [
-  'Gretchen Gailey', 'Jonathan Black', 'Dan McDermitt', 'Margaret Brodie',
-  'Aubrey Amatelli', 'Micah Anderson', 'Trent Woloveck', 'Boris Jordan',
-  'Ben Kovler', 'Jim Belushi', 'Steve White', 'Matt Hawkins', 'Karan Wadhera',
-  'Rachel Gillette', 'Jason Vedadi', 'Rick Thompson', 'Niccolo Aieta',
-  'Hirsh Jain', 'Matt Karnes', 'Socrates Rosenfeld', 'Ryan Crandall',
-  'Shahar Yamay', 'Wendy Bronfein', 'Colin Keeler', 'Chris Violas',
+  'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
+  'Micah Anderson', 'Kristin & Eric Rogers', 'Trent Woloveck', 'John Shute',
+  'Brian Adams', 'Nicolas Guarino', 'Bill Morachnick', 'Ryan Crandall',
+  'Tyler Robson', 'Adam Stettner', 'Chris Emerson', 'Nick Kenny',
+  'Thomas Winstanley', 'Alex Kwon', 'Jared Maloof', 'Chris Ball',
+  'Jim Higdon', 'Ryan Castle', 'Mitchell Osak', 'Zach Edge',
+  'Dan Cook', 'Nadia Sabeh', 'David Fettner', 'Shahar Yamay',
+  'Hirsh Jain', 'Socrates Rosenfeld', 'Jesse Redmond', 'Brett Puffenbarger',
 ];
 
 const TOPICS = [
@@ -127,9 +129,9 @@ export default function Home({ latestEpisodes, episodeCount }) {
       <Header />
 
       {/* HERO */}
-      <section style={{ minHeight: '100vh', background: 'var(--navy)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,#00C9A7 20%,#00C9A7 80%,transparent)' }} />
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--faint) 1px,transparent 1px),linear-gradient(90deg,var(--faint) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3 }} />
+      <section style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-default)' }}>
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3 }} />
         <div className="syne" style={{ position: 'absolute', bottom: -60, right: -40, fontSize: 'clamp(200px,28vw,440px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px #1A2A3A', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
           DIME
         </div>
@@ -141,21 +143,21 @@ export default function Home({ latestEpisodes, episodeCount }) {
         <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, position: 'relative', zIndex: 2 }}>
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
-              <div style={{ width: 28, height: 2, background: '#00C9A7' }} />
-              <span className="mono" style={{ fontSize: '9px', color: '#009E85', letterSpacing: '.2em' }}>EP. {episodeCount} · UPDATED WEEKLY</span>
+              <div style={{ width: 28, height: 2, background: 'var(--text-accent)' }} />
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · UPDATED WEEKLY</span>
             </div>
 
-            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(52px,7vw,96px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '.01em', marginBottom: 36, color: '#E8E4DC' }}>
+            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 40, color: 'var(--text-headline)' }}>
               THE CANNABIS<br />
               INDUSTRY'S<br />
-              <span style={{ color: '#00C9A7' }}>STRATEGY</span><br />
+              <span style={{ color: 'var(--text-accent)' }}>STRATEGY</span><br />
               CONVERSATION.
             </h1>
 
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: '19px', lineHeight: 1.75, color: '#7A8FA8', maxWidth: 520, marginBottom: 16, fontWeight: 300, fontStyle: 'italic' }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 540, marginBottom: 20, fontWeight: 400, fontStyle: 'italic' }}>
               CEOs, founders, investors, and policy architects. MSO strategy, capital structure, state market dynamics, cultivation economics, and the financing decisions keeping companies alive.
             </p>
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: '16px', lineHeight: 1.75, color: '#3A4F66', maxWidth: 480, marginBottom: 52, fontWeight: 300 }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 500, marginBottom: 56, fontWeight: 400 }}>
               Hosted by Bryan Fields and Kellan Finney. Nearly 300 episodes. Built for operators, not observers.
             </p>
 
@@ -168,7 +170,7 @@ export default function Home({ latestEpisodes, episodeCount }) {
               </Link>
             </div>
 
-            <div className="stats-grid fade-in" style={{ display: 'flex', gap: 48, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--faint)' }}>
+            <div className="stats-grid fade-in" style={{ display: 'flex', gap: 56, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--border-subtle)' }}>
               {[
                 { n: episodeCount, l: 'Episodes' },
                 { n: '4.9★', l: '111 Ratings' },
@@ -176,10 +178,10 @@ export default function Home({ latestEpisodes, episodeCount }) {
                 { n: '2020', l: 'Est.' },
               ].map((s) => (
                 <div key={s.l} className="stat-item">
-                  <div className="syne" style={{ fontSize: '22px', fontWeight: 800, color: '#E8E4DC', marginBottom: 4 }}>
+                  <div className="syne" style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, color: 'var(--text-accent)', marginBottom: 8 }}>
                     {s.n}
                   </div>
-                  <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66' }}>
+                  <div className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                     {s.l}
                   </div>
                 </div>
@@ -188,36 +190,36 @@ export default function Home({ latestEpisodes, episodeCount }) {
           </div>
 
           {/* RIGHT: Latest episodes */}
-          <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', background: '#0F1C2E', overflowY: 'auto', maxHeight: 'calc(100vh - 100px)' }}>
-            <div style={{ marginBottom: 20, paddingBottom: 12, borderBottom: '1px solid var(--faint)' }}>
-              <span className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66' }}>Latest Episodes</span>
+          <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', background: 'var(--bg-surface)', overflowY: 'auto', maxHeight: 'calc(100vh - 100px)', borderLeft: '1px solid var(--border-subtle)' }}>
+            <div style={{ marginBottom: 24, paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)' }}>
+              <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Latest Episodes</span>
             </div>
             {latestEpisodes.slice(0, 8).map((ep, i) => (
-              <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '14px 0', borderBottom: '1px solid var(--faint)', transition: 'background .15s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'block' }}
-                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,201,167,.08)'}
-                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-                <div className="mono" style={{ fontSize: '9px', color: '#00C9A7', letterSpacing: '.1em', marginBottom: 2 }}>
+              <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '16px 0', borderBottom: '1px solid var(--border-subtle)', transition: 'background .15s, border-color .15s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'block' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60, 184, 240, 0.08)'; e.currentTarget.style.borderBottomColor = 'var(--text-accent)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderBottomColor = 'var(--border-subtle)'; }}>
+                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.1em', marginBottom: 4, fontWeight: 700 }}>
                   Ep. {ep.num}
                 </div>
-                <div className="crimson" style={{ fontSize: '12px', color: '#E8E4DC', lineHeight: 1.2, marginBottom: 4 }}>
+                <div className="crimson" style={{ fontSize: '13px', color: 'var(--text-headline)', lineHeight: 1.3, marginBottom: 6, fontWeight: 500 }}>
                   {ep.title.substring(0, 40)}...
                 </div>
-                <div className="mono" style={{ fontSize: '9px', color: '#3A4F66' }}>
+                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
                   {ep.duration}
                 </div>
               </Link>
             ))}
-            <Link href="/episodes" style={{ marginTop: 20, background: 'none', border: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '10px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#3A4F66', padding: '8px 18px', transition: 'all .15s', textDecoration: 'none', display: 'inline-block' }}>
+            <Link href="/episodes" style={{ marginTop: 24, background: 'none', border: '1px solid var(--border-default)', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-accent)', padding: '10px 20px', transition: 'all .15s', textDecoration: 'none', display: 'inline-block' }}>
               View All {episodeCount} →
             </Link>
           </div>
         </div>
 
         {/* TOPIC TICKER */}
-        <div style={{ background: '#0F1C2E', borderTop: '1px solid var(--faint)', padding: '10px 0', overflow: 'hidden' }}>
+        <div style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)', padding: '12px 0', overflow: 'hidden' }}>
           <div style={{ display: 'flex', gap: 0, animation: 'ticker 35s linear infinite reverse', width: 'max-content' }}>
             {topicItems.map((t, i) => (
-              <span key={i} className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.18em', textTransform: 'uppercase', color: i % 5 === 0 ? '#009E85' : '#3A4F66', padding: '0 28px', borderRight: '1px solid var(--faint)', whiteSpace: 'nowrap' }}>
+              <span key={i} className="mono" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: i % 5 === 0 ? 'var(--text-accent)' : 'var(--text-muted)', padding: '0 32px', borderRight: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
                 {t}
               </span>
             ))}
@@ -226,21 +228,21 @@ export default function Home({ latestEpisodes, episodeCount }) {
       </section>
 
       {/* PAIN POINTS */}
-      <section className="pain-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--faint)', background: '#0F1C2E' }}>
+      <section className="pain-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
         {[
           { icon: '◈', label: 'Capital Discipline', body: 'How operators are structuring financing to survive compression, not chase growth.' },
           { icon: '◈', label: 'Regulatory Reads', body: 'State-by-state dynamics, rescheduling timelines, and what DC actually moves on.' },
           { icon: '◈', label: 'Operational Frameworks', body: 'Cultivation economics, extraction margins, and the systems that decide who stays.' },
           { icon: '◈', label: 'Financing Structures', body: 'Debt walls, credit terms, and capital allocation decisions keeping companies alive.' },
         ].map((p, i) => (
-          <div key={i} className="pain-point-item" style={{ padding: '36px 32px', borderRight: i < 3 ? '1px solid var(--faint)' : 'none' }}>
-            <span className="mono" style={{ fontSize: '18px', color: '#00C9A7', display: 'block', marginBottom: 16 }}>
+          <div key={i} className="pain-point-item" style={{ padding: '40px 36px', borderRight: i < 3 ? '1px solid var(--border-subtle)' : 'none' }}>
+            <span className="mono" style={{ fontSize: '20px', color: 'var(--text-accent)', display: 'block', marginBottom: 18, fontWeight: 700 }}>
               {p.icon}
             </span>
-            <div className="syne" style={{ fontSize: '13px', fontWeight: 700, color: '#E8E4DC', letterSpacing: '.06em', marginBottom: 10 }}>
+            <div className="syne" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-headline)', letterSpacing: '.06em', marginBottom: 12 }}>
               {p.label}
             </div>
-            <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.75, fontWeight: 300 }}>
+            <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.75, fontWeight: 400 }}>
               {p.body}
             </div>
           </div>
