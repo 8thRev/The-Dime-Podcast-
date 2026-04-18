@@ -1,5 +1,7 @@
 *.py
 requirements.txt
+pyproject.toml
+setup.py
 .env
 .env.local
 .github
@@ -8,3 +10,11 @@ __pycache__/
 *.pyc
 .pytest_cache/
 *.log
+test_local.py
+trello_client.py
+claude_client.py
+config.py
+main.py
+email_client.py
+doc_generator.py
+prompt_template.py
