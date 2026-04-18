@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r bot/requirements.txt
 
       - name: Run automation
         env:
@@ -42,7 +42,7 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
         run: |
-          python main.py
+          python bot/main.py
 
       - name: Upload logs on failure
         if: failure()
@@ -50,6 +50,6 @@ jobs:
         with:
           name: error-logs
           path: |
-            *.log
-            *.txt
+            bot/*.log
+            bot/*.txt
           retention-days: 7
