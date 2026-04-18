@@ -1,0 +1,21 @@
+{
+  "name": "the-dime-podcast",
+  "version": "1.0.0",
+  "description": "The Dime Podcast - Cannabis Business Intelligence",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "next": "^15.0.0",
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.54.0",
+    "eslint-config-next": "^15.0.0"
+  }
+}
