@@ -3,7 +3,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
-import { fetchEpisodes } from '@/lib/simplecast';
+import Ticker from '@/src/components/Ticker';
+import Schema from '@/src/components/Schema';
+import { getAllEpisodes, getEpisodesByTag } from '@/lib/rss';
+import { getAllVideos } from '@/lib/youtube';
+import { createPodcastSchema } from '@/lib/schema';
 
 const GUESTS_TICKER = [
   'Gretchen Gailey', 'Jonathan Black', 'Dan McDermitt', 'Margaret Brodie',
@@ -22,16 +26,103 @@ const TOPICS = [
   'Debt Walls', 'Cash Flow', 'Operational Frameworks', 'Hemp vs Cannabis',
 ];
 
-export default function Home({ latestEpisodes }) {
-  const tickerItems = [...GUESTS_TICKER, ...GUESTS_TICKER];
+export default function Home({ latestEpisodes, episodeCount }) {
   const topicItems = [...TOPICS, ...TOPICS];
+  const schema = createPodcastSchema('https://thedime.com');
 
   return (
     <>
+      <style>{`
+        @keyframes ticker {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 767px) {
+          .hero-main-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .hero-content {
+            padding: clamp(24px, 5vw, 48px) !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--faint);
+          }
+          .hero-sidebar {
+            display: none !important;
+          }
+          .hero-title {
+            font-size: clamp(32px, 6vw, 52px) !important;
+            line-height: 1.1 !important;
+          }
+          .hero-subtitle {
+            font-size: clamp(14px, 3vw, 19px) !important;
+          }
+          .pain-points {
+            grid-template-columns: 1fr !important;
+          }
+          .pain-point-item {
+            border-right: none !important;
+            border-bottom: 1px solid var(--faint);
+          }
+          .pain-point-item:last-child {
+            border-bottom: none !important;
+          }
+          .newsletter-section {
+            grid-template-columns: 1fr !important;
+            gap: clamp(24px, 5vw, 48px) !important;
+          }
+          .guest-wall-section {
+            grid-template-columns: 1fr !important;
+            gap: clamp(24px, 5vw, 48px) !important;
+          }
+          .guest-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .topic-grid {
+            gap: clamp(8px, 2vw, 10px) !important;
+          }
+          .stats-grid {
+            gap: clamp(16px, 3vw, 32px) !important;
+            flex-wrap: wrap;
+          }
+          .stat-item {
+            padding-right: clamp(12px, 3vw, 24px) !important;
+            margin-right: clamp(12px, 3vw, 24px) !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .hero-content {
+            padding: 16px !important;
+          }
+          .hero-title {
+            font-size: clamp(24px, 5vw, 32px) !important;
+          }
+          .stats-grid {
+            gap: 12px !important;
+          }
+          .stat-item {
+            padding-right: 12px !important;
+            margin-right: 12px !important;
+            border-right-width: 0 !important;
+          }
+          .topic-chip {
+            padding: 8px 12px !important;
+            font-size: 9px !important;
+          }
+        }
+      `}</style>
+
       <Head>
         <title>The Dime Podcast - Cannabis Business Intelligence</title>
-        <meta name="description" content="Strategy conversations for cannabis operators, not observers. 299 episodes of CEO, founder, and investor intelligence." />
+        <meta name="description" content="Strategy conversations for cannabis operators, not observers. Over 300 episodes of CEO, founder, and investor intelligence." />
+        <meta property="og:title" content="The Dime Podcast - Cannabis Business Intelligence" />
+        <meta property="og:description" content="Strategy conversations for cannabis operators, not observers." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://thedime.com" />
       </Head>
+
+      <Schema schema={schema} />
 
       <Header />
 
@@ -44,35 +135,27 @@ export default function Home({ latestEpisodes }) {
         </div>
 
         {/* GUEST TICKER */}
-        <div style={{ background: '#0F1C2E', borderBottom: '1px solid var(--faint)', padding: '10px 0', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', gap: 0, animation: 'ticker 40s linear infinite', width: 'max-content' }}>
-            {tickerItems.map((g, i) => (
-              <span key={i} className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.18em', textTransform: 'uppercase', color: i % 7 === 0 ? '#00C9A7' : '#3A4F66', padding: '0 28px', borderRight: '1px solid var(--faint)', whiteSpace: 'nowrap', transition: 'color .2s' }}>
-                {g}
-              </span>
-            ))}
-          </div>
-        </div>
+        <Ticker items={GUESTS_TICKER} />
 
         {/* MAIN HERO CONTENT */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, position: 'relative', zIndex: 2 }}>
-          <div style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
+        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, position: 'relative', zIndex: 2 }}>
+          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
               <div style={{ width: 28, height: 2, background: '#00C9A7' }} />
-              <span className="mono" style={{ fontSize: '9px', color: '#009E85', letterSpacing: '.2em' }}>EP. 299 · UPDATED WEEKLY</span>
+              <span className="mono" style={{ fontSize: '9px', color: '#009E85', letterSpacing: '.2em' }}>EP. {episodeCount} · UPDATED WEEKLY</span>
             </div>
 
-            <h1 className="syne fade-in" style={{ fontSize: 'clamp(52px,7vw,96px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '.01em', marginBottom: 36, color: '#E8E4DC' }}>
+            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(52px,7vw,96px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '.01em', marginBottom: 36, color: '#E8E4DC' }}>
               THE CANNABIS<br />
               INDUSTRY'S<br />
               <span style={{ color: '#00C9A7' }}>STRATEGY</span><br />
               CONVERSATION.
             </h1>
 
-            <p className="crimson fade-in" style={{ fontSize: '19px', lineHeight: 1.75, color: '#7A8FA8', maxWidth: 520, marginBottom: 16, fontWeight: 300, fontStyle: 'italic' }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: '19px', lineHeight: 1.75, color: '#7A8FA8', maxWidth: 520, marginBottom: 16, fontWeight: 300, fontStyle: 'italic' }}>
               CEOs, founders, investors, and policy architects. MSO strategy, capital structure, state market dynamics, cultivation economics, and the financing decisions keeping companies alive.
             </p>
-            <p className="crimson fade-in" style={{ fontSize: '16px', lineHeight: 1.75, color: '#3A4F66', maxWidth: 480, marginBottom: 52, fontWeight: 300 }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: '16px', lineHeight: 1.75, color: '#3A4F66', maxWidth: 480, marginBottom: 52, fontWeight: 300 }}>
               Hosted by Bryan Fields and Kellan Finney. Nearly 300 episodes. Built for operators, not observers.
             </p>
 
@@ -85,14 +168,14 @@ export default function Home({ latestEpisodes }) {
               </Link>
             </div>
 
-            <div style={{ display: 'flex', gap: 48, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--faint)' }} className="fade-in">
+            <div className="stats-grid fade-in" style={{ display: 'flex', gap: 48, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--faint)' }}>
               {[
-                { n: '299', l: 'Episodes' },
+                { n: episodeCount, l: 'Episodes' },
                 { n: '4.9★', l: '111 Ratings' },
                 { n: 'Top 5%', l: 'Most Shared' },
                 { n: '2020', l: 'Est.' },
               ].map((s) => (
-                <div key={s.l}>
+                <div key={s.l} className="stat-item">
                   <div className="syne" style={{ fontSize: '22px', fontWeight: 800, color: '#E8E4DC', marginBottom: 4 }}>
                     {s.n}
                   </div>
@@ -110,9 +193,11 @@ export default function Home({ latestEpisodes }) {
               <span className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66' }}>Latest Episodes</span>
             </div>
             {latestEpisodes.slice(0, 8).map((ep, i) => (
-              <div key={i} style={{ padding: '14px 0', borderBottom: '1px solid var(--faint)', transition: 'background .15s', cursor: 'default' }}>
+              <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '14px 0', borderBottom: '1px solid var(--faint)', transition: 'background .15s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'block' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,201,167,.08)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
                 <div className="mono" style={{ fontSize: '9px', color: '#00C9A7', letterSpacing: '.1em', marginBottom: 2 }}>
-                  {ep.title.substring(0, 30)}
+                  Ep. {ep.num}
                 </div>
                 <div className="crimson" style={{ fontSize: '12px', color: '#E8E4DC', lineHeight: 1.2, marginBottom: 4 }}>
                   {ep.title.substring(0, 40)}...
@@ -120,11 +205,11 @@ export default function Home({ latestEpisodes }) {
                 <div className="mono" style={{ fontSize: '9px', color: '#3A4F66' }}>
                   {ep.duration}
                 </div>
-              </div>
+              </Link>
             ))}
-            <button className="btn-ghost" style={{ marginTop: 20, background: 'none', border: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '10px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#3A4F66', padding: '8px 18px', transition: 'all .15s' }}>
-              View All 299 →
-            </button>
+            <Link href="/episodes" style={{ marginTop: 20, background: 'none', border: '1px solid var(--border)', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '10px', fontWeight: 600, letterSpacing: '.12em', textTransform: 'uppercase', color: '#3A4F66', padding: '8px 18px', transition: 'all .15s', textDecoration: 'none', display: 'inline-block' }}>
+              View All {episodeCount} →
+            </Link>
           </div>
         </div>
 
@@ -141,14 +226,14 @@ export default function Home({ latestEpisodes }) {
       </section>
 
       {/* PAIN POINTS */}
-      <section style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--faint)', background: '#0F1C2E' }}>
+      <section className="pain-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--faint)', background: '#0F1C2E' }}>
         {[
           { icon: '◈', label: 'Capital Discipline', body: 'How operators are structuring financing to survive compression, not chase growth.' },
           { icon: '◈', label: 'Regulatory Reads', body: 'State-by-state dynamics, rescheduling timelines, and what DC actually moves on.' },
           { icon: '◈', label: 'Operational Frameworks', body: 'Cultivation economics, extraction margins, and the systems that decide who stays.' },
           { icon: '◈', label: 'Financing Structures', body: 'Debt walls, credit terms, and capital allocation decisions keeping companies alive.' },
         ].map((p, i) => (
-          <div key={i} style={{ padding: '36px 32px', borderRight: i < 3 ? '1px solid var(--faint)' : 'none' }}>
+          <div key={i} className="pain-point-item" style={{ padding: '36px 32px', borderRight: i < 3 ? '1px solid var(--faint)' : 'none' }}>
             <span className="mono" style={{ fontSize: '18px', color: '#00C9A7', display: 'block', marginBottom: 16 }}>
               {p.icon}
             </span>
@@ -163,7 +248,7 @@ export default function Home({ latestEpisodes }) {
       </section>
 
       {/* NEWSLETTER BAND */}
-      <section style={{ padding: '96px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
+      <section className="newsletter-section" style={{ padding: '96px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
         <div>
           <div className="mono" style={{ fontSize: '9px', color: '#009E85', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 14 }}>First Principles Newsletter</div>
           <h2 className="syne" style={{ fontSize: 'clamp(36px,5vw,60px)', fontWeight: 800, color: '#E8E4DC', letterSpacing: '.02em', lineHeight: 0.95, marginBottom: 24 }}>
@@ -193,23 +278,20 @@ export default function Home({ latestEpisodes }) {
       </section>
 
       <Footer />
-
-      <style jsx>{`
-        @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-      `}</style>
     </>
   );
 }
 
 export async function getStaticProps() {
-  const latestEpisodes = await fetchEpisodes();
+  const episodes = await getAllEpisodes();
+  const videos = await getAllVideos();
+
   return {
     props: {
-      latestEpisodes: latestEpisodes.slice(0, 10),
+      latestEpisodes: episodes.slice(0, 10),
+      episodeCount: episodes.length,
+      videoCount: videos.length,
     },
-    revalidate: 3600, // Revalidate every hour
+    revalidate: 3600,
   };
 }

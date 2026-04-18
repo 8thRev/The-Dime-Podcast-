@@ -1,2 +1,11 @@
+# *
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /api
+
+# Host
+Host: https://thedime.com
+
+# Sitemaps
+Sitemap: https://thedime.com/sitemap.xml
