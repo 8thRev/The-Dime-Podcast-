@@ -87,9 +87,11 @@ function formatDuration(raw: string): string {
 }
 
 function extractSimplecastId(guid: string, link: string): string {
+  // Extract UUID from guid (Simplecast uses UUID format)
   const guidMatch = guid?.match(/([a-f0-9-]{36})/);
   if (guidMatch) return guidMatch[1];
-  const linkMatch = link?.match(/episodes\/([a-f0-9-]{36})/);
+  // Fallback to short code from link
+  const linkMatch = link?.match(/-([a-zA-Z0-9]{8})(?:\?|$)/);
   if (linkMatch) return linkMatch[1];
   return guid || "";
 }

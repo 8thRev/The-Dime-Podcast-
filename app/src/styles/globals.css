@@ -119,6 +119,30 @@ html {
   --divider-chrome:   #C4C4C4;
   --divider-subtle:   #2A2A2A;
 
+  --coin-border:        #C4C4C4;
+  --coin-fill:          #D8D4CC;
+  --coin-highlight:     #F5F3EF;
+  --coin-shadow-edge:   #888888;
+  --coin-glow:          rgba(60, 184, 240, 0.15);
+
+  /* ----------------------------------------------------------
+     TYPOGRAPHY SCALE
+  ---------------------------------------------------------- */
+  --font-display: 'Syne', 'Arial Narrow', sans-serif;
+  --font-body:    'Crimson Pro', Georgia, serif;
+  --font-mono:    'Syne Mono', 'Courier New', monospace;
+
+  --text-xs:   0.75rem;    /* 12px */
+  --text-sm:   0.875rem;   /* 14px */
+  --text-base: 1rem;       /* 16px */
+  --text-lg:   1.125rem;   /* 18px */
+  --text-xl:   1.25rem;    /* 20px */
+  --text-2xl:  1.5rem;     /* 24px */
+  --text-3xl:  1.875rem;   /* 30px */
+  --text-4xl:  2.25rem;    /* 36px */
+  --text-5xl:  3rem;       /* 48px */
+  --text-6xl:  4rem;       /* 64px */
+
   /* ----------------------------------------------------------
      SPACING
   ---------------------------------------------------------- */

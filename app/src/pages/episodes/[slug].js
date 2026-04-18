@@ -61,30 +61,30 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
       <Header />
 
       <article style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
-        <Link href="/episodes" style={{ color: 'var(--mid)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
+        <Link href="/episodes" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
           ← All Episodes
         </Link>
 
         <header style={{ marginBottom: '48px' }}>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--teal)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-accent)', fontWeight: 700 }}>
               Ep. {episode.num}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
               {episode.date}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
               {episode.duration}
             </span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 'normal', lineHeight: 1.2, marginBottom: '24px', fontFamily: 'Georgia, serif' }}>
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, lineHeight: 1.2, marginBottom: '24px', fontFamily: "'Syne', sans-serif", color: 'var(--text-headline)' }}>
             {episode.title}
           </h1>
 
-          <div style={{ fontSize: '18px', color: 'var(--mid)', marginBottom: '32px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+          <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 500 }}>
             {episode.guest}
-            {episode.company && <span style={{ color: 'var(--muted)' }}> / {episode.company}</span>}
+            {episode.company && <span style={{ color: 'var(--text-muted)' }}> / {episode.company}</span>}
           </div>
 
           {episode.tags.length > 0 && (
@@ -95,9 +95,10 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
                   className="mono"
                   style={{
                     fontSize: '10px',
-                    color: 'var(--teal)',
-                    border: '1px solid var(--teal)',
+                    color: 'var(--text-accent)',
+                    border: '1px solid var(--text-accent)',
                     padding: '4px 12px',
+                    fontWeight: 700,
                   }}
                 >
                   {tag}
@@ -107,35 +108,34 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
           )}
         </header>
 
-        <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '24px' }}>
-          <div style={{ marginBottom: '16px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+        <section style={{ marginBottom: '48px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', padding: '24px', borderRadius: '8px' }}>
+          <div style={{ marginBottom: '16px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
             Listen Now
           </div>
-          <iframe
+          <audio
+            controls
             style={{
               width: '100%',
-              height: '200px',
-              border: 'none',
-              borderRadius: '4px',
+              height: '40px',
+              accentColor: 'var(--text-accent)',
             }}
-            src={`${episode.playerUrl}&height=200`}
+            src={episode.audioUrl}
             title={episode.title}
-            allow="autoplay"
           />
         </section>
 
         <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--mid)', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 400 }}>
             {episode.description}
           </p>
 
           {episode.showNotes && (
-            <div style={{ marginTop: '32px', padding: '24px', background: 'var(--navy2)', borderLeft: '3px solid var(--teal)' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '.1em' }}>
+            <div style={{ marginTop: '32px', padding: '24px', background: 'var(--bg-surface)', borderLeft: '3px solid var(--text-accent)', borderRadius: '4px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-headline)' }}>
                 Full Show Notes
               </h3>
               <div
-                style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--mid)' }}
+                style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}
                 dangerouslySetInnerHTML={{ __html: episode.showNotes }}
               />
             </div>
@@ -143,8 +143,8 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
         </section>
 
         {relatedEpisodes.length > 0 && (
-          <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)' }}>
+          <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
               More Episodes
             </h3>
             <div style={{ display: 'grid', gap: '0' }}>
@@ -154,18 +154,18 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
                   href={`/episodes/${ep.slug}`}
                   style={{
                     padding: '16px 0',
-                    borderBottom: '1px solid var(--border)',
+                    borderBottom: '1px solid var(--border-subtle)',
                     textDecoration: 'none',
                     color: 'inherit',
                     transition: 'background .15s',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--navy2)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-surface)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px', fontFamily: 'Georgia, serif' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px', fontFamily: "'Crimson Pro', Georgia, serif", color: 'var(--text-headline)' }}>
                     {ep.title}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--muted)', fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: "'Syne', sans-serif" }}>
                     {ep.guest} · {ep.date.split(',')[0]}
                   </div>
                 </Link>

@@ -86,10 +86,23 @@ export default function Header() {
             ★ 4.9 · 111 RATINGS · TOP 5%
           </span>
           <div style={{ display: 'flex', gap: 'clamp(12px, 3vw, 24px)', flexWrap: 'wrap' }}>
-            {['Apple', 'Spotify', 'YouTube'].map((p) => (
-              <span key={p} className="mono" style={{ fontSize: '8px', color: '#777777', letterSpacing: '.12em', cursor: 'pointer' }}>
-                {p}
-              </span>
+            {[
+              { label: 'Apple', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1540199573' },
+              { label: 'Spotify', href: 'https://open.spotify.com/show/05y791a4A1vzTZ6DCZQHFz?si=5107fd933fa54924' },
+              { label: 'YouTube', href: 'https://www.youtube.com/@theDime_Cannabis' }
+            ].map((p) => (
+              <a
+                key={p.label}
+                href={p.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mono"
+                style={{ fontSize: '8px', color: '#777777', letterSpacing: '.12em', cursor: 'pointer', textDecoration: 'none', transition: 'color 150ms ease' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#FFFFFF'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#777777'}
+              >
+                {p.label}
+              </a>
             ))}
           </div>
         </div>
