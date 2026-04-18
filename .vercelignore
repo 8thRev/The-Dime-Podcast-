@@ -1,0 +1,10 @@
+*.py
+requirements.txt
+.env
+.env.local
+.github
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log

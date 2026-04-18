@@ -1,6 +1,3 @@
 {
-  "root": "app",
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "outputDirectory": ".next"
+  "root": "app"
 }
