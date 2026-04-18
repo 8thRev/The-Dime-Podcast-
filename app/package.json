@@ -4,15 +4,19 @@
   "description": "The Dime Podcast - Cannabis Business Intelligence",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && next-sitemap --config next-sitemap.config.js",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "axios": "^1.7.2",
+    "next": "^15.0.0",
+    "next-sitemap": "^4.2.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "next": "^15.0.0",
-    "axios": "^1.7.2"
+    "rss-parser": "^3.13.0"
   },
   "devDependencies": {
     "eslint": "^8.54.0",

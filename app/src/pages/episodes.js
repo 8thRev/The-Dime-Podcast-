@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
-import { fetchEpisodes } from '@/lib/simplecast';
+import { getAllEpisodes } from '@/lib/rss';
 
 export default function Episodes({ allEpisodes }) {
   const [query, setQuery] = useState('');
@@ -34,23 +35,28 @@ export default function Episodes({ allEpisodes }) {
         </div>
 
         {filtered.map((ep, i) => (
-          <div
+          <Link
             key={i}
+            href={`/episodes/${ep.slug}`}
             style={{
               padding: '28px 0',
               borderBottom: '1px solid var(--faint)',
               transition: 'background .15s',
-              cursor: 'default',
+              cursor: 'pointer',
               display: 'grid',
               gridTemplateColumns: '60px 1fr 80px',
               gap: 28,
               alignItems: 'start',
+              textDecoration: 'none',
+              color: 'inherit',
             }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,201,167,.04)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
             <div>
-              <div className="mono" style={{ fontSize: '9px', color: '#00C9A7', letterSpacing: '.12em' }}>Ep.{ep.id}</div>
+              <div className="mono" style={{ fontSize: '9px', color: '#00C9A7', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
               <div className="mono" style={{ fontSize: '9px', color: '#3A4F66', marginTop: 4 }}>
-                {new Date(ep.pubDate).toLocaleDateString()}
+                {ep.date}
               </div>
             </div>
             <div>
@@ -67,7 +73,7 @@ export default function Episodes({ allEpisodes }) {
             <div className="mono" style={{ fontSize: '10px', color: '#3A4F66', textAlign: 'right', paddingTop: 2 }}>
               {ep.duration}
             </div>
-          </div>
+          </Link>
         ))}
 
         {!filtered.length && (
@@ -83,7 +89,7 @@ export default function Episodes({ allEpisodes }) {
 }
 
 export async function getStaticProps() {
-  const allEpisodes = await fetchEpisodes();
+  const allEpisodes = await getAllEpisodes();
   return {
     props: {
       allEpisodes,

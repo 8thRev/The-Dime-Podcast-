@@ -6,4 +6,5 @@ const nextConfig = {
   },
 };
 
+// Export config — next-sitemap will be handled via postbuild script in package.json
 module.exports = nextConfig;

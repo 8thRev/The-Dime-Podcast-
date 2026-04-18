@@ -1,56 +1,136 @@
 import Link from 'next/link';
 
+const footerLinkStyle = {
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  fontFamily: "'Syne', sans-serif",
+  fontSize: 'clamp(10px, 2vw, 12px)',
+  fontWeight: 500,
+  color: '#777777',
+  display: 'block',
+  padding: 0,
+  marginBottom: 12,
+  textAlign: 'left',
+  letterSpacing: '.03em',
+  transition: 'color .15s',
+  textDecoration: 'none',
+};
+
 export default function Footer() {
   return (
-    <footer style={{ borderTop: '1px solid var(--faint)', padding: '60px 48px', display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 48, background: '#0F1C2E' }}>
-      <div>
-        <div className="syne" style={{ fontSize: '22px', fontWeight: 800, color: '#E8E4DC', letterSpacing: '.12em', marginBottom: 14 }}>
-          THE DIME
+    <>
+      <style>{`
+        .footer-grid {
+          display: grid;
+          gap: clamp(24px, 5vw, 48px);
+          padding: clamp(24px, 5vw, 60px);
+          border-top: 1px solid var(--border-default);
+        }
+
+        @media (max-width: 767px) {
+          .footer-grid {
+            grid-template-columns: 1fr;
+          }
+          .footer-about {
+            border-bottom: 1px solid var(--border-default);
+            padding-bottom: 24px;
+            margin-bottom: 12px;
+          }
+          .footer-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(12px, 4vw, 24px);
+          }
+          .footer-legal {
+            grid-column: 1 / -1;
+            border-top: 1px solid var(--border-default);
+            padding-top: 24px;
+            margin-top: 24px;
+          }
+        }
+
+        @media (min-width: 768px) {
+          .footer-grid {
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+          }
+          .footer-columns {
+            display: contents;
+          }
+          .footer-about {
+            grid-column: 1;
+          }
+        }
+      `}</style>
+
+      <footer className="footer-grid" style={{ background: 'var(--bg-surface)' }}>
+        {/* About section */}
+        <div className="footer-about">
+          <div className="syne" style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 800, color: '#EEEEEE', letterSpacing: '.12em', marginBottom: 14 }}>
+            THE DIME
+          </div>
+          <p className="crimson" style={{ fontSize: 'clamp(12px, 2vw, 14px)', color: '#BBBBBB', lineHeight: 1.85, maxWidth: 240, fontWeight: 300, marginBottom: 20 }}>
+            Cannabis business intelligence. Operator to operator.
+          </p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span className="mono" style={{ fontSize: '11px', color: '#3CB8F0' }}>★★★★★</span>
+            <span className="mono" style={{ fontSize: '9px', color: '#777777' }}>4.9 · 111 RATINGS</span>
+          </div>
         </div>
-        <p className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.85, maxWidth: 240, fontWeight: 300, marginBottom: 20 }}>
-          Cannabis business intelligence. Operator to operator. 299 episodes deep.
-        </p>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span className="mono" style={{ fontSize: '11px', color: '#00C9A7' }}>★★★★★</span>
-          <span className="mono" style={{ fontSize: '10px', color: '#3A4F66' }}>4.9 · 111 RATINGS</span>
+
+        {/* Columns wrapper for responsive layout */}
+        <div className="footer-columns">
+          {/* Navigate */}
+          <div>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+              Navigate
+            </div>
+            {[
+              { label: 'Episodes', href: '/episodes' },
+              { label: 'About', href: '/about' },
+              { label: 'Guests', href: '/guests' },
+              { label: 'Newsletter', href: '/newsletter' },
+            ].map((nav) => (
+              <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
+                {nav.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Listen */}
+          <div>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+              Listen
+            </div>
+            {['Apple', 'Spotify', 'YouTube'].map((p) => (
+              <button key={p} style={footerLinkStyle}>
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {/* Contact */}
+          <div>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+              Contact
+            </div>
+            <Link href="/guests" style={footerLinkStyle}>
+              Apply
+            </Link>
+            <button style={footerLinkStyle}>Sponsorship</button>
+            <Link href="/newsletter" style={footerLinkStyle}>
+              Newsletter
+            </Link>
+          </div>
         </div>
-      </div>
-      <div>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#3A4F66', marginBottom: 18, textTransform: 'uppercase' }}>Navigate</div>
-        {[
-          { label: 'Episodes', href: '/episodes' },
-          { label: 'About', href: '/about' },
-          { label: 'For Guests', href: '/guests' },
-          { label: 'Newsletter', href: '/newsletter' },
-        ].map((nav) => (
-          <Link key={nav.href} href={nav.href} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '12px', fontWeight: 500, color: '#3A4F66', display: 'block', padding: 0, marginBottom: 12, textAlign: 'left', letterSpacing: '.03em', transition: 'color .15s', textDecoration: 'none' }}>
-            {nav.label}
-          </Link>
-        ))}
-      </div>
-      <div>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#3A4F66', marginBottom: 18, textTransform: 'uppercase' }}>Listen</div>
-        {['Apple Podcasts', 'Spotify', 'YouTube', 'LinkedIn'].map((p) => (
-          <button key={p} style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '12px', fontWeight: 500, color: '#3A4F66', display: 'block', padding: 0, marginBottom: 12, textAlign: 'left', letterSpacing: '.03em', transition: 'color .15s' }}>
-            {p}
-          </button>
-        ))}
-      </div>
-      <div>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#3A4F66', marginBottom: 18, textTransform: 'uppercase' }}>Contact</div>
-        <Link href="/guests" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '12px', fontWeight: 500, color: '#3A4F66', display: 'block', padding: 0, marginBottom: 12, textAlign: 'left', letterSpacing: '.03em', transition: 'color .15s', textDecoration: 'none' }}>
-          Guest Inquiry
-        </Link>
-        <button style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '12px', fontWeight: 500, color: '#3A4F66', display: 'block', padding: 0, marginBottom: 12, textAlign: 'left', letterSpacing: '.03em', transition: 'color .15s' }}>
-          Sponsorship
-        </button>
-        <Link href="/newsletter" style={{ background: 'none', border: 'none', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '12px', fontWeight: 500, color: '#3A4F66', display: 'block', padding: 0, marginBottom: 12, textAlign: 'left', letterSpacing: '.03em', transition: 'color .15s', textDecoration: 'none' }}>
-          Newsletter
-        </Link>
-        <div style={{ marginTop: 32, paddingTop: 24, borderTop: '1px solid var(--faint)' }}>
-          <div className="mono" style={{ fontSize: '9px', color: '#1E3050', lineHeight: 1.7, letterSpacing: '.06em' }}>© 2025 THE DIME PODCAST<br />ALL RIGHTS RESERVED.</div>
+
+        {/* Legal - spans full width on mobile */}
+        <div className="footer-legal">
+          <div className="mono" style={{ fontSize: '8px', color: '#777777', lineHeight: 1.7, letterSpacing: '.06em' }}>
+            © 2025 THE DIME · ALL RIGHTS RESERVED
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 }
