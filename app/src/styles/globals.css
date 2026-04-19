@@ -522,7 +522,7 @@ textarea::placeholder {
   position: relative;
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-default);
-  padding: clamp(8px, 2vw, 16px) 0;
+  padding: clamp(16px, 2.5vw, 24px) 0;
 }
 
 .guest-ticker-wrap::before,
@@ -570,8 +570,8 @@ textarea::placeholder {
 
 .ticker-name {
   font-family: 'Syne', sans-serif;
-  font-size: clamp(12px, 3vw, 16px);
-  font-weight: 600;
+  font-size: clamp(13px, 3.5vw, 18px);
+  font-weight: 700;
   letter-spacing: 0.02em;
   color: var(--text-muted);
   white-space: nowrap;

@@ -144,38 +144,46 @@ export default function Home({ latestEpisodes, episodeCount }) {
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
               <div style={{ width: 28, height: 2, background: 'var(--text-accent)' }} />
-              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · UPDATED WEEKLY</span>
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · NEW</span>
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>4.9★ (111) · TOP 5% GLOBALLY</span>
             </div>
 
             <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 40, color: 'var(--text-headline)' }}>
-              THE CANNABIS<br />
-              INDUSTRY'S<br />
-              <span style={{ color: 'var(--text-accent)' }}>STRATEGY</span><br />
-              CONVERSATION.
+              How the cannabis industry<br />
+              <span style={{ color: 'var(--text-accent)' }}>actually</span> works.
             </h1>
 
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 540, marginBottom: 20, fontWeight: 400, fontStyle: 'italic' }}>
-              CEOs, founders, investors, and policy architects. MSO strategy, capital structure, state market dynamics, cultivation economics, and the financing decisions keeping companies alive.
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 540, marginBottom: 12, fontWeight: 400, fontStyle: 'italic' }}>
+              A weekly conversation with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
             </p>
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: 500, marginBottom: 56, fontWeight: 400 }}>
-              Hosted by Bryan Fields and Kellan Finney. Nearly 300 episodes. Built for operators, not observers.
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(15px, 1.8vw, 17px)', lineHeight: 1.75, color: 'var(--text-accent)', maxWidth: 540, marginBottom: 56, fontWeight: 400 }}>
+              Where industry leaders share the strategy and what they learned.
             </p>
 
+            <div style={{ background: 'rgba(60, 184, 240, 0.08)', border: '1px solid var(--text-accent)', borderRadius: 4, padding: '12px 16px', marginBottom: 40, maxWidth: 540 }} className="fade-in">
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.2em', marginTop: 2, flexShrink: 0, textTransform: 'uppercase' }}>Update</span>
+                <p className="crimson" style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0, fontWeight: 400 }}>
+                  Hero redesigned. Clearer value proposition and simpler path to latest episode.
+                </p>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }} className="fade-in">
-              <Link href="/episodes" className="btn-teal" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                Browse All Episodes
+              <Link href={`/episodes/${latestEpisodes[0]?.slug || '#'}`} className="btn-teal" style={{ textDecoration: 'none', display: 'inline-block' }}>
+                Listen to Latest Episode
               </Link>
-              <Link href="/guests" className="btn-outline" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                Apply to Guest
+              <Link href="/episodes" className="btn-outline" style={{ textDecoration: 'none', display: 'inline-block' }}>
+                Browse All Episodes →
               </Link>
             </div>
 
-            <div className="stats-grid fade-in" style={{ display: 'flex', gap: 56, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--border-subtle)' }}>
+            <div className="stats-grid fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 40, marginTop: 60, paddingTop: 40, borderTop: '1px solid var(--border-subtle)' }}>
               {[
                 { n: episodeCount, l: 'Episodes' },
                 { n: '4.9★', l: '111 Ratings' },
-                { n: 'Top 5%', l: 'Most Shared' },
-                { n: '2020', l: 'Est.' },
+                { n: 'Top 5%', l: 'Global Ranking' },
+                { n: 'Est. 2020', l: 'Weekly' },
               ].map((s) => (
                 <div key={s.l} className="stat-item">
                   <div className="syne" style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, color: 'var(--text-accent)', marginBottom: 8 }}>
