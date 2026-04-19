@@ -47,10 +47,6 @@ export default function Home({ latestEpisodes, episodeCount }) {
           .hero-content {
             padding: clamp(24px, 5vw, 48px) !important;
             border-right: none !important;
-            border-bottom: 1px solid var(--faint);
-          }
-          .hero-sidebar {
-            display: none !important;
           }
           .hero-title {
             font-size: clamp(32px, 6vw, 52px) !important;
@@ -140,7 +136,7 @@ export default function Home({ latestEpisodes, episodeCount }) {
         <Ticker items={GUESTS_TICKER} />
 
         {/* MAIN HERO CONTENT */}
-        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 380px', gap: 0, position: 'relative', zIndex: 2 }}>
+        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
               <div style={{ width: 28, height: 2, background: 'var(--text-accent)' }} />
@@ -197,40 +193,36 @@ export default function Home({ latestEpisodes, episodeCount }) {
             </div>
           </div>
 
-          {/* RIGHT: Latest episodes */}
-          <div style={{ padding: '28px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', background: 'var(--bg-surface)', overflowY: 'auto', maxHeight: 'calc(100vh - 100px)', borderLeft: '1px solid var(--border-subtle)' }}>
-            <div style={{ marginBottom: 24, paddingBottom: 14, borderBottom: '1px solid var(--border-subtle)' }}>
-              <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Latest Episodes</span>
-            </div>
-            {latestEpisodes.slice(0, 8).map((ep, i) => (
-              <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '16px 0', borderBottom: '1px solid var(--border-subtle)', transition: 'background .15s, border-color .15s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'block' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60, 184, 240, 0.08)'; e.currentTarget.style.borderBottomColor = 'var(--text-accent)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderBottomColor = 'var(--border-subtle)'; }}>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.1em', marginBottom: 4, fontWeight: 700 }}>
-                  Ep. {ep.num}
-                </div>
-                <div className="crimson" style={{ fontSize: '13px', color: 'var(--text-headline)', lineHeight: 1.3, marginBottom: 6, fontWeight: 500 }}>
-                  {ep.title.substring(0, 40)}...
-                </div>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                  {ep.duration}
-                </div>
-              </Link>
-            ))}
-            <Link href="/episodes" style={{ marginTop: 24, background: 'none', border: '1px solid var(--border-default)', cursor: 'pointer', fontFamily: "'Syne', sans-serif", fontSize: '11px', fontWeight: 700, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-accent)', padding: '10px 20px', transition: 'all .15s', textDecoration: 'none', display: 'inline-block' }}>
-              View All {episodeCount} →
-            </Link>
-          </div>
         </div>
 
-        {/* TOPIC TICKER */}
-        <div style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border-subtle)', padding: '12px 0', overflow: 'hidden' }}>
-          <div style={{ display: 'flex', gap: 0, animation: 'ticker 35s linear infinite reverse', width: 'max-content' }}>
-            {topicItems.map((t, i) => (
-              <span key={i} className="mono" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.16em', textTransform: 'uppercase', color: i % 5 === 0 ? 'var(--text-accent)' : 'var(--text-muted)', padding: '0 32px', borderRight: '1px solid var(--border-subtle)', whiteSpace: 'nowrap' }}>
-                {t}
-              </span>
-            ))}
+        {/* LATEST EPISODES */}
+        <div style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
+          <div style={{ padding: '48px', maxWidth: '1200px', margin: '0 auto' }}>
+            <div style={{ marginBottom: 40 }}>
+              <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Latest Episodes</span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
+              {latestEpisodes.slice(0, 6).map((ep, i) => (
+                <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '24px', border: '1px solid var(--border-subtle)', borderRadius: 4, transition: 'all .2s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-accent)'; e.currentTarget.style.background = 'rgba(60, 184, 240, 0.04)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'var(--bg-surface)'; }}>
+                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.1em', marginBottom: 8, fontWeight: 700 }}>
+                    Ep. {ep.num}
+                  </div>
+                  <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-headline)', lineHeight: 1.4, marginBottom: 8, fontWeight: 600, flex: 1 }}>
+                    {ep.title}
+                  </div>
+                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                    {ep.duration}
+                  </div>
+                </Link>
+              ))}
+            </div>
+            <div style={{ textAlign: 'center', marginTop: 48 }}>
+              <Link href="/episodes" className="btn-outline" style={{ textDecoration: 'none', display: 'inline-block' }}>
+                View All {episodeCount} Episodes →
+              </Link>
+            </div>
           </div>
         </div>
       </section>
