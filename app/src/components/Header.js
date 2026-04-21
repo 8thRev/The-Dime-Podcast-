@@ -3,9 +3,8 @@ import Link from 'next/link';
 
 const NAV = [
   { label: 'Episodes', href: '/episodes' },
-  { label: 'About', href: '/about' },
-  { label: 'For Guests', href: '/guests' },
   { label: 'Newsletter', href: '/newsletter' },
+  { label: 'About', href: '/about' },
 ];
 
 export default function Header() {
@@ -110,19 +109,6 @@ export default function Header() {
                 {nav.label}
               </Link>
             ))}
-            <Link
-              href="/guests"
-              className="btn-teal"
-              style={{
-                padding: 'clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px)',
-                fontSize: 'clamp(9px, 2vw, 11px)',
-                textDecoration: 'none',
-                display: 'inline-block',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Apply
-            </Link>
           </nav>
 
           {/* Mobile hamburger */}
@@ -173,20 +159,6 @@ export default function Header() {
                 {nav.label}
               </Link>
             ))}
-            <Link
-              href="/guests"
-              onClick={() => setMobileMenuOpen(false)}
-              className="btn-teal"
-              style={{
-                padding: '12px',
-                margin: '12px 0 0 0',
-                textDecoration: 'none',
-                display: 'block',
-                textAlign: 'center',
-              }}
-            >
-              Apply to Guest
-            </Link>
           </nav>
         )}
       </header>

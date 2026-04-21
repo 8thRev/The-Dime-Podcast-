@@ -177,6 +177,14 @@ html {
   --transition-fast:   150ms ease;
   --transition-base:   250ms ease;
   --transition-slow:   400ms ease;
+
+  /* ----------------------------------------------------------
+     LEGACY ALIASES — kept for backward compatibility
+  ---------------------------------------------------------- */
+  --navy2:  #181818;
+  --border: #333333;
+  --white:  #EEEEEE;
+  --faint:  #2A2A2A;
 }
 
 body {
@@ -548,12 +556,12 @@ textarea::placeholder {
 .guest-ticker {
   display: flex;
   width: max-content;
-  animation: guestTicker 60s linear infinite;
+  animation: guestTicker 120s linear infinite;
 }
 
 @media (max-width: 480px) {
   .guest-ticker {
-    animation-duration: 45s;
+    animation-duration: 90s;
   }
 }
 

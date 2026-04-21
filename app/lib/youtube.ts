@@ -30,6 +30,12 @@ function slugify(title: string): string {
     .slice(0, 80);
 }
 
+function parseDurationSeconds(iso: string): number {
+  const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+  if (!match) return 0;
+  return parseInt(match[1] || "0") * 3600 + parseInt(match[2] || "0") * 60 + parseInt(match[3] || "0");
+}
+
 function formatDuration(iso: string): string {
   if (!iso) return "";
   const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
@@ -121,6 +127,9 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
         contentDetails: { duration: string };
         statistics: { viewCount: string };
       }) => {
+        // Skip Shorts (under 3 minutes)
+        if (parseDurationSeconds(item.contentDetails.duration) < 180) return;
+
         videos.push({
           id: item.id,
           slug: slugify(item.snippet.title),

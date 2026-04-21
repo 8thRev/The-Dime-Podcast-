@@ -17,6 +17,12 @@ const footerLinkStyle = {
   textDecoration: 'none',
 };
 
+const LISTEN_LINKS = [
+  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1479320141' },
+  { label: 'Spotify', href: 'https://open.spotify.com/show/3O8vp4wvOJpqJCLBPqvQpP' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@TheDimePodcast' },
+];
+
 export default function Footer() {
   return (
     <>
@@ -88,7 +94,6 @@ export default function Footer() {
             {[
               { label: 'Episodes', href: '/episodes' },
               { label: 'About', href: '/about' },
-              { label: 'Guests', href: '/guests' },
               { label: 'Newsletter', href: '/newsletter' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
@@ -102,32 +107,27 @@ export default function Footer() {
             <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
               Listen
             </div>
-            {['Apple', 'Spotify', 'YouTube'].map((p) => (
-              <button key={p} style={footerLinkStyle}>
-                {p}
-              </button>
+            {LISTEN_LINKS.map((p) => (
+              <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer" style={footerLinkStyle}>
+                {p.label}
+              </a>
             ))}
           </div>
 
-          {/* Contact */}
+          {/* Connect */}
           <div>
             <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
-              Contact
+              Connect
             </div>
-            <Link href="/guests" style={footerLinkStyle}>
-              Apply
-            </Link>
-            <button style={footerLinkStyle}>Sponsorship</button>
-            <Link href="/newsletter" style={footerLinkStyle}>
-              Newsletter
-            </Link>
+            <a href="mailto:sponsorship@thedime.com" style={footerLinkStyle}>Sponsorship</a>
+            <Link href="/newsletter" style={footerLinkStyle}>Newsletter</Link>
           </div>
         </div>
 
-        {/* Legal - spans full width on mobile */}
+        {/* Legal */}
         <div className="footer-legal">
           <div className="mono" style={{ fontSize: '8px', color: '#777777', lineHeight: 1.7, letterSpacing: '.06em' }}>
-            © 2025 THE DIME · ALL RIGHTS RESERVED
+            © {new Date().getFullYear()} THE DIME · ALL RIGHTS RESERVED
           </div>
         </div>
       </footer>

@@ -54,6 +54,9 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
         <meta property="og:description" content={episode.description} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://thedime.com/episodes/${episode.slug}`} />
+        <link rel="canonical" href={`https://thedime.com/episodes/${episode.slug}`} />
+        <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
+        <meta name="twitter:description" content={episode.description} />
       </Head>
 
       <Schema schema={schema} />

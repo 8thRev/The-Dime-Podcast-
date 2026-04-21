@@ -16,14 +16,21 @@ export default function Episodes({ allEpisodes }) {
   return (
     <>
       <Head>
-        <title>Episodes - The Dime Podcast</title>
+        <title>All Episodes — The Dime Podcast</title>
+        <meta name="description" content={`Browse all ${allEpisodes.length} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`} />
+        <link rel="canonical" href="https://thedime.com/episodes" />
+        <meta property="og:title" content="All Episodes — The Dime Podcast" />
+        <meta property="og:description" content="Browse every episode. Cannabis business intelligence, operator to operator." />
+        <meta property="og:url" content="https://thedime.com/episodes" />
+        <meta name="twitter:title" content="All Episodes — The Dime Podcast" />
+        <meta name="twitter:description" content={`Browse all ${allEpisodes?.length || '295'}+ episodes. Cannabis founders, executives, and investors.`} />
       </Head>
       <Header />
 
       <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 12 }}>Archive · {allEpisodes.length} Episodes</div>
+        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Archive · {allEpisodes.length} Episodes</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
-          <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: '#E8E4DC', letterSpacing: '.02em', lineHeight: 0.9 }}>
+          <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9 }}>
             All Episodes
           </h1>
           <input
@@ -50,34 +57,34 @@ export default function Episodes({ allEpisodes }) {
               textDecoration: 'none',
               color: 'inherit',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,201,167,.04)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
           >
             <div>
-              <div className="mono" style={{ fontSize: '9px', color: '#00C9A7', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
-              <div className="mono" style={{ fontSize: '9px', color: '#3A4F66', marginTop: 4 }}>
+              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
+              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: 4 }}>
                 {ep.date}
               </div>
             </div>
             <div>
-              <div className="crimson" style={{ fontSize: '21px', fontWeight: 600, color: '#E8E4DC', marginBottom: 8, lineHeight: 1.25 }}>
+              <div className="crimson" style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.25 }}>
                 {ep.title}
               </div>
-              <div className="syne" style={{ fontSize: '11px', fontWeight: 600, color: '#7A8FA8', marginBottom: 10, letterSpacing: '.04em' }}>
+              <div className="syne" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10, letterSpacing: '.04em' }}>
                 {ep.guest}
               </div>
-              <p className="crimson" style={{ fontSize: '14px', color: '#3A4F66', lineHeight: 1.75, maxWidth: 600, fontWeight: 300 }}>
+              <p className="crimson" style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.75, maxWidth: 600, fontWeight: 300 }}>
                 {ep.description}
               </p>
             </div>
-            <div className="mono" style={{ fontSize: '10px', color: '#3A4F66', textAlign: 'right', paddingTop: 2 }}>
+            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right', paddingTop: 2 }}>
               {ep.duration}
             </div>
           </Link>
         ))}
 
         {!filtered.length && (
-          <p className="crimson" style={{ color: '#3A4F66', padding: '48px 0', fontSize: 16 }}>
+          <p className="crimson" style={{ color: 'var(--text-muted)', padding: '48px 0', fontSize: 16 }}>
             No episodes found.
           </p>
         )}
