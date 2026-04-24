@@ -5,17 +5,17 @@ import Schema from '@/src/components/Schema';
 import { createOrganizationSchema } from '@/lib/schema';
 
 export default function About() {
-  const schema = createOrganizationSchema('https://thedime.com');
+  const schema = createOrganizationSchema('https://dimepodcast.com');
   return (
     <>
       <Head>
         <title>About — The Dime Podcast</title>
-        <meta name="description" content="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields and Kellan Finney. 295+ episodes with founders, executives, investors, and policy architects." />
-        <link rel="canonical" href="https://thedime.com/about" />
+        <meta name="description" content="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields and Kellan Finney. Weekly episodes with founders, executives, investors, and policy architects." />
+        <link rel="canonical" href="https://dimepodcast.com/about" />
         <meta property="og:title" content="About — The Dime Podcast" />
         <meta property="og:description" content="Built for operators, not observers. The most operator-focused cannabis podcast, hosted by Bryan Fields and Kellan Finney." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://thedime.com/about" />
+        <meta property="og:url" content="https://dimepodcast.com/about" />
         <meta name="twitter:title" content="About — The Dime Podcast" />
         <meta name="twitter:description" content="Built for operators, not observers. Strategy conversations with the founders and executives shaping cannabis." />
       </Head>

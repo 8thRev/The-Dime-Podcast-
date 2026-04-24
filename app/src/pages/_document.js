@@ -1,9 +1,9 @@
 import { Html, Head, Main, NextScript } from 'next/document';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
-const SITE_URL = 'https://thedime.com';
+const SITE_URL = 'https://dimepodcast.com';
 const DEFAULT_TITLE = 'The Dime Podcast — Cannabis Business Intelligence';
-const DEFAULT_DESCRIPTION = 'Strategy conversations for cannabis operators, not observers. 295+ episodes with founders, executives, and investors shaping the industry.';
+const DEFAULT_DESCRIPTION = 'Strategy conversations for cannabis operators, not observers. Weekly episodes with founders, executives, and investors shaping the cannabis industry.';
 
 export default function Document() {
   return (

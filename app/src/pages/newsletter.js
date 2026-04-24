@@ -11,11 +11,11 @@ export default function Newsletter() {
       <Head>
         <title>First Principles Newsletter — The Dime Podcast</title>
         <meta name="description" content="One structural insight per episode. 550-650 words, one idea, no fluff. Free weekly newsletter for cannabis operators." />
-        <link rel="canonical" href="https://thedime.com/newsletter" />
+        <link rel="canonical" href="https://dimepodcast.com/newsletter" />
         <meta property="og:title" content="First Principles Newsletter — The Dime Podcast" />
         <meta property="og:description" content="Not a recap. The structural principle underneath each conversation. Written for operators who need to understand what's happening before the market makes it obvious." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://thedime.com/newsletter" />
+        <meta property="og:url" content="https://dimepodcast.com/newsletter" />
         <meta name="twitter:title" content="First Principles Newsletter — The Dime Podcast" />
         <meta name="twitter:description" content="One structural insight per episode. Free weekly newsletter for cannabis operators." />
       </Head>

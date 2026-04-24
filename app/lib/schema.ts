@@ -17,7 +17,7 @@ export function createPodcastEpisodeSchema(
     audioUrl: string;
     id: string;
   },
-  siteUrl: string = "https://thedime.com"
+  siteUrl: string = "https://dimepodcast.com"
 ): SchemaMarkup {
   return {
     "@context": "https://schema.org",
@@ -52,7 +52,7 @@ export function createVideoObjectSchema(
     duration: string;
     id: string;
   },
-  siteUrl: string = "https://thedime.com"
+  siteUrl: string = "https://dimepodcast.com"
 ): SchemaMarkup {
   return {
     "@context": "https://schema.org",
@@ -68,7 +68,7 @@ export function createVideoObjectSchema(
 }
 
 export function createPodcastSchema(
-  siteUrl: string = "https://thedime.com"
+  siteUrl: string = "https://dimepodcast.com"
 ): SchemaMarkup {
   return {
     "@context": "https://schema.org",
@@ -85,7 +85,7 @@ export function createPodcastSchema(
 }
 
 export function createOrganizationSchema(
-  siteUrl: string = "https://thedime.com"
+  siteUrl: string = "https://dimepodcast.com"
 ): SchemaMarkup {
   return {
     "@context": "https://schema.org",

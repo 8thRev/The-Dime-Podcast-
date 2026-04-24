@@ -19,11 +19,11 @@ export default function Videos({ allVideos }) {
       <Head>
         <title>Video Library — The Dime Podcast</title>
         <meta name="description" content={`Full video library from The Dime Podcast YouTube channel. ${allVideos.length} videos featuring cannabis founders, operators, and executives.`} />
-        <link rel="canonical" href="https://thedime.com/videos" />
+        <link rel="canonical" href="https://dimepodcast.com/videos" />
         <meta property="og:title" content="Video Library — The Dime Podcast" />
         <meta property="og:description" content="Every conversation on video. Cannabis business intelligence from The Dime Podcast YouTube channel." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://thedime.com/videos" />
+        <meta property="og:url" content="https://dimepodcast.com/videos" />
         <meta name="twitter:title" content="Video Library — The Dime Podcast" />
         <meta name="twitter:description" content="Every conversation on video. Cannabis founders, operators, and executives." />
       </Head>

@@ -30,7 +30,7 @@ const TOPICS = [
 
 export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
   const topicItems = [...TOPICS, ...TOPICS];
-  const schema = createPodcastSchema('https://thedime.com');
+  const schema = createPodcastSchema('https://dimepodcast.com');
 
   return (
     <>
@@ -124,14 +124,16 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 
       <Head>
         <title>The Dime Podcast — Cannabis Business Intelligence</title>
-        <meta name="description" content="Strategy conversations for cannabis operators, not observers. 295+ episodes with founders, executives, and investors shaping the cannabis industry." />
-        <link rel="canonical" href="https://thedime.com" />
+        <meta name="description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors shaping the cannabis industry.`} />
+        <link rel="canonical" href="https://dimepodcast.com" />
         <meta property="og:title" content="The Dime Podcast — Cannabis Business Intelligence" />
-        <meta property="og:description" content="Strategy conversations for cannabis operators, not observers. The most operator-focused podcast in cannabis." />
+        <meta property="og:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes. The most operator-focused podcast in cannabis.`} />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://thedime.com" />
+        <meta property="og:url" content="https://dimepodcast.com" />
+        <meta property="og:image" content="https://dimepodcast.com/og-default.jpg" />
         <meta name="twitter:title" content="The Dime Podcast — Cannabis Business Intelligence" />
-        <meta name="twitter:description" content="Strategy conversations for cannabis operators, not observers. 295+ episodes with founders, executives, and investors." />
+        <meta name="twitter:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors.`} />
+        <meta name="twitter:image" content="https://dimepodcast.com/og-default.jpg" />
       </Head>
 
       <Schema schema={schema} />

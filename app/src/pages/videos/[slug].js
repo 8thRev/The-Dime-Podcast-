@@ -53,7 +53,7 @@ export default function VideoPage({ video, relatedVideos }) {
         <meta property="og:title" content={video.title} />
         <meta property="og:description" content={video.description} />
         <meta property="og:type" content="video.other" />
-        <meta property="og:url" content={`https://thedime.com/videos/${video.slug}`} />
+        <meta property="og:url" content={`https://dimepodcast.com/videos/${video.slug}`} />
         <meta property="og:image" content={video.thumbnail} />
       </Head>
 

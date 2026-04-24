@@ -29,8 +29,21 @@ export async function getStaticProps({ params }) {
     return { notFound: true };
   }
 
+  // 301 redirect old truncated slug → full slug
+  if (episode.legacySlug && params.slug === episode.legacySlug) {
+    return {
+      redirect: { destination: `/episodes/${episode.slug}`, permanent: true },
+    };
+  }
+
   const relatedEpisodes = allEpisodes
     .filter((e) => e.num !== episode.num)
+    .sort((a, b) => {
+      const aShared = a.tags.filter((t) => episode.tags.includes(t)).length;
+      const bShared = b.tags.filter((t) => episode.tags.includes(t)).length;
+      if (bShared !== aShared) return bShared - aShared;
+      return new Date(b.dateISO).getTime() - new Date(a.dateISO).getTime();
+    })
     .slice(0, 5);
 
   return {
@@ -48,15 +61,17 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
   return (
     <>
       <Head>
-        <title>{episode.title} - The Dime Podcast</title>
+        <title>{episode.title} — The Dime Podcast</title>
         <meta name="description" content={episode.description} />
-        <meta property="og:title" content={episode.title} />
+        <link rel="canonical" href={`https://dimepodcast.com/episodes/${episode.slug}`} />
+        <meta property="og:title" content={`${episode.title} — The Dime Podcast`} />
         <meta property="og:description" content={episode.description} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://thedime.com/episodes/${episode.slug}`} />
-        <link rel="canonical" href={`https://thedime.com/episodes/${episode.slug}`} />
+        <meta property="og:url" content={`https://dimepodcast.com/episodes/${episode.slug}`} />
+        <meta property="og:image" content="https://dimepodcast.com/og-default.jpg" />
         <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
         <meta name="twitter:description" content={episode.description} />
+        <meta name="twitter:image" content="https://dimepodcast.com/og-default.jpg" />
       </Head>
 
       <Schema schema={schema} />

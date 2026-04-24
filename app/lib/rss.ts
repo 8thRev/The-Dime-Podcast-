@@ -25,6 +25,7 @@ type CustomItem = {
 export type Episode = {
   id: string;
   slug: string;
+  legacySlug: string;
   num: string;
   title: string;
   guest: string;
@@ -58,7 +59,7 @@ function slugify(title: string): string {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .slice(0, 80);
+    .replace(/-+$/, "");
 }
 
 function extractGuest(title: string): { guest: string; company: string } {
@@ -112,9 +113,13 @@ export async function getAllEpisodes(): Promise<Episode[]> {
       const showNotes = item["content:encoded"] || item.itunes?.summary || "";
       const description = showNotes.replace(/<[^>]+>/g, "").slice(0, 220) + "...";
 
+      const fullSlug = slugify(item.title || "");
+      const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");
+
       return {
         id,
-        slug: slugify(item.title || ""),
+        slug: fullSlug,
+        legacySlug: truncatedSlug !== fullSlug ? truncatedSlug : "",
         num: epNum,
         title: item.title || "",
         guest,
@@ -143,7 +148,7 @@ export async function getAllEpisodes(): Promise<Episode[]> {
 
 export async function getEpisodeBySlug(slug: string): Promise<Episode | null> {
   const episodes = await getAllEpisodes();
-  return episodes.find((ep) => ep.slug === slug) || null;
+  return episodes.find((ep) => ep.slug === slug || ep.legacySlug === slug) || null;
 }
 
 export async function getEpisodesByTag(tag: string): Promise<Episode[]> {

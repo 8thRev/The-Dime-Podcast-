@@ -18,10 +18,10 @@ export default function Episodes({ allEpisodes }) {
       <Head>
         <title>All Episodes — The Dime Podcast</title>
         <meta name="description" content={`Browse all ${allEpisodes.length} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`} />
-        <link rel="canonical" href="https://thedime.com/episodes" />
+        <link rel="canonical" href="https://dimepodcast.com/episodes" />
         <meta property="og:title" content="All Episodes — The Dime Podcast" />
         <meta property="og:description" content="Browse every episode. Cannabis business intelligence, operator to operator." />
-        <meta property="og:url" content="https://thedime.com/episodes" />
+        <meta property="og:url" content="https://dimepodcast.com/episodes" />
         <meta name="twitter:title" content="All Episodes — The Dime Podcast" />
         <meta name="twitter:description" content={`Browse all ${allEpisodes?.length || '295'}+ episodes. Cannabis founders, executives, and investors.`} />
       </Head>
