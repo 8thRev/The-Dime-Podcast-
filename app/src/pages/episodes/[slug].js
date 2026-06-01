@@ -102,7 +102,18 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
 
           <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 500 }}>
             {episode.guest}
-            {episode.company && <span style={{ color: 'var(--text-muted)' }}> / {episode.company}</span>}
+            {episode.company && (
+              <span style={{ color: 'var(--text-muted)' }}>
+                {' / '}
+                {episode.companyUrl ? (
+                  <a href={episode.companyUrl} rel="noopener" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>
+                    {episode.company}
+                  </a>
+                ) : (
+                  episode.company
+                )}
+              </span>
+            )}
           </div>
 
           {episode.tags.length > 0 && (

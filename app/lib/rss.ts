@@ -30,6 +30,7 @@ export type Episode = {
   title: string;
   guest: string;
   company: string;
+  companyUrl: string;
   date: string;
   dateISO: string;
   duration: string;
@@ -97,6 +98,38 @@ function extractSimplecastId(guid: string, link: string): string {
   return guid || "";
 }
 
+// Domains to skip when auto-detecting company links from show notes
+const SKIP_DOMAINS = [
+  "linkedin.com", "twitter.com", "x.com", "instagram.com", "youtube.com",
+  "facebook.com", "tiktok.com", "spotify.com", "podcasts.apple.com",
+  "dimepodcast.com", "thedimepodcast.com", "8threv.com", "eighthrev.com",
+  "simplecast.com", "anchor.fm", "buzzsprout.com",
+];
+
+function extractCompanyFromShowNotes(html: string): { company: string; companyUrl: string } {
+  const linkRe = /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = linkRe.exec(html)) !== null) {
+    const href = match[1].trim();
+    const text = match[2].replace(/<[^>]+>/g, "").trim();
+    if (!href.startsWith("http") || !text) continue;
+    try {
+      const hostname = new URL(href).hostname.replace(/^www\./, "");
+      if (SKIP_DOMAINS.some((d) => hostname === d || hostname.endsWith("." + d))) continue;
+    } catch {
+      continue;
+    }
+    return { company: text, companyUrl: href };
+  }
+  return { company: "", companyUrl: "" };
+}
+
+// Manual overrides — takes precedence over auto-detection.
+// Use when the show notes don't link the company or the wrong link is detected.
+const GUEST_COMPANY_MAP: Record<string, { company: string; companyUrl: string }> = {
+  "Aubrey Amatelli": { company: "PayRio", companyUrl: "https://www.payrio.co" },
+};
+
 let cachedEpisodes: Episode[] | null = null;
 
 export async function getAllEpisodes(): Promise<Episode[]> {
@@ -106,11 +139,16 @@ export async function getAllEpisodes(): Promise<Episode[]> {
     const feed = await parser.parseURL(FEED_URL);
 
     cachedEpisodes = feed.items.map((item, index) => {
-      const { guest, company } = extractGuest(item.title || "");
+      const { guest, company: extractedCompany } = extractGuest(item.title || "");
+      const showNotesRaw = item["content:encoded"] || item.itunes?.summary || "";
+      const companyOverride = GUEST_COMPANY_MAP[guest];
+      const autoDetected = companyOverride ? { company: "", companyUrl: "" } : extractCompanyFromShowNotes(showNotesRaw);
+      const company = companyOverride?.company || autoDetected.company || extractedCompany;
+      const companyUrl = companyOverride?.companyUrl || autoDetected.companyUrl || "";
       const id = extractSimplecastId(item.guid || "", item.link || "");
       const epNum = item.itunes?.episode || String(feed.items.length - index);
       const tags = item.itunes?.keywords?.split(",").map((k) => k.trim()).filter(Boolean) || [];
-      const showNotes = item["content:encoded"] || item.itunes?.summary || "";
+      const showNotes = showNotesRaw;
       const description = showNotes.replace(/<[^>]+>/g, "").slice(0, 220) + "...";
 
       const fullSlug = slugify(item.title || "");
@@ -124,6 +162,7 @@ export async function getAllEpisodes(): Promise<Episode[]> {
         title: item.title || "",
         guest,
         company,
+        companyUrl,
         date: new Date(item.pubDate || "").toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",
