@@ -14,7 +14,6 @@ class ClaudeClient:
         self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.ANTHROPIC_MAX_TOKENS
-        self.temperature = config.ANTHROPIC_TEMPERATURE
 
     def generate_research(
         self,
@@ -47,7 +46,6 @@ class ClaudeClient:
             message = self.client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
-                temperature=self.temperature,
                 messages=[{"role": "user", "content": prompt}],
             )
 
