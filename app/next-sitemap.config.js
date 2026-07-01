@@ -31,6 +31,8 @@ module.exports = {
       { path: '/guests', priority: 0.7, changefreq: 'weekly' },
       { path: '/about', priority: 0.6, changefreq: 'monthly' },
       { path: '/newsletter', priority: 0.6, changefreq: 'monthly' },
+      { path: '/privacy', priority: 0.3, changefreq: 'yearly' },
+      { path: '/terms', priority: 0.3, changefreq: 'yearly' },
     ];
 
     staticPages.forEach(({ path, priority, changefreq }) => {
