@@ -126,6 +126,10 @@ export default function Footer() {
 
         {/* Legal */}
         <div className="footer-legal">
+          <div style={{ display: 'flex', gap: 16, marginBottom: 10 }}>
+            <Link href="/privacy" style={{ ...footerLinkStyle, marginBottom: 0 }}>Privacy Policy</Link>
+            <Link href="/terms" style={{ ...footerLinkStyle, marginBottom: 0 }}>Terms of Service</Link>
+          </div>
           <div className="mono" style={{ fontSize: '8px', color: '#777777', lineHeight: 1.7, letterSpacing: '.06em' }}>
             © {new Date().getFullYear()} THE DIME · ALL RIGHTS RESERVED
           </div>
