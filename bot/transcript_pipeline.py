@@ -63,7 +63,7 @@ def main() -> int:
     for i, video in enumerate(videos, 1):
         print(f"[{i}/{len(videos)}] {video['title']}")
 
-        match = simplecast_feed.find_best_match(video["title"], episodes)
+        match = simplecast_feed.find_best_match(video["title"], video["publishedAt"], episodes)
         if not match:
             print("  -> No confident match to a published episode. Skipping.\n")
             skipped += 1

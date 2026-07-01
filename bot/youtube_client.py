@@ -8,6 +8,8 @@ channel owner even to list track IDs — an API key alone isn't enough —
 so this uses the bearer token for every call, including listing videos.
 """
 
+import re
+
 import requests
 
 from config import config
@@ -15,6 +17,19 @@ from config import config
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://www.googleapis.com/youtube/v3"
 CHANNEL_ID = "UCcck3tzBNXrJ1WJ8EtIVq1w"  # @thedime_cannabis
+
+# The channel posts short highlight clips between full-episode uploads;
+# clips run a few minutes at most, so this threshold reliably separates
+# full episodes from clips/Shorts without needing to inspect titles.
+MIN_EPISODE_DURATION_SECONDS = 900  # 15 minutes
+
+
+def _parse_iso8601_duration(duration: str) -> int:
+    match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration or "")
+    if not match:
+        return 0
+    hours, minutes, seconds = (int(v) if v else 0 for v in match.groups())
+    return hours * 3600 + minutes * 60 + seconds
 
 
 class YouTubeClient:
@@ -45,17 +60,22 @@ class YouTubeClient:
         return {"Authorization": f"Bearer {self._get_access_token()}"}
 
     def list_recent_videos(self, limit: int) -> list[dict]:
-        """Return up to `limit` most recent public videos: [{id, title, publishedAt}]."""
-        videos: list[dict] = []
+        """Return up to `limit` most recent full-length videos — short
+        clips/Shorts the channel also posts are filtered out by duration —
+        as [{id, title, publishedAt}]. Scans up to 10 pages (500 videos)
+        looking for enough qualifying full episodes before giving up."""
+        candidates: list[dict] = []
         page_token = None
+        pages_scanned = 0
+        max_pages = 10
 
-        while len(videos) < limit:
+        while len(candidates) < limit and pages_scanned < max_pages:
             params = {
                 "part": "snippet",
                 "channelId": CHANNEL_ID,
                 "type": "video",
                 "order": "date",
-                "maxResults": min(50, limit - len(videos)),
+                "maxResults": 50,
             }
             if page_token:
                 params["pageToken"] = page_token
@@ -65,21 +85,45 @@ class YouTubeClient:
             )
             resp.raise_for_status()
             data = resp.json()
+            pages_scanned += 1
 
-            for item in data.get("items", []):
-                videos.append(
-                    {
-                        "id": item["id"]["videoId"],
-                        "title": item["snippet"]["title"],
-                        "publishedAt": item["snippet"]["publishedAt"],
-                    }
-                )
+            items = data.get("items", [])
+            video_ids = [item["id"]["videoId"] for item in items]
+            snippets = {item["id"]["videoId"]: item["snippet"] for item in items}
+
+            if video_ids:
+                durations = self._get_durations(video_ids)
+                for vid in video_ids:
+                    if durations.get(vid, 0) >= MIN_EPISODE_DURATION_SECONDS:
+                        candidates.append(
+                            {
+                                "id": vid,
+                                "title": snippets[vid]["title"],
+                                "publishedAt": snippets[vid]["publishedAt"],
+                            }
+                        )
+                    if len(candidates) >= limit:
+                        break
 
             page_token = data.get("nextPageToken")
             if not page_token:
                 break
 
-        return videos[:limit]
+        return candidates[:limit]
+
+    def _get_durations(self, video_ids: list[str]) -> dict:
+        """Return {video_id: duration_in_seconds} for up to 50 video IDs."""
+        resp = requests.get(
+            f"{API_BASE}/videos",
+            params={"part": "contentDetails", "id": ",".join(video_ids)},
+            headers=self._headers(),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        return {
+            item["id"]: _parse_iso8601_duration(item["contentDetails"]["duration"])
+            for item in resp.json().get("items", [])
+        }
 
     def get_caption_track_id(self, video_id: str) -> str | None:
         """Return the best available English caption track ID, preferring a
