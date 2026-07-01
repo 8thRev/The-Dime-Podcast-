@@ -71,6 +71,10 @@ class Config:
     GSC_SERVICE_ACCOUNT_JSON: str = os.getenv("GSC_SERVICE_ACCOUNT_JSON", "")
     GSC_SITE_URL: str = os.getenv("GSC_SITE_URL") or "sc-domain:dimepodcast.com"
 
+    # GA4 traffic data (optional add-on to the SEO report). If unset, the
+    # report just skips the GA4 section.
+    GA4_PROPERTY_ID: str = os.getenv("GA4_PROPERTY_ID", "")
+
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the SEO report script."""

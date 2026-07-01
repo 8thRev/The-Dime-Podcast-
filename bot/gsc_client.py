@@ -2,14 +2,12 @@
 Google Search Console client for the SEO report.
 """
 
-import json
-import os
 from datetime import date, timedelta
 
-from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 from config import config
+from google_credentials import load_credentials
 
 SCOPES = ["https://www.googleapis.com/auth/webmasters.readonly"]
 
@@ -26,29 +24,7 @@ class SearchConsoleClient:
     def __init__(self):
         self.site_url = config.GSC_SITE_URL
         self._service = build(
-            "searchconsole", "v1", credentials=self._load_credentials()
-        )
-
-    def _load_credentials(self) -> service_account.Credentials:
-        raw = config.GSC_SERVICE_ACCOUNT_JSON.strip()
-        if not raw:
-            raise ValueError("GSC_SERVICE_ACCOUNT_JSON is not set")
-
-        if os.path.isfile(raw):
-            return service_account.Credentials.from_service_account_file(
-                raw, scopes=SCOPES
-            )
-
-        try:
-            info = json.loads(raw)
-        except json.JSONDecodeError as e:
-            raise ValueError(
-                "GSC_SERVICE_ACCOUNT_JSON is not valid JSON and isn't a file path "
-                f"either ({e}). Did the full key file contents get pasted into "
-                "the secret?"
-            ) from e
-        return service_account.Credentials.from_service_account_info(
-            info, scopes=SCOPES
+            "searchconsole", "v1", credentials=load_credentials(SCOPES)
         )
 
     def query(self, start: date, end: date, dimension: str, row_limit: int = 25) -> list[dict]:
