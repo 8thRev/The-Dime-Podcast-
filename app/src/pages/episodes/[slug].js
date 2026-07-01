@@ -9,7 +9,8 @@ import Schema from '@/src/components/Schema';
 import AIDisclosure from '@/src/components/AIDisclosure';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
-import { createPodcastEpisodeSchema, createFAQSchema } from '@/lib/schema';
+import { createPodcastEpisodeSchema, createFAQSchema, createBreadcrumbSchema } from '@/lib/schema';
+import { topicToSlug } from '@/lib/topicSlug';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -62,12 +63,19 @@ export async function getStaticProps({ params }) {
       episode,
       relatedEpisodes,
       transcript,
+      episodeTopics,
     },
     revalidate: 3600,
   };
 }
 
-export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
+export default function EpisodePage({ episode, relatedEpisodes, transcript, episodeTopics }) {
+  // Prefer the AI-generated fixed-taxonomy topics (crawlable hub pages
+  // exist for these) over freeform RSS keywords, falling back to RSS tags
+  // for episodes that don't have transcript coverage yet. Only the former
+  // have a /topics/[tag] hub page to link to.
+  const hasTopics = episodeTopics.length > 0;
+  const displayTags = hasTopics ? episodeTopics : episode.tags;
   // The AI-generated summary is a tighter, more accurate paragraph than
   // the truncated RSS show-notes description — prefer it for meta tags
   // (and thus search/social snippets) whenever it's available.
@@ -75,8 +83,14 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
   const schema = createPodcastEpisodeSchema(episode, undefined, {
     aiGenerated: !!transcript,
     entities: transcript?.entities,
+    guest: episode.guest ? { name: episode.guest, company: episode.company, companyUrl: episode.companyUrl } : undefined,
   });
   const faqSchema = transcript?.faq?.length ? createFAQSchema(transcript.faq) : null;
+  const breadcrumbSchema = createBreadcrumbSchema([
+    { name: 'Home', url: 'https://www.dimepodcast.com' },
+    { name: 'Episodes', url: 'https://www.dimepodcast.com/episodes' },
+    { name: episode.title, url: `https://www.dimepodcast.com/episodes/${episode.slug}` },
+  ]);
 
   return (
     <>
@@ -96,6 +110,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
 
       <Schema schema={schema} />
       {faqSchema && <Schema schema={faqSchema} />}
+      <Schema schema={breadcrumbSchema} />
 
       <Header />
 
@@ -137,23 +152,27 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
             )}
           </div>
 
-          {episode.tags.length > 0 && (
+          {displayTags.length > 0 && (
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '40px' }}>
-              {episode.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="mono"
-                  style={{
-                    fontSize: '10px',
-                    color: 'var(--text-accent)',
-                    border: '1px solid var(--text-accent)',
-                    padding: '4px 12px',
-                    fontWeight: 700,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
+              {displayTags.map((tag) => {
+                const tagStyle = {
+                  fontSize: '10px',
+                  color: 'var(--text-accent)',
+                  border: '1px solid var(--text-accent)',
+                  padding: '4px 12px',
+                  fontWeight: 700,
+                  textDecoration: 'none',
+                };
+                return hasTopics ? (
+                  <Link key={tag} href={`/topics/${topicToSlug(tag)}`} className="mono" style={tagStyle}>
+                    {tag}
+                  </Link>
+                ) : (
+                  <span key={tag} className="mono" style={tagStyle}>
+                    {tag}
+                  </span>
+                );
+              })}
             </div>
           )}
         </header>
@@ -226,7 +245,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
             <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Notable Quotes
             </h3>
-            {transcript.quotes.map((quote, i) => (
+            {transcript.quotes.map((item, i) => (
               <blockquote
                 key={i}
                 style={{
@@ -239,7 +258,10 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
                   color: 'var(--text-headline)',
                 }}
               >
-                “{quote}”
+                “{item.quote}”
+                <footer style={{ fontSize: '13px', fontStyle: 'normal', fontFamily: "'Syne', sans-serif", color: 'var(--text-muted)', marginTop: '8px' }}>
+                  — {item.speaker}
+                </footer>
               </blockquote>
             ))}
           </section>

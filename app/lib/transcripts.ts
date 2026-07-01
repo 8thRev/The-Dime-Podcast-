@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 
 export type TranscriptFAQ = { question: string; answer: string };
+export type TranscriptQuote = { speaker: string; quote: string };
 export type TranscriptEntities = { companies: string[]; people: string[] };
 
 export type TranscriptData = {
@@ -17,7 +18,7 @@ export type TranscriptData = {
   summary: string;
   takeaways: string[];
   faq: TranscriptFAQ[];
-  quotes: string[];
+  quotes: TranscriptQuote[];
   topics: string[];
   entities: TranscriptEntities;
   raw_captions_srt?: string;

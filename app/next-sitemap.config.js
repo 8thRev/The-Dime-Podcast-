@@ -28,6 +28,7 @@ module.exports = {
       { path: '/', priority: 1.0, changefreq: 'daily' },
       { path: '/episodes', priority: 0.9, changefreq: 'daily' },
       { path: '/videos', priority: 0.8, changefreq: 'daily' },
+      { path: '/topics', priority: 0.8, changefreq: 'weekly' },
       { path: '/guests', priority: 0.7, changefreq: 'weekly' },
       { path: '/about', priority: 0.6, changefreq: 'monthly' },
       { path: '/newsletter', priority: 0.6, changefreq: 'monthly' },

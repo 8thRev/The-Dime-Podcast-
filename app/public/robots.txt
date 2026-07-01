@@ -5,7 +5,7 @@ Disallow: /admin
 Disallow: /api
 
 # Host
-Host: https://thedime.com
+Host: https://www.dimepodcast.com
 
 # Sitemaps
-Sitemap: https://thedime.com/sitemap.xml
+Sitemap: https://www.dimepodcast.com/sitemap.xml
