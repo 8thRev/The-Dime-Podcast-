@@ -6,8 +6,10 @@ import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
+import AIDisclosure from '@/src/components/AIDisclosure';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
-import { createPodcastEpisodeSchema } from '@/lib/schema';
+import { getTranscriptBySlug } from '@/lib/transcripts';
+import { createPodcastEpisodeSchema, createFAQSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -46,35 +48,40 @@ export async function getStaticProps({ params }) {
     })
     .slice(0, 5);
 
+  const transcript = getTranscriptBySlug(episode.slug);
+
   return {
     props: {
       episode,
       relatedEpisodes,
+      transcript,
     },
     revalidate: 3600,
   };
 }
 
-export default function EpisodePage({ episode, relatedEpisodes }) {
-  const schema = createPodcastEpisodeSchema(episode);
+export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
+  const schema = createPodcastEpisodeSchema(episode, undefined, { aiGenerated: !!transcript });
+  const faqSchema = transcript?.faq?.length ? createFAQSchema(transcript.faq) : null;
 
   return (
     <>
       <Head>
         <title>{episode.title} — The Dime Podcast</title>
         <meta name="description" content={episode.description} />
-        <link rel="canonical" href={`https://dimepodcast.com/episodes/${episode.slug}`} />
+        <link rel="canonical" href={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
         <meta property="og:title" content={`${episode.title} — The Dime Podcast`} />
         <meta property="og:description" content={episode.description} />
         <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://dimepodcast.com/episodes/${episode.slug}`} />
-        <meta property="og:image" content="https://dimepodcast.com/og-default.jpg" />
+        <meta property="og:url" content={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
+        <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
         <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
         <meta name="twitter:description" content={episode.description} />
-        <meta name="twitter:image" content="https://dimepodcast.com/og-default.jpg" />
+        <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
       </Head>
 
       <Schema schema={schema} />
+      {faqSchema && <Schema schema={faqSchema} />}
 
       <Header />
 
@@ -170,6 +177,85 @@ export default function EpisodePage({ episode, relatedEpisodes }) {
             </div>
           )}
         </section>
+
+        {transcript && transcript.takeaways?.length > 0 && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Key Takeaways
+            </h3>
+            <ul style={{ paddingLeft: '20px', margin: 0 }}>
+              {transcript.takeaways.map((point, i) => (
+                <li key={i} style={{ fontSize: '15px', lineHeight: '1.8', color: 'var(--text-secondary)', marginBottom: '10px' }}>
+                  {point}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {transcript && transcript.quotes?.length > 0 && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Notable Quotes
+            </h3>
+            {transcript.quotes.map((quote, i) => (
+              <blockquote
+                key={i}
+                style={{
+                  borderLeft: '3px solid var(--text-accent)',
+                  paddingLeft: '20px',
+                  margin: '0 0 20px 0',
+                  fontSize: '17px',
+                  fontStyle: 'italic',
+                  fontFamily: "'Crimson Pro', Georgia, serif",
+                  color: 'var(--text-headline)',
+                }}
+              >
+                “{quote}”
+              </blockquote>
+            ))}
+          </section>
+        )}
+
+        {transcript && transcript.faq?.length > 0 && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Frequently Asked Questions
+            </h3>
+            {transcript.faq.map((item, i) => (
+              <div key={i} style={{ marginBottom: '20px' }}>
+                <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-headline)', marginBottom: '6px' }}>
+                  {item.question}
+                </div>
+                <div style={{ fontSize: '15px', lineHeight: '1.75', color: 'var(--text-secondary)' }}>
+                  {item.answer}
+                </div>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {transcript && transcript.cleaned_transcript && (
+          <section style={{ marginBottom: '80px' }}>
+            <AIDisclosure />
+            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Full Transcript
+            </h3>
+            <div
+              style={{
+                fontSize: '14px',
+                lineHeight: '1.8',
+                color: 'var(--text-secondary)',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {transcript.cleaned_transcript}
+            </div>
+          </section>
+        )}
 
         {relatedEpisodes.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>

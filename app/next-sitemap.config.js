@@ -1,7 +1,7 @@
 // next-sitemap.config.js
 // Configuration for XML sitemaps
 
-const siteUrl = process.env.SITE_URL || 'https://dimepodcast.com';
+const siteUrl = process.env.SITE_URL || 'https://www.dimepodcast.com';
 
 module.exports = {
   siteUrl,

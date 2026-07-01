@@ -35,7 +35,7 @@ export default function Privacy() {
       <Head>
         <title>Privacy Policy — The Dime Podcast</title>
         <meta name="description" content="Privacy policy for The Dime Podcast — what data we collect, the third-party services we use, and how we handle it." />
-        <link rel="canonical" href="https://dimepodcast.com/privacy" />
+        <link rel="canonical" href="https://www.dimepodcast.com/privacy" />
       </Head>
       <Header />
 

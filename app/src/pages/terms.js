@@ -43,7 +43,7 @@ export default function Terms() {
       <Head>
         <title>Terms of Service — The Dime Podcast</title>
         <meta name="description" content="Terms of Service for The Dime Podcast website." />
-        <link rel="canonical" href="https://dimepodcast.com/terms" />
+        <link rel="canonical" href="https://www.dimepodcast.com/terms" />
       </Head>
       <Header />
 
