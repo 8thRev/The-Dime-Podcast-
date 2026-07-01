@@ -11,7 +11,7 @@ import anthropic
 from config import config
 from transcript_prompts import get_transcript_prompt
 
-REQUIRED_KEYS = {"cleaned_transcript", "takeaways", "faq", "quotes", "topics"}
+REQUIRED_KEYS = {"cleaned_transcript", "summary", "takeaways", "faq", "quotes", "topics", "entities"}
 
 
 class TranscriptClaudeClient:

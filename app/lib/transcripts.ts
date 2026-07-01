@@ -6,6 +6,7 @@ import fs from "fs";
 import path from "path";
 
 export type TranscriptFAQ = { question: string; answer: string };
+export type TranscriptEntities = { companies: string[]; people: string[] };
 
 export type TranscriptData = {
   slug: string;
@@ -13,10 +14,13 @@ export type TranscriptData = {
   generatedAt: string;
   aiGenerated: boolean;
   cleaned_transcript: string;
+  summary: string;
   takeaways: string[];
   faq: TranscriptFAQ[];
   quotes: string[];
   topics: string[];
+  entities: TranscriptEntities;
+  raw_captions_srt?: string;
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "transcripts");
@@ -43,4 +47,17 @@ export function getAllTranscriptSlugs(): string[] {
   } catch {
     return [];
   }
+}
+
+// Slug -> topics, for every episode that has a transcript. Used to fold
+// AI-generated topic tags into related-episode scoring alongside the
+// older RSS keyword tags, without every page needing to read every
+// transcript file individually.
+export function getAllTopicsBySlug(): Record<string, string[]> {
+  const map: Record<string, string[]> = {};
+  for (const slug of getAllTranscriptSlugs()) {
+    const data = getTranscriptBySlug(slug);
+    if (data?.topics?.length) map[slug] = data.topics;
+  }
+  return map;
 }
