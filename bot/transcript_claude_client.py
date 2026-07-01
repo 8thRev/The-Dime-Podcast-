@@ -32,11 +32,31 @@ class TranscriptClaudeClient:
         prompt = get_transcript_prompt(guest_name, company, episode_title, raw_transcript)
 
         try:
-            message = self.client.messages.create(
+            # Long episodes need tens of thousands of output tokens for the
+            # cleaned transcript alone, so this routinely exceeds the ~16k
+            # threshold where the SDK requires streaming to avoid a
+            # non-streaming HTTP timeout.
+            with self.client.messages.stream(
                 model=self.model,
                 max_tokens=self.max_tokens,
                 messages=[{"role": "user", "content": prompt}],
-            )
+            ) as stream:
+                message = stream.get_final_message()
+
+            if message.stop_reason == "max_tokens":
+                # The response was cut off mid-generation because it hit
+                # max_tokens -- this is a token-budget problem, not a
+                # formatting mistake, and will always fail JSON parsing
+                # (typically as an unterminated string or truncated key).
+                # Surface that distinctly instead of letting it fall through
+                # to the generic "did not return valid JSON" branch below.
+                print(
+                    f"Error: Claude hit the max_tokens cap ({self.max_tokens}) before "
+                    "finishing the response -- the transcript is longer than the "
+                    "configured token budget. Raise TRANSCRIPT_MAX_TOKENS rather than "
+                    "treating this as a JSON formatting bug."
+                )
+                return False, {}
 
             text = "\n".join(
                 block.text for block in message.content if block.type == "text"

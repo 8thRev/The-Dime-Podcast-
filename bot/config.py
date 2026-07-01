@@ -56,10 +56,13 @@ class Config:
     YOUTUBE_OAUTH_CLIENT_SECRET: str = os.getenv("YOUTUBE_OAUTH_CLIENT_SECRET", "")
     YOUTUBE_OAUTH_REFRESH_TOKEN: str = os.getenv("YOUTUBE_OAUTH_REFRESH_TOKEN", "")
 
-    # Transcript pipeline tuning. Higher max tokens than the research bot
-    # since output includes a full cleaned episode transcript, not just a
-    # short document.
-    TRANSCRIPT_MAX_TOKENS: int = int(os.getenv("TRANSCRIPT_MAX_TOKENS", "16000"))
+    # Transcript pipeline tuning. Much higher max tokens than the research
+    # bot since output includes a full cleaned episode transcript (with
+    # speaker labels) plus takeaways/FAQ/quotes/topics, not just a short
+    # document -- a 60-90 min episode alone needs ~20-30k output tokens for
+    # the cleaned transcript. claude-sonnet-5 supports up to 128k output
+    # tokens (streamed).
+    TRANSCRIPT_MAX_TOKENS: int = int(os.getenv("TRANSCRIPT_MAX_TOKENS", "64000"))
     TRANSCRIPT_LIMIT: int = int(os.getenv("TRANSCRIPT_LIMIT", "10"))
 
     @classmethod
