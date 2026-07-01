@@ -117,6 +117,11 @@ def main() -> int:
             "source": "youtube_captions",
             "generatedAt": datetime.now(timezone.utc).isoformat(),
             "aiGenerated": True,
+            # Preserved even though nothing renders it yet — timestamp data
+            # (chapter markers, jump-to-timestamp links, video Clip schema)
+            # is expensive to reconstruct later; keeping the raw SRT means
+            # we never have to re-fetch captions from YouTube to get it.
+            "raw_captions_srt": srt,
             **artifacts,
         }
 
