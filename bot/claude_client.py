@@ -10,6 +10,17 @@ from prompt_template import get_research_prompt
 class ClaudeClient:
     """Client for interacting with Anthropic Claude API."""
 
+    # Server-side tools: web_search finds guest info, web_fetch pulls the
+    # specific LinkedIn/company URLs passed in via links_and_notes.
+    RESEARCH_TOOLS = [
+        {"type": "web_search_20260209", "name": "web_search"},
+        {"type": "web_fetch_20260209", "name": "web_fetch"},
+    ]
+
+    # Safety cap on continuation requests if Claude's server-side search
+    # loop pauses (stop_reason "pause_turn") before it's done researching.
+    MAX_CONTINUATIONS = 5
+
     def __init__(self):
         self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
         self.model = config.ANTHROPIC_MODEL
@@ -23,7 +34,9 @@ class ClaudeClient:
         links_and_notes: str = "",
     ) -> tuple[bool, str]:
         """
-        Generate research document for a guest using Claude.
+        Generate research document for a guest using Claude, with web search
+        and web fetch enabled so Claude can look up current information
+        instead of relying only on training data.
 
         Args:
             guest_name: Name of the guest
@@ -42,19 +55,41 @@ class ClaudeClient:
                 guest_name, company, title, links_and_notes=links_and_notes
             )
 
-            # Call Claude API
+            messages = [{"role": "user", "content": prompt}]
             message = self.client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
-                messages=[{"role": "user", "content": prompt}],
+                tools=self.RESEARCH_TOOLS,
+                messages=messages,
             )
 
-            # Extract response content (adaptive thinking may prepend a
-            # ThinkingBlock before the text block)
-            content = next(
-                (block.text for block in message.content if block.type == "text"),
-                "",
-            )
+            # Claude's server-side search loop pauses after its default
+            # iteration limit if it's still researching; resend history to
+            # let it continue rather than cutting research short.
+            continuations = 0
+            while (
+                message.stop_reason == "pause_turn"
+                and continuations < self.MAX_CONTINUATIONS
+            ):
+                messages = [
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": message.content},
+                ]
+                message = self.client.messages.create(
+                    model=self.model,
+                    max_tokens=self.max_tokens,
+                    tools=self.RESEARCH_TOOLS,
+                    messages=messages,
+                )
+                continuations += 1
+
+            # Join every text block in order (adaptive thinking, search
+            # narration, and the final write-up can each land in separate
+            # blocks; concatenating avoids only capturing a preamble).
+            content = "\n\n".join(
+                block.text for block in message.content if block.type == "text"
+            ).strip()
+
             if content:
                 print(f"Successfully generated research ({len(content)} characters)")
                 return True, content
