@@ -8,15 +8,20 @@ Runs via .github/workflows/seo-report.yml (weekly cron + manual dispatch).
 
 import sys
 
+import requests
+
 from config import config
 from email_client import EmailClient
 from ga4_client import GA4Client
 from gsc_client import SearchConsoleClient, current_and_previous_windows
+from simplecast_client import SimplecastClient
+from youtube_analytics_client import YouTubeAnalyticsClient
 from youtube_client import YouTubeClient
 
 TOP_N = 15
 MOVERS_N = 5
 YOUTUBE_VIDEO_LIMIT = 10
+SIMPLECAST_EPISODE_LIMIT = 10
 
 
 def pct_change(current: float, previous: float) -> str:
@@ -98,8 +103,45 @@ def youtube_table_html(rows: list[dict]) -> str:
     return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
 
 
+def simplecast_table_html(rows: list[dict]) -> str:
+    if not rows:
+        return "<p><em>No data.</em></p>"
+    lines = ["<tr><th align='left'>Title</th><th>Published</th><th>Downloads</th></tr>"]
+    for row in rows:
+        lines.append(
+            f"<tr><td>{row['title']}</td><td>{row['published_at']}</td>"
+            f"<td align='right'>{row['downloads']}</td></tr>"
+        )
+    return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
+
+
+def traffic_sources_table_html(rows: list[dict]) -> str:
+    if not rows:
+        return "<p><em>No data.</em></p>"
+    lines = ["<tr><th align='left'>Source</th><th>Views</th><th>Minutes watched</th></tr>"]
+    for row in rows:
+        lines.append(
+            f"<tr><td>{row['source']}</td><td align='right'>{row['views']}</td>"
+            f"<td align='right'>{row['minutes_watched']}</td></tr>"
+        )
+    return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
+
+
+def search_terms_table_html(rows: list[dict]) -> str:
+    if not rows:
+        return "<p><em>No data.</em></p>"
+    lines = ["<tr><th align='left'>Search term</th><th>Views</th></tr>"]
+    for row in rows:
+        lines.append(f"<tr><td>{row['term']}</td><td align='right'>{row['views']}</td></tr>")
+    return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
+
+
 def build_report(
-    gsc: SearchConsoleClient, ga4: GA4Client | None, youtube: YouTubeClient | None
+    gsc: SearchConsoleClient,
+    ga4: GA4Client | None,
+    youtube: YouTubeClient | None,
+    youtube_analytics: YouTubeAnalyticsClient | None,
+    simplecast: SimplecastClient | None,
 ) -> tuple[str, str, str]:
     (start, end), (prev_start, prev_end) = current_and_previous_windows()
 
@@ -127,6 +169,25 @@ def build_report(
         stats = youtube.get_video_stats([v["id"] for v in recent])
         empty_stats = {"views": 0, "likes": 0, "comments": 0}
         youtube_videos = [{**v, **stats.get(v["id"], empty_stats)} for v in recent]
+
+    yta_totals = yta_prev_totals = yta_sources = yta_search_terms = None
+    if youtube_analytics is not None:
+        try:
+            yta_totals = youtube_analytics.totals(start, end)
+            yta_prev_totals = youtube_analytics.totals(prev_start, prev_end)
+            yta_sources = youtube_analytics.traffic_sources(start, end, row_limit=TOP_N)
+            yta_search_terms = youtube_analytics.top_search_terms(start, end, row_limit=TOP_N)
+        except requests.HTTPError as e:
+            # Most likely the refresh token predates the yt-analytics.readonly
+            # scope being added — skip the section rather than failing the report.
+            print(f"YouTube Analytics unavailable, skipping: {e}")
+            yta_totals = yta_prev_totals = yta_sources = yta_search_terms = None
+
+    sc_downloads = sc_prev_downloads = sc_episodes = None
+    if simplecast is not None:
+        sc_downloads = simplecast.downloads_total(start, end)
+        sc_prev_downloads = simplecast.downloads_total(prev_start, prev_end)
+        sc_episodes = simplecast.recent_episode_downloads(limit=SIMPLECAST_EPISODE_LIMIT)
 
     subject = f"SEO report: {start.isoformat()} to {end.isoformat()}"
 
@@ -164,6 +225,31 @@ def build_report(
         text_lines.append("Recent YouTube episodes:")
         for v in youtube_videos:
             text_lines.append(f"  {v['views']:>6} views  {v['likes']:>4} likes  {v['comments']:>3} comments  {v['title']}")
+
+    if yta_totals is not None:
+        text_lines.append("")
+        text_lines.append("YouTube Analytics:")
+        text_lines.append(f"  Views: {yta_totals['views']} ({pct_change(yta_totals['views'], yta_prev_totals['views'])})")
+        text_lines.append(f"  Minutes watched: {yta_totals['minutes_watched']} ({pct_change(yta_totals['minutes_watched'], yta_prev_totals['minutes_watched'])})")
+        text_lines.append(f"  Avg view duration: {yta_totals['avg_view_duration_seconds']:.0f}s")
+        text_lines.append(f"  Subscribers gained/lost: +{yta_totals['subscribers_gained']} / -{yta_totals['subscribers_lost']}")
+        text_lines.append("")
+        text_lines.append("Traffic sources:")
+        for row in yta_sources:
+            text_lines.append(f"  {row['views']:>6} views  {row['minutes_watched']:>6} min  {row['source']}")
+        text_lines.append("")
+        text_lines.append("Top YouTube search terms:")
+        for row in yta_search_terms:
+            text_lines.append(f"  {row['views']:>6} views  {row['term']}")
+
+    if sc_downloads is not None:
+        text_lines.append("")
+        text_lines.append("Podcast downloads (Simplecast):")
+        text_lines.append(f"  Downloads: {sc_downloads} ({pct_change(sc_downloads, sc_prev_downloads)})")
+        text_lines.append("")
+        text_lines.append("Recent episodes (lifetime downloads):")
+        for ep in sc_episodes:
+            text_lines.append(f"  {ep['downloads']:>6} downloads  {ep['published_at']}  {ep['title']}")
 
     text_body = "\n".join(text_lines)
 
@@ -205,6 +291,31 @@ def build_report(
         {youtube_table_html(youtube_videos)}
         """
 
+    if yta_totals is not None:
+        html_body += f"""
+        <h2>YouTube Analytics</h2>
+        <ul>
+          <li>Views: <b>{yta_totals['views']}</b> ({pct_change(yta_totals['views'], yta_prev_totals['views'])})</li>
+          <li>Minutes watched: <b>{yta_totals['minutes_watched']}</b> ({pct_change(yta_totals['minutes_watched'], yta_prev_totals['minutes_watched'])})</li>
+          <li>Avg view duration: <b>{yta_totals['avg_view_duration_seconds']:.0f}s</b></li>
+          <li>Subscribers gained/lost: <b>+{yta_totals['subscribers_gained']} / -{yta_totals['subscribers_lost']}</b></li>
+        </ul>
+        <h3>Traffic sources</h3>
+        {traffic_sources_table_html(yta_sources)}
+        <h3>Top YouTube search terms</h3>
+        {search_terms_table_html(yta_search_terms)}
+        """
+
+    if sc_downloads is not None:
+        html_body += f"""
+        <h2>Podcast downloads (Simplecast)</h2>
+        <ul>
+          <li>Downloads: <b>{sc_downloads}</b> ({pct_change(sc_downloads, sc_prev_downloads)})</li>
+        </ul>
+        <h3>Recent episodes (lifetime downloads)</h3>
+        {simplecast_table_html(sc_episodes)}
+        """
+
     return subject, html_body, text_body
 
 
@@ -224,7 +335,9 @@ def main() -> int:
         and config.YOUTUBE_OAUTH_REFRESH_TOKEN
     )
     youtube = YouTubeClient() if has_youtube_creds else None
-    subject, html_body, text_body = build_report(gsc, ga4, youtube)
+    youtube_analytics = YouTubeAnalyticsClient() if has_youtube_creds else None
+    simplecast = SimplecastClient() if config.SIMPLECAST_API_TOKEN else None
+    subject, html_body, text_body = build_report(gsc, ga4, youtube, youtube_analytics, simplecast)
 
     email_client = EmailClient()
     success = email_client.send_report(subject, html_body, text_body)
