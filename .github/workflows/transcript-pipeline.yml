@@ -50,6 +50,7 @@ jobs:
           python transcript_pipeline.py
 
       - name: Commit and push generated transcripts
+        if: ${{ !cancelled() }}
         run: |
           git config user.name "dime-transcript-bot"
           git config user.email "actions@github.com"

@@ -44,6 +44,7 @@ def main() -> int:
     print("Fetching Simplecast RSS feed for episode matching...")
     episodes = simplecast_feed.fetch_episodes()
     print(f"Loaded {len(episodes)} published episodes\n")
+    matcher = simplecast_feed.build_matcher(episodes)
 
     youtube = YouTubeClient()
     claude = TranscriptClaudeClient()
@@ -63,7 +64,7 @@ def main() -> int:
     for i, video in enumerate(videos, 1):
         print(f"[{i}/{len(videos)}] {video['title']}")
 
-        match = simplecast_feed.find_best_match(video["title"], video["publishedAt"], episodes)
+        match = matcher.find_best_match(video["title"], video["publishedAt"])
         if not match:
             print("  -> No confident match to a published episode. Skipping.\n")
             skipped += 1
