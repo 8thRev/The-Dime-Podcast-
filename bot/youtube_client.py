@@ -21,7 +21,7 @@ CHANNEL_ID = "UCcck3tzBNXrJ1WJ8EtIVq1w"  # @thedime_cannabis
 # The channel posts short highlight clips between full-episode uploads;
 # clips run a few minutes at most, so this threshold reliably separates
 # full episodes from clips/Shorts without needing to inspect titles.
-MIN_EPISODE_DURATION_SECONDS = 900  # 15 minutes
+MIN_EPISODE_DURATION_SECONDS = 1800  # 30 minutes
 
 
 def _parse_iso8601_duration(duration: str) -> int:
