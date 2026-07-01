@@ -10,13 +10,6 @@ from prompt_template import get_research_prompt
 class ClaudeClient:
     """Client for interacting with Anthropic Claude API."""
 
-    # Server-side tools: web_search finds guest info, web_fetch pulls the
-    # specific LinkedIn/company URLs passed in via links_and_notes.
-    RESEARCH_TOOLS = [
-        {"type": "web_search_20260209", "name": "web_search"},
-        {"type": "web_fetch_20260209", "name": "web_fetch"},
-    ]
-
     # Safety cap on continuation requests if Claude's server-side search
     # loop pauses (stop_reason "pause_turn") before it's done researching.
     MAX_CONTINUATIONS = 5
@@ -25,6 +18,23 @@ class ClaudeClient:
         self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.ANTHROPIC_MAX_TOKENS
+        # Server-side tools: web_search finds guest info, web_fetch pulls the
+        # specific LinkedIn/company URLs passed in via links_and_notes.
+        # web_search is billed per use ($10/1,000); web_fetch has no per-use
+        # fee but its content still counts as input tokens.
+        self.research_tools = [
+            {
+                "type": "web_search_20260209",
+                "name": "web_search",
+                "max_uses": config.ANTHROPIC_MAX_WEB_SEARCHES,
+            },
+            {
+                "type": "web_fetch_20260209",
+                "name": "web_fetch",
+                "max_uses": config.ANTHROPIC_MAX_WEB_FETCHES,
+                "max_content_tokens": config.ANTHROPIC_MAX_FETCH_CONTENT_TOKENS,
+            },
+        ]
 
     def generate_research(
         self,
@@ -59,7 +69,7 @@ class ClaudeClient:
             message = self.client.messages.create(
                 model=self.model,
                 max_tokens=self.max_tokens,
-                tools=self.RESEARCH_TOOLS,
+                tools=self.research_tools,
                 messages=messages,
             )
 
@@ -78,7 +88,7 @@ class ClaudeClient:
                 message = self.client.messages.create(
                     model=self.model,
                     max_tokens=self.max_tokens,
-                    tools=self.RESEARCH_TOOLS,
+                    tools=self.research_tools,
                     messages=messages,
                 )
                 continuations += 1

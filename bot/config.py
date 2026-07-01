@@ -24,6 +24,15 @@ class Config:
     ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
     ANTHROPIC_MAX_TOKENS: int = int(os.getenv("ANTHROPIC_MAX_TOKENS", "8000"))
 
+    # web_search is billed per use ($10/1,000 searches) in addition to token
+    # costs; web_fetch has no per-use fee but its content still counts as
+    # input tokens. These cap both per guest as a cost/runaway-loop guard.
+    ANTHROPIC_MAX_WEB_SEARCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_SEARCHES", "20"))
+    ANTHROPIC_MAX_WEB_FETCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_FETCHES", "10"))
+    ANTHROPIC_MAX_FETCH_CONTENT_TOKENS: int = int(
+        os.getenv("ANTHROPIC_MAX_FETCH_CONTENT_TOKENS", "50000")
+    )
+
     # Email Configuration
     EMAIL_HOST: str = os.getenv("EMAIL_HOST", "smtp.gmail.com")
     EMAIL_PORT: int = int(os.getenv("EMAIL_PORT", "587"))
