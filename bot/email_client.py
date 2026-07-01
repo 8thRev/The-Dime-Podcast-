@@ -69,6 +69,46 @@ class EmailClient:
             print(f"Error sending email: {e}")
             return False
 
+    def send_report(self, subject: str, html_body: str, text_body: str) -> bool:
+        """
+        Send a plain report email (HTML + text fallback), no attachment.
+
+        Args:
+            subject: Email subject line
+            html_body: HTML version of the report
+            text_body: Plain-text fallback version
+
+        Returns:
+            True if email sent successfully, False otherwise
+        """
+        try:
+            print(f"Sending email to {self.to_email}...")
+
+            msg = MIMEMultipart("alternative")
+            msg["From"] = self.from_email
+            msg["To"] = self.to_email
+            msg["Subject"] = subject
+            msg.attach(MIMEText(text_body, "plain"))
+            msg.attach(MIMEText(html_body, "html"))
+
+            with smtplib.SMTP(self.host, self.port) as server:
+                server.starttls()
+                server.login(self.username, self.password)
+                server.send_message(msg)
+
+            print(f"Email sent successfully to {self.to_email}")
+            return True
+
+        except smtplib.SMTPAuthenticationError:
+            print("Error: SMTP authentication failed. Check email credentials.")
+            return False
+        except smtplib.SMTPException as e:
+            print(f"SMTP error: {e}")
+            return False
+        except Exception as e:
+            print(f"Error sending email: {e}")
+            return False
+
     def _create_email_body(self, guest_name: str) -> str:
         """
         Create email body text.

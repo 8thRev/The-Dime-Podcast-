@@ -65,6 +65,24 @@ class Config:
     TRANSCRIPT_MAX_TOKENS: int = int(os.getenv("TRANSCRIPT_MAX_TOKENS", "64000"))
     TRANSCRIPT_LIMIT: int = int(os.getenv("TRANSCRIPT_LIMIT", "10"))
 
+    # SEO report (Search Console). GSC_SERVICE_ACCOUNT_JSON is either a raw
+    # JSON string (GitHub Actions secret) or a path to the downloaded key
+    # file (local dev).
+    GSC_SERVICE_ACCOUNT_JSON: str = os.getenv("GSC_SERVICE_ACCOUNT_JSON", "")
+    GSC_SITE_URL: str = os.getenv("GSC_SITE_URL", "sc-domain:dimepodcast.com")
+
+    @classmethod
+    def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
+        """Validate config required specifically by the SEO report script."""
+        required_vars = [
+            ("GSC_SERVICE_ACCOUNT_JSON", cls.GSC_SERVICE_ACCOUNT_JSON),
+            ("EMAIL_USERNAME", cls.EMAIL_USERNAME),
+            ("EMAIL_PASSWORD", cls.EMAIL_PASSWORD),
+            ("EMAIL_FROM", cls.EMAIL_FROM),
+        ]
+        missing = [name for name, value in required_vars if not value]
+        return len(missing) == 0, missing
+
     @classmethod
     def validate_transcript_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the transcript pipeline."""
