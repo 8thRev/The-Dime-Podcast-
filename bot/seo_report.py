@@ -12,9 +12,11 @@ from config import config
 from email_client import EmailClient
 from ga4_client import GA4Client
 from gsc_client import SearchConsoleClient, current_and_previous_windows
+from youtube_client import YouTubeClient
 
 TOP_N = 15
 MOVERS_N = 5
+YOUTUBE_VIDEO_LIMIT = 10
 
 
 def pct_change(current: float, previous: float) -> str:
@@ -84,7 +86,21 @@ def ga4_pages_table_html(rows: list[dict]) -> str:
     return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
 
 
-def build_report(gsc: SearchConsoleClient, ga4: GA4Client | None) -> tuple[str, str, str]:
+def youtube_table_html(rows: list[dict]) -> str:
+    if not rows:
+        return "<p><em>No data.</em></p>"
+    lines = ["<tr><th align='left'>Title</th><th>Views</th><th>Likes</th><th>Comments</th></tr>"]
+    for row in rows:
+        lines.append(
+            f"<tr><td>{row['title']}</td><td align='right'>{row['views']}</td>"
+            f"<td align='right'>{row['likes']}</td><td align='right'>{row['comments']}</td></tr>"
+        )
+    return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
+
+
+def build_report(
+    gsc: SearchConsoleClient, ga4: GA4Client | None, youtube: YouTubeClient | None
+) -> tuple[str, str, str]:
     (start, end), (prev_start, prev_end) = current_and_previous_windows()
 
     totals = gsc.query_totals(start, end)
@@ -104,6 +120,13 @@ def build_report(gsc: SearchConsoleClient, ga4: GA4Client | None) -> tuple[str, 
         ga4_totals = ga4.totals(start, end)
         ga4_prev_totals = ga4.totals(prev_start, prev_end)
         ga4_pages = ga4.top_pages(start, end, row_limit=TOP_N)
+
+    youtube_videos = None
+    if youtube is not None:
+        recent = youtube.list_recent_videos(limit=YOUTUBE_VIDEO_LIMIT)
+        stats = youtube.get_video_stats([v["id"] for v in recent])
+        empty_stats = {"views": 0, "likes": 0, "comments": 0}
+        youtube_videos = [{**v, **stats.get(v["id"], empty_stats)} for v in recent]
 
     subject = f"SEO report: {start.isoformat()} to {end.isoformat()}"
 
@@ -135,6 +158,12 @@ def build_report(gsc: SearchConsoleClient, ga4: GA4Client | None) -> tuple[str, 
         text_lines.append("Top pages by sessions:")
         for row in ga4_pages:
             text_lines.append(f"  {row['sessions']:>4} sessions  {row['pageviews']:>5} pageviews  {row['path']}")
+
+    if youtube_videos is not None:
+        text_lines.append("")
+        text_lines.append("Recent YouTube episodes:")
+        for v in youtube_videos:
+            text_lines.append(f"  {v['views']:>6} views  {v['likes']:>4} likes  {v['comments']:>3} comments  {v['title']}")
 
     text_body = "\n".join(text_lines)
 
@@ -170,6 +199,12 @@ def build_report(gsc: SearchConsoleClient, ga4: GA4Client | None) -> tuple[str, 
         {ga4_pages_table_html(ga4_pages)}
         """
 
+    if youtube_videos is not None:
+        html_body += f"""
+        <h2>Recent YouTube episodes</h2>
+        {youtube_table_html(youtube_videos)}
+        """
+
     return subject, html_body, text_body
 
 
@@ -183,7 +218,13 @@ def main() -> int:
 
     gsc = SearchConsoleClient()
     ga4 = GA4Client() if config.GA4_PROPERTY_ID else None
-    subject, html_body, text_body = build_report(gsc, ga4)
+    has_youtube_creds = (
+        config.YOUTUBE_OAUTH_CLIENT_ID
+        and config.YOUTUBE_OAUTH_CLIENT_SECRET
+        and config.YOUTUBE_OAUTH_REFRESH_TOKEN
+    )
+    youtube = YouTubeClient() if has_youtube_creds else None
+    subject, html_body, text_body = build_report(gsc, ga4, youtube)
 
     email_client = EmailClient()
     success = email_client.send_report(subject, html_body, text_body)

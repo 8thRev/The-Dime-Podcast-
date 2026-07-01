@@ -125,6 +125,27 @@ class YouTubeClient:
             for item in resp.json().get("items", [])
         }
 
+    def get_video_stats(self, video_ids: list[str]) -> dict[str, dict]:
+        """Return {video_id: {views, likes, comments}} for up to 50 video IDs."""
+        if not video_ids:
+            return {}
+        resp = requests.get(
+            f"{API_BASE}/videos",
+            params={"part": "statistics", "id": ",".join(video_ids)},
+            headers=self._headers(),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        stats = {}
+        for item in resp.json().get("items", []):
+            s = item["statistics"]
+            stats[item["id"]] = {
+                "views": int(s.get("viewCount", 0)),
+                "likes": int(s.get("likeCount", 0)),
+                "comments": int(s.get("commentCount", 0)),
+            }
+        return stats
+
     def get_caption_track_id(self, video_id: str) -> str | None:
         """Return the best available English caption track ID, preferring a
         manually-created track over the auto-generated (ASR) one."""
