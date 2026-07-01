@@ -7,6 +7,11 @@ on:
   
   # Allow manual triggering for testing
   workflow_dispatch:
+    inputs:
+      force_card_name:
+        description: 'Process this card by name now, ignoring its recording date (leave blank for normal date-based run)'
+        required: false
+        default: ''
 
 jobs:
   research-automation:
@@ -41,6 +46,7 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TIMEZONE: ${{ secrets.TIMEZONE }}
+          FORCE_CARD_NAME: ${{ github.event.inputs.force_card_name }}
         run: |
           python bot/main.py
 

@@ -58,6 +58,10 @@ def filter_cards_by_date(cards: list[TrelloCard]) -> list[TrelloCard]:
     filtered_cards = []
 
     for card in cards:
+        if card.recording_date is None:
+            print(f"  Skipping '{card.name}' - no valid recording date")
+            continue
+
         # Normalize recording date to start of day for comparison
         card_date = card.recording_date.replace(
             hour=0, minute=0, second=0, microsecond=0
@@ -217,16 +221,30 @@ def main() -> int:
         print(f"✗ Error fetching cards from Trello: {e}")
         return 1
 
-    # Filter cards by date
-    print("=" * 80)
-    print("FILTERING CARDS BY DATE")
-    print("=" * 80)
-    cards_to_process = filter_cards_by_date(all_cards)
+    # Filter cards by date (or by forced name override for a manual one-off run)
+    if config.FORCE_CARD_NAME:
+        print("=" * 80)
+        print(f"MANUAL OVERRIDE: forcing card(s) matching '{config.FORCE_CARD_NAME}'")
+        print("=" * 80)
+        cards_to_process = [
+            card for card in all_cards
+            if config.FORCE_CARD_NAME.lower() in card.name.lower() and not card.is_processed()
+        ]
 
-    if not cards_to_process:
-        print(f"\nNo cards found with recording date exactly {config.DAYS_BEFORE_RECORDING} days from today.")
-        print("Exiting.")
-        return 0
+        if not cards_to_process:
+            print(f"\nNo unprocessed card found matching '{config.FORCE_CARD_NAME}'.")
+            print("Exiting.")
+            return 0
+    else:
+        print("=" * 80)
+        print("FILTERING CARDS BY DATE")
+        print("=" * 80)
+        cards_to_process = filter_cards_by_date(all_cards)
+
+        if not cards_to_process:
+            print(f"\nNo cards found with recording date exactly {config.DAYS_BEFORE_RECORDING} days from today.")
+            print("Exiting.")
+            return 0
 
     print(f"\n{len(cards_to_process)} card(s) to process\n")
 

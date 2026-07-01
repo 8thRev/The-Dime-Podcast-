@@ -37,6 +37,10 @@ class Config:
     TIMEZONE: str = os.getenv("TIMEZONE", "UTC")
     DAYS_BEFORE_RECORDING: int = int(os.getenv("DAYS_BEFORE_RECORDING", "3"))
 
+    # Manual override: process a specific card by name regardless of its
+    # recording date. Used for one-off manual runs (workflow_dispatch).
+    FORCE_CARD_NAME: str = os.getenv("FORCE_CARD_NAME", "")
+
     @classmethod
     def validate(cls) -> tuple[bool, list[str]]:
         """

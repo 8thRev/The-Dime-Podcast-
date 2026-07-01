@@ -16,7 +16,7 @@ class TrelloCard:
         self,
         card_id: str,
         name: str,
-        recording_date: datetime,
+        recording_date: Optional[datetime],
         description: str,
         labels: list[str],
     ):
@@ -263,20 +263,20 @@ class TrelloClient:
 
         for card in cards_data:
             recording_date = self._parse_recording_date(card.get("desc", ""))
+            labels = [label["name"] for label in card.get("labels", [])]
 
-            if recording_date:
-                labels = [label["name"] for label in card.get("labels", [])]
+            if not recording_date:
+                print(f"Warning: card '{card['name']}' has no valid recording date "
+                      f"(only eligible for a manual FORCE_CARD_NAME run)")
 
-                trello_card = TrelloCard(
-                    card_id=card["id"],
-                    name=card["name"],
-                    recording_date=recording_date,
-                    description=card.get("desc", ""),
-                    labels=labels,
-                )
-                trello_cards.append(trello_card)
-            else:
-                print(f"Skipping card '{card['name']}': No valid recording date found")
+            trello_card = TrelloCard(
+                card_id=card["id"],
+                name=card["name"],
+                recording_date=recording_date,
+                description=card.get("desc", ""),
+                labels=labels,
+            )
+            trello_cards.append(trello_card)
 
         return trello_cards
 
