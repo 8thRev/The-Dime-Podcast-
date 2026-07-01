@@ -59,37 +59,53 @@ class YouTubeClient:
     def _headers(self) -> dict:
         return {"Authorization": f"Bearer {self._get_access_token()}"}
 
+    def _get_uploads_playlist_id(self) -> str:
+        resp = requests.get(
+            f"{API_BASE}/channels",
+            params={"part": "contentDetails", "id": CHANNEL_ID},
+            headers=self._headers(),
+            timeout=30,
+        )
+        resp.raise_for_status()
+        items = resp.json().get("items", [])
+        return items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
+
     def list_recent_videos(self, limit: int) -> list[dict]:
         """Return up to `limit` most recent full-length videos — short
         clips/Shorts the channel also posts are filtered out by duration —
-        as [{id, title, publishedAt}]. Scans up to 10 pages (500 videos)
-        looking for enough qualifying full episodes before giving up."""
+        as [{id, title, publishedAt}]. Scans up to 20 pages (1000 videos)
+        looking for enough qualifying full episodes before giving up.
+
+        Walks the channel's uploads playlist rather than the `search`
+        endpoint -- `search` is backed by a separate index that's known to
+        lag behind and omit videos for channel-scoped queries, which
+        silently truncated results here even with pages left to scan."""
+        uploads_playlist_id = self._get_uploads_playlist_id()
+
         candidates: list[dict] = []
         page_token = None
         pages_scanned = 0
-        max_pages = 10
+        max_pages = 20
 
         while len(candidates) < limit and pages_scanned < max_pages:
             params = {
                 "part": "snippet",
-                "channelId": CHANNEL_ID,
-                "type": "video",
-                "order": "date",
+                "playlistId": uploads_playlist_id,
                 "maxResults": 50,
             }
             if page_token:
                 params["pageToken"] = page_token
 
             resp = requests.get(
-                f"{API_BASE}/search", params=params, headers=self._headers(), timeout=30
+                f"{API_BASE}/playlistItems", params=params, headers=self._headers(), timeout=30
             )
             resp.raise_for_status()
             data = resp.json()
             pages_scanned += 1
 
             items = data.get("items", [])
-            video_ids = [item["id"]["videoId"] for item in items]
-            snippets = {item["id"]["videoId"]: item["snippet"] for item in items}
+            video_ids = [item["snippet"]["resourceId"]["videoId"] for item in items]
+            snippets = {item["snippet"]["resourceId"]["videoId"]: item["snippet"] for item in items}
 
             if video_ids:
                 durations = self._get_durations(video_ids)
