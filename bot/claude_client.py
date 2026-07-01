@@ -49,9 +49,13 @@ class ClaudeClient:
                 messages=[{"role": "user", "content": prompt}],
             )
 
-            # Extract response content
-            if message.content and len(message.content) > 0:
-                content = message.content[0].text
+            # Extract response content (adaptive thinking may prepend a
+            # ThinkingBlock before the text block)
+            content = next(
+                (block.text for block in message.content if block.type == "text"),
+                "",
+            )
+            if content:
                 print(f"Successfully generated research ({len(content)} characters)")
                 return True, content
             else:
