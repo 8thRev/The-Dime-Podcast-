@@ -8,7 +8,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import AIDisclosure from '@/src/components/AIDisclosure';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
-import { getTranscriptBySlug } from '@/lib/transcripts';
+import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
 import { createPodcastEpisodeSchema, createFAQSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
@@ -38,17 +38,24 @@ export async function getStaticProps({ params }) {
     };
   }
 
+  const transcript = getTranscriptBySlug(episode.slug);
+  const topicsBySlug = getAllTopicsBySlug();
+  const episodeTopics = topicsBySlug[episode.slug] || [];
+
   const relatedEpisodes = allEpisodes
     .filter((e) => e.num !== episode.num)
     .sort((a, b) => {
-      const aShared = a.tags.filter((t) => episode.tags.includes(t)).length;
-      const bShared = b.tags.filter((t) => episode.tags.includes(t)).length;
+      const sharedScore = (e) => {
+        const tagOverlap = e.tags.filter((t) => episode.tags.includes(t)).length;
+        const topicOverlap = (topicsBySlug[e.slug] || []).filter((t) => episodeTopics.includes(t)).length;
+        return tagOverlap + topicOverlap;
+      };
+      const aShared = sharedScore(a);
+      const bShared = sharedScore(b);
       if (bShared !== aShared) return bShared - aShared;
       return new Date(b.dateISO).getTime() - new Date(a.dateISO).getTime();
     })
     .slice(0, 5);
-
-  const transcript = getTranscriptBySlug(episode.slug);
 
   return {
     props: {
@@ -61,22 +68,29 @@ export async function getStaticProps({ params }) {
 }
 
 export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
-  const schema = createPodcastEpisodeSchema(episode, undefined, { aiGenerated: !!transcript });
+  // The AI-generated summary is a tighter, more accurate paragraph than
+  // the truncated RSS show-notes description — prefer it for meta tags
+  // (and thus search/social snippets) whenever it's available.
+  const metaDescription = transcript?.summary || episode.description;
+  const schema = createPodcastEpisodeSchema(episode, undefined, {
+    aiGenerated: !!transcript,
+    entities: transcript?.entities,
+  });
   const faqSchema = transcript?.faq?.length ? createFAQSchema(transcript.faq) : null;
 
   return (
     <>
       <Head>
         <title>{episode.title} — The Dime Podcast</title>
-        <meta name="description" content={episode.description} />
+        <meta name="description" content={metaDescription} />
         <link rel="canonical" href={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
         <meta property="og:title" content={`${episode.title} — The Dime Podcast`} />
-        <meta property="og:description" content={episode.description} />
+        <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
         <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
         <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
-        <meta name="twitter:description" content={episode.description} />
+        <meta name="twitter:description" content={metaDescription} />
         <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
       </Head>
 
@@ -177,6 +191,18 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript }) {
             </div>
           )}
         </section>
+
+        {transcript && transcript.summary && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              TL;DR
+            </h3>
+            <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+              {transcript.summary}
+            </p>
+          </section>
+        )}
 
         {transcript && transcript.takeaways?.length > 0 && (
           <section style={{ marginBottom: '56px' }}>
