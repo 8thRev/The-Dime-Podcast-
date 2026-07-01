@@ -13,6 +13,11 @@ from transcript_prompts import get_transcript_prompt
 
 REQUIRED_KEYS = {"cleaned_transcript", "summary", "takeaways", "faq", "quotes", "topics", "entities"}
 
+# Malformed output (a dropped key, a JSON syntax slip) is a stochastic
+# formatting miss, not a sign the episode is unprocessable -- retrying the
+# same prompt once resolves it without any code change most of the time.
+MAX_GENERATION_ATTEMPTS = 2
+
 
 class TranscriptClaudeClient:
     """Client for generating transcript-derived artifacts via Claude."""
@@ -31,6 +36,21 @@ class TranscriptClaudeClient:
         """
         prompt = get_transcript_prompt(guest_name, company, episode_title, raw_transcript)
 
+        for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
+            success, data, retryable = self._generate_once(prompt, attempt)
+            if success:
+                return True, data
+            if not retryable:
+                break
+        return False, {}
+
+    def _generate_once(self, prompt: str, attempt: int) -> tuple[bool, dict, bool]:
+        """Returns (success, data, retryable) -- retryable is only True for
+        failures caused by a malformed response (dropped key, invalid JSON),
+        since those are stochastic formatting misses that a repeat call
+        usually fixes. A max_tokens cutoff or a real API error will just
+        fail the same way again, so those aren't retried."""
+        retry_suffix = f" (attempt {attempt}/{MAX_GENERATION_ATTEMPTS})"
         try:
             # Long episodes need tens of thousands of output tokens for the
             # cleaned transcript alone, so this routinely exceeds the ~16k
@@ -56,7 +76,7 @@ class TranscriptClaudeClient:
                     "configured token budget. Raise TRANSCRIPT_MAX_TOKENS rather than "
                     "treating this as a JSON formatting bug."
                 )
-                return False, {}
+                return False, {}, False
 
             text = "\n".join(
                 block.text for block in message.content if block.type == "text"
@@ -74,17 +94,17 @@ class TranscriptClaudeClient:
 
             missing = REQUIRED_KEYS - data.keys()
             if missing:
-                print(f"Error: Claude response missing expected keys: {missing}")
-                return False, {}
+                print(f"Error: Claude response missing expected keys: {missing}{retry_suffix}")
+                return False, {}, True
 
-            return True, data
+            return True, data, True
 
         except json.JSONDecodeError as e:
-            print(f"Error: Claude did not return valid JSON: {e}")
-            return False, {}
+            print(f"Error: Claude did not return valid JSON: {e}{retry_suffix}")
+            return False, {}, True
         except anthropic.APIError as e:
             print(f"Claude API error: {e}")
-            return False, {}
+            return False, {}, False
         except Exception as e:
             print(f"Unexpected error generating transcript artifacts: {e}")
-            return False, {}
+            return False, {}, False
