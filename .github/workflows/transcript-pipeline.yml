@@ -1,0 +1,72 @@
+name: Transcript Pipeline
+
+on:
+  # Runs daily; the pipeline itself is idempotent (skips episodes that
+  # already have a transcript file), so this only ever processes genuinely
+  # new episodes.
+  schedule:
+    - cron: '0 13 * * *'
+
+  # Manual triggering — also used for one-off larger backfill runs by
+  # raising the limit.
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Number of most recent episodes to check (already-processed ones are skipped)'
+        required: false
+        default: '10'
+
+permissions:
+  contents: write
+
+jobs:
+  transcripts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r bot/requirements.txt
+
+      - name: Run transcript pipeline
+        env:
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TRANSCRIPT_LIMIT: ${{ github.event.inputs.limit || '10' }}
+        run: |
+          cd bot
+          python transcript_pipeline.py
+
+      - name: Commit and push generated transcripts
+        run: |
+          git config user.name "dime-transcript-bot"
+          git config user.email "actions@github.com"
+          git add app/content/transcripts
+          if git diff --cached --quiet; then
+            echo "No new transcripts to commit."
+          else
+            git commit -m "Add auto-generated episode transcripts [skip ci]"
+            git push
+          fi
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transcript-pipeline-logs
+          path: |
+            bot/*.log
+            bot/*.txt
+          retention-days: 7

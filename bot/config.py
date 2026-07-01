@@ -49,6 +49,31 @@ class Config:
     # recording date. Used for one-off manual runs (workflow_dispatch).
     FORCE_CARD_NAME: str = os.getenv("FORCE_CARD_NAME", "")
 
+    # YouTube OAuth (transcript pipeline) — refresh token obtained once via
+    # bot/get_youtube_refresh_token.py, used to pull captions for our own
+    # channel's videos.
+    YOUTUBE_OAUTH_CLIENT_ID: str = os.getenv("YOUTUBE_OAUTH_CLIENT_ID", "")
+    YOUTUBE_OAUTH_CLIENT_SECRET: str = os.getenv("YOUTUBE_OAUTH_CLIENT_SECRET", "")
+    YOUTUBE_OAUTH_REFRESH_TOKEN: str = os.getenv("YOUTUBE_OAUTH_REFRESH_TOKEN", "")
+
+    # Transcript pipeline tuning. Higher max tokens than the research bot
+    # since output includes a full cleaned episode transcript, not just a
+    # short document.
+    TRANSCRIPT_MAX_TOKENS: int = int(os.getenv("TRANSCRIPT_MAX_TOKENS", "16000"))
+    TRANSCRIPT_LIMIT: int = int(os.getenv("TRANSCRIPT_LIMIT", "10"))
+
+    @classmethod
+    def validate_transcript_config(cls) -> tuple[bool, list[str]]:
+        """Validate config required specifically by the transcript pipeline."""
+        required_vars = [
+            ("YOUTUBE_OAUTH_CLIENT_ID", cls.YOUTUBE_OAUTH_CLIENT_ID),
+            ("YOUTUBE_OAUTH_CLIENT_SECRET", cls.YOUTUBE_OAUTH_CLIENT_SECRET),
+            ("YOUTUBE_OAUTH_REFRESH_TOKEN", cls.YOUTUBE_OAUTH_REFRESH_TOKEN),
+            ("ANTHROPIC_API_KEY", cls.ANTHROPIC_API_KEY),
+        ]
+        missing = [name for name, value in required_vars if not value]
+        return len(missing) == 0, missing
+
     @classmethod
     def validate(cls) -> tuple[bool, list[str]]:
         """
