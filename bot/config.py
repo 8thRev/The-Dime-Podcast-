@@ -69,7 +69,7 @@ class Config:
     # JSON string (GitHub Actions secret) or a path to the downloaded key
     # file (local dev).
     GSC_SERVICE_ACCOUNT_JSON: str = os.getenv("GSC_SERVICE_ACCOUNT_JSON", "")
-    GSC_SITE_URL: str = os.getenv("GSC_SITE_URL", "sc-domain:dimepodcast.com")
+    GSC_SITE_URL: str = os.getenv("GSC_SITE_URL") or "sc-domain:dimepodcast.com"
 
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:

@@ -30,7 +30,7 @@ class SearchConsoleClient:
         )
 
     def _load_credentials(self) -> service_account.Credentials:
-        raw = config.GSC_SERVICE_ACCOUNT_JSON
+        raw = config.GSC_SERVICE_ACCOUNT_JSON.strip()
         if not raw:
             raise ValueError("GSC_SERVICE_ACCOUNT_JSON is not set")
 
@@ -39,7 +39,14 @@ class SearchConsoleClient:
                 raw, scopes=SCOPES
             )
 
-        info = json.loads(raw)
+        try:
+            info = json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise ValueError(
+                "GSC_SERVICE_ACCOUNT_JSON is not valid JSON and isn't a file path "
+                f"either ({e}). Did the full key file contents get pasted into "
+                "the secret?"
+            ) from e
         return service_account.Credentials.from_service_account_info(
             info, scopes=SCOPES
         )
