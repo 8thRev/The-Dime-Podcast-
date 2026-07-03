@@ -1,6 +1,9 @@
+import { useState, useMemo, useEffect } from 'react';
 import Head from 'next/head';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+
+const fieldStyle = { background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none' };
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -51,6 +54,44 @@ const GUESTS_TICKER = [
 ];
 
 export default function ForGuests() {
+  const [status, setStatus] = useState('idle'); // idle | sending | sent | error
+  const [errorMessage, setErrorMessage] = useState('');
+  const [form, setForm] = useState({ fullName: '', companyTitle: '', email: '', pitch: '', links: '', answer: '', company: '' });
+  const loadedAt = useMemo(() => Date.now(), []);
+  const [challenge, setChallenge] = useState({ a: 0, b: 0 });
+  useEffect(() => {
+    setChallenge({ a: Math.floor(Math.random() * 8) + 1, b: Math.floor(Math.random() * 8) + 1 });
+  }, []);
+
+  const handleChange = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setStatus('sending');
+    setErrorMessage('');
+
+    try {
+      const res = await fetch('/api/guest-apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, a: challenge.a, b: challenge.b, loadedAt }),
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setStatus('error');
+        setErrorMessage(data.error || 'Something went wrong. Please try again.');
+        return;
+      }
+
+      setStatus('sent');
+      setForm({ fullName: '', companyTitle: '', email: '', pitch: '', links: '', answer: '', company: '' });
+    } catch {
+      setStatus('error');
+      setErrorMessage('Something went wrong. Please try again.');
+    }
+  };
+
   return (
     <>
       <Head>
@@ -124,16 +165,46 @@ export default function ForGuests() {
           Submit Your Application
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            <input placeholder="Full Name" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none' }} />
-            <input placeholder="Company and Title" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none' }} />
-            <input placeholder="Email Address" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none' }} />
-            <textarea placeholder="What would you say to a room of cannabis operators and executives? 2-3 sentences." rows={4} style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none', resize: 'vertical' }} />
-            <textarea placeholder="Links: LinkedIn, recent press, company website" rows={2} style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none', resize: 'none' }} />
-            <button className="btn-teal" style={{ alignSelf: 'flex-start' }}>
-              Submit Application
-            </button>
-          </div>
+          {status === 'sent' ? (
+            <p className="crimson" style={{ fontSize: 16, color: 'var(--white)' }}>
+              Thanks — your application is in. We review every one personally and will reach out within 5 business days if it's a fit.
+            </p>
+          ) : (
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {/* Honeypot — hidden from real visitors */}
+              <input
+                type="text"
+                name="company"
+                value={form.company}
+                onChange={handleChange('company')}
+                autoComplete="off"
+                tabIndex={-1}
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+              />
+
+              <input placeholder="Full Name" value={form.fullName} onChange={handleChange('fullName')} required style={fieldStyle} />
+              <input placeholder="Company and Title" value={form.companyTitle} onChange={handleChange('companyTitle')} style={fieldStyle} />
+              <input type="email" placeholder="Email Address" value={form.email} onChange={handleChange('email')} required style={fieldStyle} />
+              <textarea placeholder="What would you say to a room of cannabis operators and executives? 2-3 sentences." rows={4} value={form.pitch} onChange={handleChange('pitch')} required style={{ ...fieldStyle, resize: 'vertical' }} />
+              <textarea placeholder="Links: LinkedIn, recent press, company website" rows={2} value={form.links} onChange={handleChange('links')} style={{ ...fieldStyle, resize: 'none' }} />
+
+              <label className="mono" style={{ fontSize: '11px', color: '#7A8FA8', display: 'flex', alignItems: 'center', gap: 10 }}>
+                Quick check — what is {challenge.a} + {challenge.b}?
+                <input type="text" inputMode="numeric" value={form.answer} onChange={handleChange('answer')} required style={{ ...fieldStyle, width: 70, padding: '10px 12px' }} />
+              </label>
+
+              <button type="submit" className="btn-teal" disabled={status === 'sending'} style={{ alignSelf: 'flex-start', opacity: status === 'sending' ? 0.6 : 1 }}>
+                {status === 'sending' ? 'Submitting…' : 'Submit Application'}
+              </button>
+
+              {status === 'error' && (
+                <p className="mono" style={{ fontSize: '11px', color: 'var(--color-danger)' }}>
+                  {errorMessage}
+                </p>
+              )}
+            </form>
+          )}
           <div>
             <div className="mono" style={{ fontSize: '9px', color: '#009E85', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 20 }}>
               What Happens Next
