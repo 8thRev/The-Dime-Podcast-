@@ -62,19 +62,19 @@ export default function VideoPage({ video, relatedVideos }) {
       <Header />
 
       <article style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
-        <Link href="/videos" style={{ color: 'var(--mid)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
+        <Link href="/videos" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
           ← All Videos
         </Link>
 
         <header style={{ marginBottom: '48px' }}>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.date}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.duration}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.viewCount}
             </span>
           </div>
@@ -91,8 +91,8 @@ export default function VideoPage({ video, relatedVideos }) {
                   className="mono"
                   style={{
                     fontSize: '10px',
-                    color: 'var(--teal)',
-                    border: '1px solid var(--teal)',
+                    color: 'var(--text-accent)',
+                    border: '1px solid var(--text-accent)',
                     padding: '4px 12px',
                   }}
                 >
@@ -118,7 +118,7 @@ export default function VideoPage({ video, relatedVideos }) {
         </section>
 
         <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--mid)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
             {video.description}
           </p>
 
@@ -130,8 +130,8 @@ export default function VideoPage({ video, relatedVideos }) {
               display: 'inline-block',
               marginTop: '24px',
               padding: '12px 32px',
-              background: 'var(--teal)',
-              color: 'var(--navy)',
+              background: 'var(--btn-primary-bg)',
+              color: 'var(--btn-primary-text)',
               textDecoration: 'none',
               fontFamily: "'Syne', sans-serif",
               fontSize: '11px',
@@ -150,7 +150,7 @@ export default function VideoPage({ video, relatedVideos }) {
 
         {relatedVideos.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
               More Videos
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
@@ -176,7 +176,7 @@ export default function VideoPage({ video, relatedVideos }) {
                   <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', fontFamily: 'Georgia, serif', lineHeight: 1.3 }}>
                     {v.title}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: "'Syne', sans-serif" }}>
                     {v.date}
                   </div>
                 </Link>

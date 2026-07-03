@@ -86,6 +86,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
     guest: episode.guest ? { name: episode.guest, company: episode.company, companyUrl: episode.companyUrl } : undefined,
   });
   const faqSchema = transcript?.faq?.length ? createFAQSchema(transcript.faq) : null;
+  const ogImage = `https://www.dimepodcast.com/api/og?title=${encodeURIComponent(episode.title)}`;
   const breadcrumbSchema = createBreadcrumbSchema([
     { name: 'Home', url: 'https://www.dimepodcast.com' },
     { name: 'Episodes', url: 'https://www.dimepodcast.com/episodes' },
@@ -102,10 +103,10 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         <meta property="og:description" content={metaDescription} />
         <meta property="og:type" content="article" />
         <meta property="og:url" content={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
-        <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
+        <meta property="og:image" content={ogImage} />
         <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
         <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
+        <meta name="twitter:image" content={ogImage} />
       </Head>
 
       <Schema schema={schema} />
