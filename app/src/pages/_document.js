@@ -11,6 +11,13 @@ export default function Document() {
       <Head>
         <meta charSet="UTF-8" />
 
+        {/* Favicons */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        <meta name="theme-color" content="#111111" />
+
         {/* Global SEO defaults — pages override these via next/head */}
         <meta name="description" content={DEFAULT_DESCRIPTION} />
         <meta name="robots" content="index, follow" />
@@ -22,7 +29,7 @@ export default function Document() {
 
         {/* Twitter / X Card defaults */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@thedime_cannabis" />
+        <meta name="twitter:site" content="@TheDime_8th" />
         <meta name="twitter:creator" content="@Bryanfields24" />
         <meta name="twitter:title" content={DEFAULT_TITLE} />
         <meta name="twitter:description" content={DEFAULT_DESCRIPTION} />

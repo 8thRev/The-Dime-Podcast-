@@ -149,7 +149,8 @@ export async function getAllEpisodes(): Promise<Episode[]> {
       const epNum = item.itunes?.episode || String(feed.items.length - index);
       const tags = item.itunes?.keywords?.split(",").map((k) => k.trim()).filter(Boolean) || [];
       const showNotes = showNotesRaw;
-      const description = showNotes.replace(/<[^>]+>/g, "").slice(0, 220) + "...";
+      const plainShowNotes = showNotes.replace(/<[^>]+>/g, "").trim();
+      const description = plainShowNotes.length > 220 ? `${plainShowNotes.slice(0, 220)}...` : plainShowNotes;
 
       const fullSlug = slugify(item.title || "");
       const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");

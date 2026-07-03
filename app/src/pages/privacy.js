@@ -25,7 +25,7 @@ const SECTIONS = [
   },
   {
     title: 'Contact',
-    body: 'Questions about this policy or your data can be sent to Bryan.Fields@8threv.com.',
+    body: 'Questions about this policy or your data can be sent to info@dimepodcast.com, or use our contact page.',
   },
 ];
 

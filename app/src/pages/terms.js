@@ -33,7 +33,7 @@ const SECTIONS = [
   },
   {
     title: 'Contact',
-    body: 'Questions about these terms can be sent to Bryan.Fields@8threv.com.',
+    body: 'Questions about these terms can be sent to info@dimepodcast.com, or use our contact page.',
   },
 ];
 
