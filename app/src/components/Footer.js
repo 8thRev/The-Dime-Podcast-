@@ -7,7 +7,7 @@ const footerLinkStyle = {
   fontFamily: "'Syne', sans-serif",
   fontSize: 'clamp(10px, 2vw, 12px)',
   fontWeight: 500,
-  color: '#777777',
+  color: 'var(--text-muted)',
   display: 'block',
   padding: 0,
   marginBottom: 12,
@@ -18,7 +18,7 @@ const footerLinkStyle = {
 };
 
 const LISTEN_LINKS = [
-  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1479320141' },
+  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1540199573' },
   { label: 'Spotify', href: 'https://open.spotify.com/show/3O8vp4wvOJpqJCLBPqvQpP' },
   { label: 'YouTube', href: 'https://www.youtube.com/@TheDimePodcast' },
 ];
@@ -80,7 +80,7 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className="mono" style={{ fontSize: '11px', color: '#3CB8F0' }}>★★★★★</span>
-            <span className="mono" style={{ fontSize: '9px', color: '#777777' }}>4.9 · 111 RATINGS</span>
+            <span className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>4.9 · 111 RATINGS</span>
           </div>
         </div>
 
@@ -88,13 +88,16 @@ export default function Footer() {
         <div className="footer-columns">
           {/* Navigate */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Navigate
             </div>
             {[
               { label: 'Episodes', href: '/episodes' },
+              { label: 'Videos', href: '/videos' },
+              { label: 'Topics', href: '/topics' },
               { label: 'About', href: '/about' },
               { label: 'Newsletter', href: '/newsletter' },
+              { label: 'Contact', href: '/contact' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
                 {nav.label}
@@ -104,7 +107,7 @@ export default function Footer() {
 
           {/* Listen */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Listen
             </div>
             {LISTEN_LINKS.map((p) => (
@@ -116,10 +119,11 @@ export default function Footer() {
 
           {/* Connect */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Connect
             </div>
-            <a href="mailto:sponsorship@thedime.com" style={footerLinkStyle}>Sponsorship</a>
+            <a href="mailto:sponsorship@dimepodcast.com" style={footerLinkStyle}>Sponsorship</a>
+            <Link href="/guests" style={footerLinkStyle}>Apply to Guest</Link>
             <Link href="/newsletter" style={footerLinkStyle}>Newsletter</Link>
           </div>
         </div>
@@ -130,7 +134,7 @@ export default function Footer() {
             <Link href="/privacy" style={{ ...footerLinkStyle, marginBottom: 0 }}>Privacy Policy</Link>
             <Link href="/terms" style={{ ...footerLinkStyle, marginBottom: 0 }}>Terms of Service</Link>
           </div>
-          <div className="mono" style={{ fontSize: '8px', color: '#777777', lineHeight: 1.7, letterSpacing: '.06em' }}>
+          <div className="mono" style={{ fontSize: '8px', color: 'var(--text-muted)', lineHeight: 1.7, letterSpacing: '.06em' }}>
             © {new Date().getFullYear()} THE DIME · ALL RIGHTS RESERVED
           </div>
         </div>

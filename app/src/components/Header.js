@@ -5,6 +5,7 @@ const NAV = [
   { label: 'Episodes', href: '/episodes' },
   { label: 'Newsletter', href: '/newsletter' },
   { label: 'About', href: '/about' },
+  { label: 'Contact', href: '/contact' },
 ];
 
 export default function Header() {
@@ -84,7 +85,7 @@ export default function Header() {
               THE DIME
             </span>
             <span className="header-logo-divider" style={{ width: 1, height: 16, background: '#333333' }} />
-            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '8px', color: '#777777', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
+            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
               CANNABIS
             </span>
           </Link>

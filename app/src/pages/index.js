@@ -5,8 +5,10 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Ticker from '@/src/components/Ticker';
 import Schema from '@/src/components/Schema';
+import NewsletterForm from '@/src/components/NewsletterForm';
 import { getAllEpisodes, getEpisodesByTag } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
+import { getPodcastReviews } from '@/lib/reviews';
 import { createPodcastSchema } from '@/lib/schema';
 
 const GUESTS_TICKER = [
@@ -28,7 +30,7 @@ const TOPICS = [
   'Debt Walls', 'Cash Flow', 'Operational Frameworks', 'Hemp vs Cannabis',
 ];
 
-export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
+export default function Home({ latestEpisodes, episodeCount, latestVideos, reviews }) {
   const topicItems = [...TOPICS, ...TOPICS];
   const schema = createPodcastSchema('https://www.dimepodcast.com');
 
@@ -130,10 +132,10 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         <meta property="og:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes. The most operator-focused podcast in cannabis.`} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://www.dimepodcast.com" />
-        <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
+        <meta property="og:image" content="https://www.dimepodcast.com/api/og" />
         <meta name="twitter:title" content="The Dime Podcast — Cannabis Business Intelligence" />
         <meta name="twitter:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors.`} />
-        <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
+        <meta name="twitter:image" content="https://www.dimepodcast.com/api/og" />
       </Head>
 
       <Schema schema={schema} />
@@ -144,7 +146,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
       <section style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-default)' }}>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)' }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3 }} />
-        <div className="syne" style={{ position: 'absolute', bottom: -60, right: -40, fontSize: 'clamp(200px,28vw,440px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px #1A2A3A', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
+        <div className="syne" style={{ position: 'absolute', bottom: -60, right: -40, fontSize: 'clamp(200px,28vw,440px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1.5px #2C4356', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
           DIME
         </div>
 
@@ -152,19 +154,19 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         <Ticker items={GUESTS_TICKER} />
 
         {/* MAIN HERO CONTENT */}
-        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
-          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
+        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2, maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
+          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
               <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · NEW</span>
               <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>4.9★ (111) · TOP 5% GLOBALLY</span>
             </div>
 
-            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '70%' }}>
+            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(40px,7vw,110px)', fontWeight: 800, lineHeight: 0.98, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '920px' }}>
               How the cannabis industry<br />
               <span style={{ color: 'var(--text-accent)' }}>actually</span> works.
             </h1>
 
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '70%', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '680px', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
               A weekly conversation with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
             </p>
 
@@ -195,7 +197,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
               </Link>
               <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginLeft: 24 }}>
                 <span className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '.15em', textTransform: 'uppercase', fontWeight: 600 }}>On</span>
-                <a href="https://podcasts.apple.com/us/podcast/the-dime/id1479320141" target="_blank" rel="noopener noreferrer" className="platform-icon platform-apple" aria-label="Listen on Apple Podcasts" title="Apple Podcasts">
+                <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" className="platform-icon platform-apple" aria-label="Listen on Apple Podcasts" title="Apple Podcasts">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
                 </a>
                 <a href="https://open.spotify.com/show/3O8vp4wvOJpqJCLBPqvQpP" target="_blank" rel="noopener noreferrer" className="platform-icon platform-spotify" aria-label="Listen on Spotify" title="Spotify">
@@ -319,7 +321,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             behind<br />
             the episode.
           </h2>
-          <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-secondary)', fontWeight: 300 }}>
+          <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-secondary)', fontWeight: 400 }}>
             Not a recap. The structural principle underneath each conversation. Written for operators who need to understand what's actually happening before the market makes it obvious.
           </p>
         </div>
@@ -328,29 +330,55 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             550-650 WORDS. ONE IDEA. NO FLUFF. FREE.<br />
             NO SPONSORSHIP CONTENT. NO PARTNER PROMOTIONS.
           </p>
-          <form onSubmit={(e) => { e.preventDefault(); window.location.href = '/newsletter'; }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input placeholder="Your email address" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none', transition: 'border-color .15s' }} />
-            <button type="submit" className="btn-teal" style={{ width: '100%' }}>
-              Subscribe to First Principles
-            </button>
-          </form>
+          <NewsletterForm />
           <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 14 }}>
             Operator intelligence only. Unsubscribe anytime.
           </p>
         </div>
       </section>
 
-      {/* SOCIAL PROOF QUOTE */}
-      <section style={{ padding: 'clamp(48px, 8vw, 96px) clamp(24px, 5vw, 48px)', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <div style={{ maxWidth: 720 }}>
-          <span className="mono" style={{ fontSize: '24px', color: 'var(--text-accent)', display: 'block', marginBottom: 24, lineHeight: 1 }}>"</span>
-          <blockquote className="crimson" style={{ fontSize: 'clamp(20px, 3vw, 28px)', color: 'var(--text-headline)', lineHeight: 1.6, fontWeight: 400, fontStyle: 'italic', margin: '0 0 32px' }}>
-            The Dime is the most honest conversation happening in cannabis right now. If you're building in this space, you need to be listening.
-          </blockquote>
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 700 }}>
-            — Founder &amp; CEO · Add your attribution here
+      {/* LISTENER REVIEWS */}
+      <section style={{ padding: 'clamp(48px, 8vw, 96px) clamp(24px, 5vw, 48px)', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40, flexWrap: 'wrap', gap: 16 }}>
+          <div>
+            <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 14 }}>
+              Listener Reviews
+            </div>
+            <h2 className="syne" style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em' }}>
+              What operators are saying.
+            </h2>
           </div>
+          <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Read &amp; leave a review on Apple Podcasts →
+          </a>
         </div>
+
+        {reviews.length > 0 ? (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            {reviews.slice(0, 6).map((r) => (
+              <div key={r.id} style={{ padding: '24px', border: '1px solid var(--border-subtle)', borderRadius: 4, background: 'var(--bg-surface)', display: 'flex', flexDirection: 'column' }}>
+                <span className="mono" style={{ fontSize: '13px', color: 'var(--text-accent)', marginBottom: 12 }}>
+                  {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                </span>
+                {r.title && (
+                  <div className="syne" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: 10 }}>
+                    {r.title}
+                  </div>
+                )}
+                <p className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.7, fontWeight: 400, flex: 1, marginBottom: 14 }}>
+                  {r.content.length > 260 ? `${r.content.slice(0, 260).trim()}…` : r.content}
+                </p>
+                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.08em' }}>
+                  — {r.author} · Apple Podcasts
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="crimson" style={{ color: 'var(--text-muted)', fontSize: 16 }}>
+            <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer">Read reviews on Apple Podcasts →</a>
+          </p>
+        )}
       </section>
 
       <Footer />
@@ -361,12 +389,14 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 export async function getStaticProps() {
   const episodes = await getAllEpisodes();
   const videos = await getAllVideos();
+  const reviews = await getPodcastReviews();
 
   return {
     props: {
       latestEpisodes: episodes.slice(0, 10),
       episodeCount: episodes.length,
       latestVideos: videos.slice(0, 8),
+      reviews,
     },
     revalidate: 3600,
   };
