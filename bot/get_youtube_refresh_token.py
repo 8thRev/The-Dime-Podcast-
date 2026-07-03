@@ -1,7 +1,9 @@
 """
-One-time setup script: obtains a YouTube Data API OAuth refresh token
-for the account that manages the channel, so the automation pipeline
-can call captions.list / captions.download unattended afterward.
+One-time setup script: obtains a YouTube Data API + YouTube Analytics API
+OAuth refresh token for the account that manages the channel, so the
+automation pipeline can call captions.list / captions.download and pull
+channel analytics (traffic sources, watch time, search terms, subscriber
+growth) unattended afterward.
 
 Run this once locally, from your own machine, logged in as the
 channel owner. It opens a browser tab for the Google consent screen.
@@ -15,6 +17,12 @@ and secret from the same JSON file) as GitHub Actions secrets:
     YOUTUBE_OAUTH_CLIENT_ID
     YOUTUBE_OAUTH_CLIENT_SECRET
     YOUTUBE_OAUTH_REFRESH_TOKEN
+
+If you're re-running this to add the yt-analytics.readonly scope to an
+already-authorized account: Google may try to silently reuse the prior
+grant and skip issuing a fresh token, or issue one still scoped to the
+old permissions. If that happens, revoke the app's access at
+https://myaccount.google.com/permissions and run this script again.
 """
 
 import argparse
@@ -23,7 +31,10 @@ import sys
 
 from google_auth_oauthlib.flow import InstalledAppFlow
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.force-ssl",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+]
 
 
 def main():

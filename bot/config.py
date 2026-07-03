@@ -75,6 +75,11 @@ class Config:
     # report just skips the GA4 section.
     GA4_PROPERTY_ID: str = os.getenv("GA4_PROPERTY_ID", "")
 
+    # Simplecast download stats (optional add-on to the SEO report). Static
+    # read-only Private App token, not OAuth. If unset, the report just
+    # skips the Simplecast section.
+    SIMPLECAST_API_TOKEN: str = os.getenv("SIMPLECAST_API_TOKEN", "")
+
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the SEO report script."""
