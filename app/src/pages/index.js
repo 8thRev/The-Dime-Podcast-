@@ -6,9 +6,12 @@ import Footer from '@/src/components/Footer';
 import Ticker from '@/src/components/Ticker';
 import Schema from '@/src/components/Schema';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
+import Testimonials from '@/src/components/Testimonials';
 import { getAllEpisodes, getEpisodesByTag, getLatestEpisodeNumber } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema } from '@/lib/schema';
+import testimonials from '@/content/testimonials.json';
+import { PODCAST_RATING } from '@/lib/ratings';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -157,7 +160,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
               <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · NEW</span>
-              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>4.9★ (111) · TOP 5% GLOBALLY</span>
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
             </div>
 
             <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '70%' }}>
@@ -172,7 +175,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             <div className="stats-grid fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: '1px solid var(--border-subtle)' }}>
               {[
                 { n: episodeCount, l: 'Episodes' },
-                { n: '4.9★', l: '111 Ratings' },
+                { n: `${PODCAST_RATING.value}★`, l: `${PODCAST_RATING.count} Ratings` },
                 { n: 'Top 5%', l: 'Global Ranking' },
                 { n: 'Est. 2020', l: 'Weekly' },
               ].map((s) => (
@@ -336,18 +339,8 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         </div>
       </section>
 
-      {/* SOCIAL PROOF QUOTE */}
-      <section style={{ padding: 'clamp(48px, 8vw, 96px) clamp(24px, 5vw, 48px)', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-        <div style={{ maxWidth: 720 }}>
-          <span className="mono" style={{ fontSize: '24px', color: 'var(--text-accent)', display: 'block', marginBottom: 24, lineHeight: 1 }}>"</span>
-          <blockquote className="crimson" style={{ fontSize: 'clamp(20px, 3vw, 28px)', color: 'var(--text-headline)', lineHeight: 1.6, fontWeight: 400, fontStyle: 'italic', margin: '0 0 32px' }}>
-            The Dime is the most honest conversation happening in cannabis right now. If you're building in this space, you need to be listening.
-          </blockquote>
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '.18em', textTransform: 'uppercase', fontWeight: 700 }}>
-            — Founder &amp; CEO · Add your attribution here
-          </div>
-        </div>
-      </section>
+      {/* SOCIAL PROOF / TESTIMONIALS */}
+      <Testimonials items={testimonials} />
 
       <Footer />
     </>

@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import { PODCAST_RATING } from '@/lib/ratings';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -80,7 +81,7 @@ export default function ForGuests() {
           {[
             ['Primary Audience', 'Cannabis operators, CEOs, founders, VPs, and strategic advisors across the full supply chain.'],
             ['Investors', 'Family offices, cannabis-focused funds, and institutional capital allocators.'],
-            ['Credibility', '4.9 stars, 111 ratings, top 5% most shared globally. 299 episodes.'],
+            ['Credibility', `${PODCAST_RATING.value} stars, ${PODCAST_RATING.count} ratings, top 5% most shared globally. 299 episodes.`],
             ['Geography', 'NY, FL, MI, CA, CO, IL, MA and every emerging state market with capital at stake.'],
             ['Mindset', 'Survival-focused. Risk-aware. Skeptical of hype. Benchmarking against peers.'],
           ].map(([label, value]) => (

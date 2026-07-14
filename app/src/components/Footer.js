@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PODCAST_RATING } from '@/lib/ratings';
 
 const footerLinkStyle = {
   background: 'none',
@@ -80,7 +81,7 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className="mono" style={{ fontSize: '11px', color: '#3CB8F0' }}>★★★★★</span>
-            <span className="mono" style={{ fontSize: '9px', color: '#777777' }}>4.9 · 111 RATINGS</span>
+            <span className="mono" style={{ fontSize: '9px', color: '#777777' }}>{PODCAST_RATING.value} · {PODCAST_RATING.count} RATINGS</span>
           </div>
         </div>
 
