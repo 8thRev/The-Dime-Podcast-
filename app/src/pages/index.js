@@ -5,7 +5,8 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Ticker from '@/src/components/Ticker';
 import Schema from '@/src/components/Schema';
-import { getAllEpisodes, getEpisodesByTag } from '@/lib/rss';
+import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
+import { getAllEpisodes, getEpisodesByTag, getLatestEpisodeNumber } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema } from '@/lib/schema';
 
@@ -142,8 +143,8 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 
       {/* HERO */}
       <section style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-default)' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)' }} />
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3 }} />
+        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3, pointerEvents: 'none' }} />
         <div className="syne" style={{ position: 'absolute', bottom: -60, right: -40, fontSize: 'clamp(200px,28vw,440px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px #1A2A3A', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
           DIME
         </div>
@@ -328,12 +329,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             550-650 WORDS. ONE IDEA. NO FLUFF. FREE.<br />
             NO SPONSORSHIP CONTENT. NO PARTNER PROMOTIONS.
           </p>
-          <form onSubmit={(e) => { e.preventDefault(); window.location.href = '/newsletter'; }} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <input placeholder="Your email address" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none', transition: 'border-color .15s' }} />
-            <button type="submit" className="btn-teal" style={{ width: '100%' }}>
-              Subscribe to First Principles
-            </button>
-          </form>
+          <ConvertKitEmbed />
           <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 14 }}>
             Operator intelligence only. Unsubscribe anytime.
           </p>
@@ -362,10 +358,12 @@ export async function getStaticProps() {
   const episodes = await getAllEpisodes();
   const videos = await getAllVideos();
 
+  const episodeCount = getLatestEpisodeNumber(episodes);
+
   return {
     props: {
       latestEpisodes: episodes.slice(0, 10),
-      episodeCount: episodes.length,
+      episodeCount,
       latestVideos: videos.slice(0, 8),
     },
     revalidate: 3600,

@@ -4,8 +4,6 @@ import Footer from '@/src/components/Footer';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 
 export default function Newsletter() {
-  const convertKitFormId = process.env.NEXT_PUBLIC_CONVERTKIT_FORM_ID;
-
   return (
     <>
       <Head>
@@ -37,14 +35,7 @@ export default function Newsletter() {
           550-650 WORDS · ONE IDEA · NO NOISE · FREE
         </p>
 
-        {convertKitFormId ? (
-          <ConvertKitEmbed formId={convertKitFormId} />
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 420 }}>
-            <input placeholder="Your email address" style={{ background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', width: '100%', outline: 'none' }} />
-            <button className="btn-teal">Subscribe to First Principles</button>
-          </div>
-        )}
+        <ConvertKitEmbed />
 
         <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 16 }}>
           Operator intelligence only. Unsubscribe anytime.

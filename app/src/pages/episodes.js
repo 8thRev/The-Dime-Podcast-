@@ -3,10 +3,11 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
-import { getAllEpisodes } from '@/lib/rss';
+import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 
 export default function Episodes({ allEpisodes }) {
   const [query, setQuery] = useState('');
+  const episodeCount = getLatestEpisodeNumber(allEpisodes);
 
   const filtered = allEpisodes.filter((ep) =>
     ep.title.toLowerCase().includes(query.toLowerCase()) ||
@@ -17,18 +18,18 @@ export default function Episodes({ allEpisodes }) {
     <>
       <Head>
         <title>All Episodes — The Dime Podcast</title>
-        <meta name="description" content={`Browse all ${allEpisodes.length} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`} />
+        <meta name="description" content={`Browse all ${episodeCount} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`} />
         <link rel="canonical" href="https://www.dimepodcast.com/episodes" />
         <meta property="og:title" content="All Episodes — The Dime Podcast" />
         <meta property="og:description" content="Browse every episode. Cannabis business intelligence, operator to operator." />
         <meta property="og:url" content="https://www.dimepodcast.com/episodes" />
         <meta name="twitter:title" content="All Episodes — The Dime Podcast" />
-        <meta name="twitter:description" content={`Browse all ${allEpisodes?.length || '295'}+ episodes. Cannabis founders, executives, and investors.`} />
+        <meta name="twitter:description" content={`Browse all ${episodeCount}+ episodes. Cannabis founders, executives, and investors.`} />
       </Head>
       <Header />
 
       <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Archive · {allEpisodes.length} Episodes</div>
+        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Archive · {episodeCount} Episodes</div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
           <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9 }}>
             All Episodes

@@ -5,7 +5,7 @@
 // and lib/transcripts within the server process) so it stays current as
 // bot/transcript_pipeline.py adds new episodes daily.
 
-import { getAllEpisodes } from '@/lib/rss';
+import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getAllTopics } from '@/lib/topics';
 
@@ -18,7 +18,7 @@ function buildLlmsTxt(episodes, topics) {
   lines.push('');
   lines.push('> Cannabis business intelligence. Strategy conversations for operators, not observers.');
   lines.push('');
-  lines.push(`${episodes.length} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`);
+  lines.push(`${getLatestEpisodeNumber(episodes)} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`);
   lines.push('');
 
   lines.push('## Topics');
