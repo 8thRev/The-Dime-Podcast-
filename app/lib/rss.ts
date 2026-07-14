@@ -185,6 +185,16 @@ export async function getAllEpisodes(): Promise<Episode[]> {
   }
 }
 
+// Simplecast's itunes:episode numbering has a few duplicate/skipped
+// numbers, so it doesn't equal episodes.length. Use the highest episode
+// number so displayed counts match the "Ep. N" badges shown elsewhere.
+export function getLatestEpisodeNumber(episodes: Episode[]): number {
+  return episodes.reduce((max, ep) => {
+    const n = parseInt(ep.num, 10);
+    return Number.isFinite(n) && n > max ? n : max;
+  }, episodes.length);
+}
+
 export async function getEpisodeBySlug(slug: string): Promise<Episode | null> {
   const episodes = await getAllEpisodes();
   return episodes.find((ep) => ep.slug === slug || ep.legacySlug === slug) || null;
