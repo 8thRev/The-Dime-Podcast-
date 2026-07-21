@@ -128,20 +128,66 @@ const SKIP_DOMAINS = [
   "simplecast.com", "anchor.fm", "buzzsprout.com",
 ];
 
+// "organigram.ca" -> "Organigram", "cryocure.com" -> "Cryocure". Multi-word
+// domains with no separator (e.g. "ajnabiosciences.com") stay mashed
+// together — imperfect, but still a correct link with a readable-enough
+// label, which is what matters for an auto-detected fallback.
+function hostnameToCompanyName(hostname: string): string {
+  const dot = hostname.lastIndexOf(".");
+  const base = dot === -1 ? hostname : hostname.slice(0, dot);
+  return base
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// Company links are only auto-detected from the show notes' "Guest Links"
+// section (heading text varies a little: "Guest Links:", "Guest Links",
+// "Follow Guest Links"). About half of episodes don't have one — those get
+// no auto-detected company rather than a guessed one. Scanning the *whole*
+// show notes (the old approach) reliably picked up the "Newton Insights"
+// sponsor read or the "Eighth Revolution" footer link instead, since both
+// appear in every episode's boilerplate and neither is on SKIP_DOMAINS.
 function extractCompanyFromShowNotes(html: string): { company: string; companyUrl: string } {
-  const linkRe = /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  const headingMatch = html.match(/guest\s*links?\s*:?\s*<\/(?:strong|b)>\s*<\/p>/i);
+  if (!headingMatch || headingMatch.index === undefined) return { company: "", companyUrl: "" };
+
+  const afterHeading = html.slice(headingMatch.index + headingMatch[0].length);
+  // The "Our Links" heading text varies ("Our Links:", "Follow us: Our
+  // Links.") and a few episodes skip it entirely, going straight into the
+  // boilerplate — but every episode's boilerplate links Bryan's Twitter/X
+  // and the "Eighth Revolution" sponsor site, so those are more reliable
+  // end-of-guest-links boundaries than the heading itself.
+  const headingEndMatch = afterHeading.match(/our\s*links?/i);
+  const boilerplateMatch = afterHeading.match(
+    /href=["']https?:\/\/(?:www\.)?(?:(?:x|twitter)\.com\/BryanFields24|eighthrevolution\.com)/i
+  );
+  const endIndex = [headingEndMatch?.index, boilerplateMatch?.index]
+    .filter((i): i is number => i !== undefined)
+    .sort((a, b) => a - b)[0];
+  const section = endIndex !== undefined ? afterHeading.slice(0, endIndex) : afterHeading;
+
+  // Guest links show up both as <a href> tags and as bare text URLs
+  // (some episodes never wrap them in an anchor at all).
+  const urlRe = /(https?:\/\/[^\s"'<>)]+)|(\bwww\.[^\s"'<>)]+)/gi;
   let match: RegExpExecArray | null;
-  while ((match = linkRe.exec(html)) !== null) {
-    const href = match[1].trim();
-    const text = match[2].replace(/<[^>]+>/g, "").trim();
-    if (!href.startsWith("http") || !text) continue;
+  while ((match = urlRe.exec(section)) !== null) {
+    let raw = (match[1] || `https://${match[2]}`).replace(/[.,;)]+$/, "");
+    // A few episodes' show notes have the guest link literally pasted twice
+    // in a row with no separator (e.g. "https://x.com/https://x.com/") —
+    // truncate at the second scheme so we don't publish the glued-together
+    // string as a link.
+    const secondScheme = raw.indexOf("http", 8);
+    if (secondScheme > 0) raw = raw.slice(0, secondScheme);
     try {
-      const hostname = new URL(href).hostname.replace(/^www\./, "");
+      const url = new URL(raw);
+      const hostname = url.hostname.replace(/^www\./, "");
       if (SKIP_DOMAINS.some((d) => hostname === d || hostname.endsWith("." + d))) continue;
+      return { company: hostnameToCompanyName(hostname), companyUrl: raw };
     } catch {
       continue;
     }
-    return { company: text, companyUrl: href };
   }
   return { company: "", companyUrl: "" };
 }
