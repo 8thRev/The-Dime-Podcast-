@@ -23,6 +23,13 @@ from youtube_client import YouTubeClient
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "app" / "content" / "transcripts"
 
+# A handful of per-episode failures in a row (bad captions, a malformed
+# Claude response) is normal. More than this in a row means something
+# systemic broke mid-run (expired token, API outage, exhausted quota) —
+# keep going and every remaining episode fails the same way, burning API
+# credits for nothing. Stop and surface it instead.
+MAX_CONSECUTIVE_FAILURES = 5
+
 
 def main() -> int:
     print("=" * 80)
@@ -60,6 +67,8 @@ def main() -> int:
     processed = 0
     skipped = 0
     failed = 0
+    consecutive_failures = 0
+    aborted = False
 
     for i, video in enumerate(videos, 1):
         print(f"[{i}/{len(videos)}] {video['title']}")
@@ -82,6 +91,10 @@ def main() -> int:
         except Exception as e:
             print(f"  -> Error checking captions: {e}. Skipping.\n")
             failed += 1
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                aborted = True
+                break
             continue
 
         if not caption_id:
@@ -93,12 +106,20 @@ def main() -> int:
         if not srt:
             print("  -> Failed to download captions. Skipping.\n")
             failed += 1
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                aborted = True
+                break
             continue
 
         raw_text = srt_to_text(srt)
         if len(raw_text) < 200:
             print("  -> Downloaded captions look too short/empty. Skipping.\n")
             failed += 1
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                aborted = True
+                break
             continue
 
         success, artifacts = claude.generate_artifacts(
@@ -110,8 +131,13 @@ def main() -> int:
         if not success:
             print("  -> Claude failed to produce usable artifacts. Skipping.\n")
             failed += 1
+            consecutive_failures += 1
+            if consecutive_failures >= MAX_CONSECUTIVE_FAILURES:
+                aborted = True
+                break
             continue
 
+        consecutive_failures = 0
         record = {
             "slug": slug,
             "source": "youtube_captions",
@@ -132,14 +158,20 @@ def main() -> int:
     print("=" * 80)
     print("SUMMARY")
     print(f"Processed: {processed}  Skipped: {skipped}  Failed: {failed}")
+    if aborted:
+        print(f"Aborted after {consecutive_failures} consecutive failures — see errors above.")
     print("=" * 80)
+
+    if aborted:
+        return 1
 
     # A per-episode failure (bad captions, malformed Claude JSON, etc.) is
     # already handled by skipping just that episode and continuing — it
     # isn't systemic, and it self-heals on the next run since the episode
     # has no output file yet. Only the early returns above (bad config, RSS
-    # feed down, YouTube listing failed) represent an actually broken run,
-    # so those are the only ones that should fail the CI job.
+    # feed down, YouTube listing failed) or an abort from too many
+    # consecutive failures represent an actually broken run, so those are
+    # the only ones that should fail the CI job.
     return 0
 
 
