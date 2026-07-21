@@ -7,6 +7,37 @@ export interface SchemaMarkup {
   [key: string]: unknown;
 }
 
+const SUFFIX = " — The Dime Podcast";
+
+// Cuts to the last whole word before maxLength and appends an ellipsis,
+// so titles/descriptions never end mid-word — used everywhere a
+// dynamic (RSS/YouTube/AI-generated) string feeds a meta tag.
+export function truncateDescription(text: string | undefined | null, maxLength = 155): string {
+  if (!text) return "";
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  const cut = trimmed.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
+}
+
+export function truncateTitle(text: string | undefined | null, maxLength = 60): string {
+  if (!text) return "";
+  const trimmed = text.trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  const cut = trimmed.slice(0, maxLength);
+  const lastSpace = cut.lastIndexOf(" ");
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
+}
+
+// Full `<title>` value: truncates the page-specific part, then appends the
+// site suffix — used by SeoHead so the suffix never itself pushes a title
+// over the limit.
+export function buildPageTitle(pageTitle: string, maxLength = 60): string {
+  const budget = maxLength - SUFFIX.length;
+  return truncateTitle(pageTitle, budget > 0 ? budget : maxLength) + SUFFIX;
+}
+
 export function createPodcastEpisodeSchema(
   episode: {
     title: string;
@@ -14,6 +45,7 @@ export function createPodcastEpisodeSchema(
     slug: string;
     dateISO: string;
     duration: string;
+    durationISO?: string;
     audioUrl: string;
     id: string;
   },
@@ -38,7 +70,7 @@ export function createPodcastEpisodeSchema(
     audio: {
       "@type": "AudioObject",
       url: episode.audioUrl,
-      duration: episode.duration,
+      duration: episode.durationISO || episode.duration,
     },
     potentialAction: {
       "@type": "ListenAction",
@@ -140,6 +172,7 @@ export function createVideoObjectSchema(
     thumbnail: string;
     publishedAt: string;
     duration: string;
+    durationISO?: string;
     id: string;
   },
   siteUrl: string = "https://www.dimepodcast.com"
@@ -152,17 +185,18 @@ export function createVideoObjectSchema(
     url: `${siteUrl}/videos/${video.slug}`,
     thumbnailUrl: video.thumbnail,
     uploadDate: video.publishedAt,
-    duration: video.duration,
+    duration: video.durationISO || video.duration,
     embedUrl: `https://www.youtube.com/embed/${video.id}`,
   };
 }
 
 export function createPodcastSchema(
-  siteUrl: string = "https://www.dimepodcast.com"
+  siteUrl: string = "https://www.dimepodcast.com",
+  rating?: { value: number; count: number }
 ): SchemaMarkup {
-  return {
+  const schema: SchemaMarkup = {
     "@context": "https://schema.org",
-    "@type": "Podcast",
+    "@type": "PodcastSeries",
     name: "The Dime",
     url: siteUrl,
     description: "Cannabis business intelligence. Strategy conversations for operators, not observers.",
@@ -172,6 +206,16 @@ export function createPodcastSchema(
     },
     image: `${siteUrl}/logo.png`,
   };
+
+  if (rating) {
+    schema.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: rating.value,
+      ratingCount: rating.count,
+    };
+  }
+
+  return schema;
 }
 
 export function createOrganizationSchema(
@@ -184,5 +228,47 @@ export function createOrganizationSchema(
     url: siteUrl,
     description: "Cannabis business intelligence.",
     sameAs: ["https://twitter.com/thedime_cannabis"],
+  };
+}
+
+// WebSite node with a SearchAction — the standard low-effort schema for
+// sitelinks-search-box eligibility in Google SERPs.
+export function createWebsiteSchema(
+  siteUrl: string = "https://www.dimepodcast.com"
+): SchemaMarkup {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "The Dime Podcast",
+    url: siteUrl,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/episodes?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+}
+
+// CollectionPage/ItemList schema for archive/hub pages (episodes, videos,
+// topics index) that otherwise carry zero structured data.
+export function createCollectionPageSchema(
+  page: { name: string; description: string; url: string },
+  items: { name: string; url: string }[]
+): SchemaMarkup {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: page.name,
+    description: page.description,
+    url: page.url,
+    mainEntity: {
+      "@type": "ItemList",
+      itemListElement: items.map((item, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: item.name,
+        url: item.url,
+      })),
+    },
   };
 }

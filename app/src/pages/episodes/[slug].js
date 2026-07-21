@@ -1,11 +1,11 @@
 // src/pages/episodes/[slug].js
 // Dynamic episode detail page
 
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import AIDisclosure from '@/src/components/AIDisclosure';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
@@ -94,19 +94,12 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
 
   return (
     <>
-      <Head>
-        <title>{episode.title} — The Dime Podcast</title>
-        <meta name="description" content={metaDescription} />
-        <link rel="canonical" href={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
-        <meta property="og:title" content={`${episode.title} — The Dime Podcast`} />
-        <meta property="og:description" content={metaDescription} />
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={`https://www.dimepodcast.com/episodes/${episode.slug}`} />
-        <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
-        <meta name="twitter:title" content={`${episode.title} — The Dime Podcast`} />
-        <meta name="twitter:description" content={metaDescription} />
-        <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
-      </Head>
+      <SeoHead
+        title={episode.title}
+        description={metaDescription}
+        path={`/episodes/${episode.slug}`}
+        ogType="article"
+      />
 
       <Schema schema={schema} />
       {faqSchema && <Schema schema={faqSchema} />}
@@ -200,9 +193,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
 
           {episode.showNotes && (
             <div style={{ marginTop: '32px', padding: '24px', background: 'var(--bg-surface)', borderLeft: '3px solid var(--text-accent)', borderRadius: '4px' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-headline)' }}>
+              <h2 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-headline)' }}>
                 Full Show Notes
-              </h3>
+              </h2>
               <div
                 style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}
                 dangerouslySetInnerHTML={{ __html: episode.showNotes }}
@@ -214,9 +207,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         {transcript && transcript.summary && (
           <section style={{ marginBottom: '56px' }}>
             <AIDisclosure />
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               TL;DR
-            </h3>
+            </h2>
             <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
               {transcript.summary}
             </p>
@@ -226,9 +219,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         {transcript && transcript.takeaways?.length > 0 && (
           <section style={{ marginBottom: '56px' }}>
             <AIDisclosure />
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Key Takeaways
-            </h3>
+            </h2>
             <ul style={{ paddingLeft: '20px', margin: 0 }}>
               {transcript.takeaways.map((point, i) => (
                 <li key={i} style={{ fontSize: '15px', lineHeight: '1.8', color: 'var(--text-secondary)', marginBottom: '10px' }}>
@@ -242,9 +235,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         {transcript && transcript.quotes?.length > 0 && (
           <section style={{ marginBottom: '56px' }}>
             <AIDisclosure />
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Notable Quotes
-            </h3>
+            </h2>
             {transcript.quotes.map((item, i) => (
               <blockquote
                 key={i}
@@ -270,9 +263,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         {transcript && transcript.faq?.length > 0 && (
           <section style={{ marginBottom: '56px' }}>
             <AIDisclosure />
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Frequently Asked Questions
-            </h3>
+            </h2>
             {transcript.faq.map((item, i) => (
               <div key={i} style={{ marginBottom: '20px' }}>
                 <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-headline)', marginBottom: '6px' }}>
@@ -286,12 +279,38 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
           </section>
         )}
 
+        {transcript && (transcript.entities?.companies?.length > 0 || transcript.entities?.people?.length > 0) && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Mentioned in This Episode
+            </h2>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {[...(transcript.entities.people || []), ...(transcript.entities.companies || [])].map((name) => (
+                <span
+                  key={name}
+                  className="mono"
+                  style={{
+                    fontSize: '11px',
+                    color: 'var(--text-secondary)',
+                    border: '1px solid var(--border-default)',
+                    padding: '4px 12px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
+
         {transcript && transcript.cleaned_transcript && (
           <section style={{ marginBottom: '80px' }}>
             <AIDisclosure />
-            <h3 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Full Transcript
-            </h3>
+            </h2>
             <div
               style={{
                 fontSize: '14px',
@@ -307,9 +326,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
 
         {relatedEpisodes.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
+            <h2 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
               More Episodes
-            </h3>
+            </h2>
             <div style={{ display: 'grid', gap: '0' }}>
               {relatedEpisodes.map((ep) => (
                 <Link

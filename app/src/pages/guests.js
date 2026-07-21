@@ -1,6 +1,6 @@
-import Head from 'next/head';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import SeoHead from '@/src/components/SeoHead';
 import { PODCAST_RATING } from '@/lib/ratings';
 
 const GUESTS_TICKER = [
@@ -54,9 +54,11 @@ const GUESTS_TICKER = [
 export default function ForGuests() {
   return (
     <>
-      <Head>
-        <title>Apply to Guest - The Dime Podcast</title>
-      </Head>
+      <SeoHead
+        title="Apply to Guest"
+        description="Apply to be a guest on The Dime Podcast — a strategy room for cannabis operators, executives, and investors making real decisions in the industry."
+        path="/guests"
+      />
       <Header />
 
       <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)' }}>
@@ -76,7 +78,7 @@ export default function ForGuests() {
       <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
         <div>
           <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 20 }}>
-            Who's Listening
+            Who&apos;s Listening
           </div>
           {[
             ['Primary Audience', 'Cannabis operators, CEOs, founders, VPs, and strategic advisors across the full supply chain.'],

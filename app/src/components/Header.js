@@ -3,7 +3,10 @@ import Link from 'next/link';
 
 const NAV = [
   { label: 'Episodes', href: '/episodes' },
+  { label: 'Videos', href: '/videos' },
+  { label: 'Topics', href: '/topics' },
   { label: 'Newsletter', href: '/newsletter' },
+  { label: 'Guests', href: '/guests' },
   { label: 'About', href: '/about' },
 ];
 

@@ -1,11 +1,11 @@
 // src/pages/videos/[slug].js
 // Dynamic video detail page
 
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import { getAllVideos, getVideoBySlug } from '@/lib/youtube';
 import { createVideoObjectSchema } from '@/lib/schema';
 
@@ -29,6 +29,13 @@ export async function getStaticProps({ params }) {
     return { notFound: true };
   }
 
+  // 301 redirect old truncated slug → full slug (mirrors episode handling)
+  if (video.legacySlug && params.slug === video.legacySlug) {
+    return {
+      redirect: { destination: `/videos/${video.slug}`, permanent: true },
+    };
+  }
+
   const relatedVideos = allVideos
     .filter((v) => v.id !== video.id)
     .slice(0, 5);
@@ -47,15 +54,13 @@ export default function VideoPage({ video, relatedVideos }) {
 
   return (
     <>
-      <Head>
-        <title>{video.title} - The Dime Podcast</title>
-        <meta name="description" content={video.description} />
-        <meta property="og:title" content={video.title} />
-        <meta property="og:description" content={video.description} />
-        <meta property="og:type" content="video.other" />
-        <meta property="og:url" content={`https://www.dimepodcast.com/videos/${video.slug}`} />
-        <meta property="og:image" content={video.thumbnail} />
-      </Head>
+      <SeoHead
+        title={video.title}
+        description={video.description}
+        path={`/videos/${video.slug}`}
+        ogType="video.other"
+        ogImage={video.thumbnail}
+      />
 
       <Schema schema={schema} />
 
@@ -150,9 +155,9 @@ export default function VideoPage({ video, relatedVideos }) {
 
         {relatedVideos.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
-            <h3 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)' }}>
+            <h2 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)' }}>
               More Videos
-            </h3>
+            </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
               {relatedVideos.map((v) => (
                 <Link
@@ -170,6 +175,7 @@ export default function VideoPage({ video, relatedVideos }) {
                     <img
                       src={v.thumbnail}
                       alt={v.title}
+                      loading="lazy"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>

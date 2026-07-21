@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import { getAllVideos } from '@/lib/youtube';
+import { createCollectionPageSchema } from '@/lib/schema';
 
 export default function Videos({ allVideos }) {
   const [query, setQuery] = useState('');
@@ -14,19 +16,26 @@ export default function Videos({ allVideos }) {
     v.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()))
   );
 
+  const collectionSchema = createCollectionPageSchema(
+    {
+      name: 'Video Library — The Dime Podcast',
+      description: `Full video library from The Dime Podcast YouTube channel. ${allVideos.length} videos.`,
+      url: 'https://www.dimepodcast.com/videos',
+    },
+    allVideos.slice(0, 50).map((v) => ({
+      name: v.title,
+      url: `https://www.dimepodcast.com/videos/${v.slug}`,
+    }))
+  );
+
   return (
     <>
-      <Head>
-        <title>Video Library — The Dime Podcast</title>
-        <meta name="description" content={`Full video library from The Dime Podcast YouTube channel. ${allVideos.length} videos featuring cannabis founders, operators, and executives.`} />
-        <link rel="canonical" href="https://www.dimepodcast.com/videos" />
-        <meta property="og:title" content="Video Library — The Dime Podcast" />
-        <meta property="og:description" content="Every conversation on video. Cannabis business intelligence from The Dime Podcast YouTube channel." />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.dimepodcast.com/videos" />
-        <meta name="twitter:title" content="Video Library — The Dime Podcast" />
-        <meta name="twitter:description" content="Every conversation on video. Cannabis founders, operators, and executives." />
-      </Head>
+      <SeoHead
+        title="Video Library"
+        description={`Full video library from The Dime Podcast YouTube channel. ${allVideos.length} videos featuring cannabis founders, operators, and executives.`}
+        path="/videos"
+      />
+      <Schema schema={collectionSchema} />
       <Header />
 
       <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
@@ -56,7 +65,7 @@ export default function Videos({ allVideos }) {
             >
               <div style={{ background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
                 <div style={{ aspectRatio: '16/9', background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                  <img src={v.thumbnail} alt={v.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={v.thumbnail} alt={v.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div style={{ padding: '16px' }}>
                   <div className="crimson" style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.3 }}>

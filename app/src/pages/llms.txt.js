@@ -20,6 +20,10 @@ function buildLlmsTxt(episodes, topics) {
   lines.push('');
   lines.push(`${getLatestEpisodeNumber(episodes)} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`);
   lines.push('');
+  lines.push(`About the hosts: ${SITE_URL}/about`);
+  lines.push(`Video library: ${SITE_URL}/videos`);
+  lines.push(`Guest applications: ${SITE_URL}/guests`);
+  lines.push('');
 
   lines.push('## Topics');
   lines.push('');

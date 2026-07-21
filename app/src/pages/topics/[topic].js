@@ -1,8 +1,8 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import { getAllTopics, getEpisodesByTopicSlug } from '@/lib/topics';
 import { createBreadcrumbSchema } from '@/lib/schema';
 
@@ -35,14 +35,11 @@ export default function TopicPage({ topic, episodes, topicSlug }) {
 
   return (
     <>
-      <Head>
-        <title>{topic} — The Dime Podcast</title>
-        <meta name="description" content={`Episodes of The Dime Podcast covering ${topic}: cannabis business conversations with founders, executives, and investors.`} />
-        <link rel="canonical" href={`https://www.dimepodcast.com/topics/${topicSlug}`} />
-        <meta property="og:title" content={`${topic} — The Dime Podcast`} />
-        <meta property="og:description" content={`Episodes covering ${topic}.`} />
-        <meta property="og:url" content={`https://www.dimepodcast.com/topics/${topicSlug}`} />
-      </Head>
+      <SeoHead
+        title={topic}
+        description={`Episodes of The Dime Podcast covering ${topic}: cannabis business conversations with founders, executives, and investors.`}
+        path={`/topics/${topicSlug}`}
+      />
 
       <Schema schema={breadcrumbSchema} />
 

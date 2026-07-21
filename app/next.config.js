@@ -10,6 +10,18 @@ const nextConfig = {
   outputFileTracingIncludes: {
     '/episodes/[slug]': ['./content/transcripts/**'],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ];
+  },
 };
 
 // Export config — next-sitemap will be handled via postbuild script in package.json

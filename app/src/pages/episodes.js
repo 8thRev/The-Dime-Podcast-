@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
+import { createCollectionPageSchema } from '@/lib/schema';
 
 export default function Episodes({ allEpisodes }) {
   const [query, setQuery] = useState('');
@@ -14,18 +16,26 @@ export default function Episodes({ allEpisodes }) {
     ep.guest.toLowerCase().includes(query.toLowerCase())
   );
 
+  const collectionSchema = createCollectionPageSchema(
+    {
+      name: 'All Episodes — The Dime Podcast',
+      description: `Browse all ${episodeCount} episodes of The Dime.`,
+      url: 'https://www.dimepodcast.com/episodes',
+    },
+    allEpisodes.slice(0, 50).map((ep) => ({
+      name: ep.title,
+      url: `https://www.dimepodcast.com/episodes/${ep.slug}`,
+    }))
+  );
+
   return (
     <>
-      <Head>
-        <title>All Episodes — The Dime Podcast</title>
-        <meta name="description" content={`Browse all ${episodeCount} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`} />
-        <link rel="canonical" href="https://www.dimepodcast.com/episodes" />
-        <meta property="og:title" content="All Episodes — The Dime Podcast" />
-        <meta property="og:description" content="Browse every episode. Cannabis business intelligence, operator to operator." />
-        <meta property="og:url" content="https://www.dimepodcast.com/episodes" />
-        <meta name="twitter:title" content="All Episodes — The Dime Podcast" />
-        <meta name="twitter:description" content={`Browse all ${episodeCount}+ episodes. Cannabis founders, executives, and investors.`} />
-      </Head>
+      <SeoHead
+        title="All Episodes"
+        description={`Browse all ${episodeCount} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`}
+        path="/episodes"
+      />
+      <Schema schema={collectionSchema} />
       <Header />
 
       <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
