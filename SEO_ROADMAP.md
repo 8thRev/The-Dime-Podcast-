@@ -30,6 +30,7 @@ moment an item ships and stops being useful.
 - [x] Explicit AI-crawler allow rules in `robots.txt`/`next-sitemap.config.js` (GPTBot, ClaudeBot, PerplexityBot, Google-Extended, CCBot, etc.); `/llms.txt` links to `/about`, `/videos`, `/guests`; excluded from the XML sitemap (it's not an indexable HTML page)
 - [x] GA4 moved from a raw `<script>` in `_document.js` to `next/script` (`_app.js`); baseline security headers (`next.config.js`); ESLint config added (`next/core-web-vitals`)
 - [x] Video legacy-slug 301 redirect, mirroring the existing episode-slug redirect
+- [x] Real per-episode sitemap `lastmod` (from the RSS `pubDate`, via `next-sitemap.config.js`'s `transform`) instead of a single build timestamp for every URL — video/topic/static URLs still fall back to build time (see Hub layer below)
 
 ## Guardrails — how new pages stay correct
 
@@ -60,4 +61,4 @@ Re-check at +30 days (crawl-level fixes should be visible) and +60-90 days (orga
 
 - [ ] `sameAs` links (LinkedIn/Twitter) on guest `Person` schema, once guest entity pages exist to source them from
 - [ ] `og:image` is currently the same generic `og-default.jpg` on every episode page — no per-episode/guest thumbnail for social/LLM preview cards
-- [ ] Sitemap `lastmod` for episode/video/topic detail pages is currently just the build timestamp for every URL, not the real publish/update date — accurate per-URL `lastmod` would need `next-sitemap`'s `transform` to read the same data `app/lib/rss.ts`/`youtube.ts` expose, which isn't straightforward from `next-sitemap.config.js` (a plain Node script that runs after the Next.js build, can't directly import the TypeScript lib modules without extra tooling)
+- [ ] Sitemap `lastmod` for video pages still uses the build timestamp, not the real YouTube `publishedAt` date — episode pages already get a real per-URL `lastmod` from the RSS feed (see Shipped), but doing the same for videos means either an extra YouTube Data API call from `next-sitemap.config.js` (quota cost for a nice-to-have) or a shared cache file written during `next build` for `next-sitemap` to read afterward
