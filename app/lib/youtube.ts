@@ -9,12 +9,14 @@ const BASE = "https://www.googleapis.com/youtube/v3";
 export type YTVideo = {
   id: string;
   slug: string;
+  legacySlug: string;
   title: string;
   description: string;
   thumbnail: string;
   publishedAt: string;
   date: string;
   duration: string;
+  durationISO: string;
   viewCount: string;
   embedUrl: string;
   watchUrl: string;
@@ -27,7 +29,7 @@ function slugify(title: string): string {
     .replace(/[^a-z0-9\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/-+/g, "-")
-    .slice(0, 80);
+    .replace(/-+$/, "");
 }
 
 function parseDurationSeconds(iso: string): number {
@@ -130,9 +132,13 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
         // Skip Shorts (under 3 minutes)
         if (parseDurationSeconds(item.contentDetails.duration) < 180) return;
 
+        const fullSlug = slugify(item.snippet.title);
+        const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");
+
         videos.push({
           id: item.id,
-          slug: slugify(item.snippet.title),
+          slug: fullSlug,
+          legacySlug: truncatedSlug !== fullSlug ? truncatedSlug : "",
           title: item.snippet.title,
           description: item.snippet.description,
           thumbnail: item.snippet.thumbnails.maxres?.url || item.snippet.thumbnails.high.url,
@@ -143,6 +149,7 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
             year: "numeric",
           }),
           duration: formatDuration(item.contentDetails.duration),
+          durationISO: item.contentDetails.duration,
           viewCount: formatViews(item.statistics.viewCount),
           embedUrl: `https://www.youtube.com/embed/${item.id}?autoplay=1&rel=0&color=white`,
           watchUrl: `https://www.youtube.com/watch?v=${item.id}`,
@@ -172,5 +179,5 @@ export async function getAllVideos(): Promise<YTVideo[]> {
 
 export async function getVideoBySlug(slug: string): Promise<YTVideo | null> {
   const videos = await getAllVideos();
-  return videos.find((v) => v.slug === slug) || null;
+  return videos.find((v) => v.slug === slug || v.legacySlug === slug) || null;
 }

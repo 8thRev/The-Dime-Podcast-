@@ -34,6 +34,7 @@ export type Episode = {
   date: string;
   dateISO: string;
   duration: string;
+  durationISO: string;
   description: string;
   showNotes: string;
   audioUrl: string;
@@ -86,6 +87,27 @@ function formatDuration(raw: string): string {
   }
   const mins = Math.floor(Number(raw) / 60);
   return `${mins} min`;
+}
+
+// schema.org/Google structured data requires ISO 8601 duration (PT1H23M45S),
+// not the "1h 23m" display string from formatDuration().
+function formatDurationISO(raw: string): string {
+  if (!raw) return "";
+  let totalSeconds: number;
+  const parts = raw.split(":").map(Number);
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    totalSeconds = h * 3600 + m * 60 + s;
+  } else if (parts.length === 2) {
+    const [m, s] = parts;
+    totalSeconds = m * 60 + s;
+  } else {
+    totalSeconds = Number(raw) || 0;
+  }
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  return `PT${h > 0 ? `${h}H` : ""}${m > 0 ? `${m}M` : ""}${s > 0 || (h === 0 && m === 0) ? `${s}S` : ""}`;
 }
 
 function extractSimplecastId(guid: string, link: string): string {
@@ -170,6 +192,7 @@ export async function getAllEpisodes(): Promise<Episode[]> {
         }),
         dateISO: new Date(item.pubDate || "").toISOString(),
         duration: formatDuration(item.itunes?.duration || ""),
+        durationISO: formatDurationISO(item.itunes?.duration || ""),
         description,
         showNotes,
         audioUrl: item.enclosure?.url || "",

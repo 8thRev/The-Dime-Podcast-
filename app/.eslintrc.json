@@ -1,0 +1,24 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "next/head",
+            "message": "Import SeoHead from '@/src/components/SeoHead' instead of next/head directly in pages, so title/description length and duplicate-tag guarantees stay in one place."
+          }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/components/SeoHead.js"],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ]
+}

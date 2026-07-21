@@ -4,7 +4,8 @@
   "description": "The Dime Podcast - Cannabis Business Intelligence",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && next-sitemap --config next-sitemap.config.js",
+    "checkseo": "node scripts/check-seo.mjs",
+    "build": "npm run checkseo && next build && next-sitemap --config next-sitemap.config.js",
     "start": "next start",
     "lint": "next lint"
   },

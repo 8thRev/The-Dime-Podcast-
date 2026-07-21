@@ -3,11 +3,17 @@
 
 const siteUrl = process.env.SITE_URL || 'https://www.dimepodcast.com';
 
+// Named AI/LLM crawlers get an explicit allow rule rather than relying on
+// the wildcard fallthrough — makes this site's LLM-discoverability intent
+// auditable instead of incidental.
+const AI_CRAWLERS = ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'CCBot'];
+
 module.exports = {
   siteUrl,
   changefreq: 'weekly',
   priority: 0.7,
   generateRobotsTxt: true,
+  exclude: ['/llms.txt'],
   robotsTxtOptions: {
     sitemaps: [
       `${siteUrl}/sitemap.xml`,
@@ -18,6 +24,7 @@ module.exports = {
         allow: '/',
         disallow: ['/admin', '/api'],
       },
+      ...AI_CRAWLERS.map((userAgent) => ({ userAgent, allow: '/' })),
     ],
   },
   additionalPaths: async (config) => {

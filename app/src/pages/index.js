@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Ticker from '@/src/components/Ticker';
 import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import Testimonials from '@/src/components/Testimonials';
 import { getAllEpisodes, getEpisodesByTag, getLatestEpisodeNumber } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
-import { createPodcastSchema } from '@/lib/schema';
+import { createPodcastSchema, createWebsiteSchema } from '@/lib/schema';
 import testimonials from '@/content/testimonials.json';
 import { PODCAST_RATING } from '@/lib/ratings';
 
@@ -34,7 +34,8 @@ const TOPICS = [
 
 export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
   const topicItems = [...TOPICS, ...TOPICS];
-  const schema = createPodcastSchema('https://www.dimepodcast.com');
+  const schema = createPodcastSchema('https://www.dimepodcast.com', PODCAST_RATING);
+  const websiteSchema = createWebsiteSchema('https://www.dimepodcast.com');
 
   return (
     <>
@@ -126,21 +127,15 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         .platform-youtube:hover { color: #FF0000; }
       `}</style>
 
-      <Head>
-        <title>The Dime Podcast — Cannabis Business Intelligence</title>
-        <meta name="description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors shaping the cannabis industry.`} />
-        <link rel="canonical" href="https://www.dimepodcast.com" />
-        <meta property="og:title" content="The Dime Podcast — Cannabis Business Intelligence" />
-        <meta property="og:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes. The most operator-focused podcast in cannabis.`} />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://www.dimepodcast.com" />
-        <meta property="og:image" content="https://www.dimepodcast.com/og-default.jpg" />
-        <meta name="twitter:title" content="The Dime Podcast — Cannabis Business Intelligence" />
-        <meta name="twitter:description" content={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors.`} />
-        <meta name="twitter:image" content="https://www.dimepodcast.com/og-default.jpg" />
-      </Head>
+      <SeoHead
+        title="The Dime Podcast — Cannabis Business Intelligence"
+        description={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors shaping the cannabis industry.`}
+        path="/"
+        fullTitleProvided
+      />
 
       <Schema schema={schema} />
+      <Schema schema={websiteSchema} />
 
       <Header />
 
@@ -219,7 +214,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         <div style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
           <div style={{ padding: '48px', maxWidth: '1200px', margin: '0 auto' }}>
             <div style={{ marginBottom: 40 }}>
-              <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Latest Episodes</span>
+              <h2 className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: 0 }}>Latest Episodes</h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
               {latestEpisodes.slice(0, 6).map((ep, i) => (
@@ -258,7 +253,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
       {latestVideos && latestVideos.length > 0 && (
         <section style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)', padding: '64px 0', overflow: 'hidden' }}>
           <div style={{ padding: '0 clamp(24px, 5vw, 48px)', marginBottom: 40 }}>
-            <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Watch on YouTube</span>
+            <h2 className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: 0 }}>Watch on YouTube</h2>
           </div>
           <div style={{ display: 'flex', gap: 24, overflowX: 'auto', paddingLeft: 'clamp(24px, 5vw, 48px)', paddingRight: 'clamp(24px, 5vw, 48px)', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {latestVideos.map((video) => (
@@ -273,6 +268,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
                   <img
                     src={video.thumbnail || `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`}
                     alt={video.title}
+                    loading="lazy"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                   />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 60%)' }} />
@@ -324,7 +320,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             the episode.
           </h2>
           <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-secondary)', fontWeight: 300 }}>
-            Not a recap. The structural principle underneath each conversation. Written for operators who need to understand what's actually happening before the market makes it obvious.
+            Not a recap. The structural principle underneath each conversation. Written for operators who need to understand what&apos;s actually happening before the market makes it obvious.
           </p>
         </div>
         <div>

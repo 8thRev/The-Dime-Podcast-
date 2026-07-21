@@ -1,6 +1,6 @@
-import Head from 'next/head';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import SeoHead from '@/src/components/SeoHead';
 
 const SECTIONS = [
   {
@@ -32,11 +32,11 @@ const SECTIONS = [
 export default function Privacy() {
   return (
     <>
-      <Head>
-        <title>Privacy Policy — The Dime Podcast</title>
-        <meta name="description" content="Privacy policy for The Dime Podcast — what data we collect, the third-party services we use, and how we handle it." />
-        <link rel="canonical" href="https://www.dimepodcast.com/privacy" />
-      </Head>
+      <SeoHead
+        title="Privacy Policy"
+        description="Privacy policy for The Dime Podcast — what data we collect, the third-party services we use, and how we handle it."
+        path="/privacy"
+      />
       <Header />
 
       <section style={{ padding: '80px 48px', maxWidth: 800, margin: '0 auto' }}>

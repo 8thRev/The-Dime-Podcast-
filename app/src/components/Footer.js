@@ -94,8 +94,11 @@ export default function Footer() {
             </div>
             {[
               { label: 'Episodes', href: '/episodes' },
+              { label: 'Videos', href: '/videos' },
+              { label: 'Topics', href: '/topics' },
               { label: 'About', href: '/about' },
               { label: 'Newsletter', href: '/newsletter' },
+              { label: 'Guests', href: '/guests' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
                 {nav.label}

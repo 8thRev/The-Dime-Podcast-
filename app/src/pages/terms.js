@@ -1,6 +1,6 @@
-import Head from 'next/head';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import SeoHead from '@/src/components/SeoHead';
 
 const SECTIONS = [
   {
@@ -40,11 +40,11 @@ const SECTIONS = [
 export default function Terms() {
   return (
     <>
-      <Head>
-        <title>Terms of Service — The Dime Podcast</title>
-        <meta name="description" content="Terms of Service for The Dime Podcast website." />
-        <link rel="canonical" href="https://www.dimepodcast.com/terms" />
-      </Head>
+      <SeoHead
+        title="Terms of Service"
+        description="Terms of Service for The Dime Podcast website."
+        path="/terms"
+      />
       <Header />
 
       <section style={{ padding: '80px 48px', maxWidth: 800, margin: '0 auto' }}>

@@ -1,20 +1,32 @@
-import Head from 'next/head';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
+import Schema from '@/src/components/Schema';
+import SeoHead from '@/src/components/SeoHead';
 import { getAllTopics } from '@/lib/topics';
+import { createCollectionPageSchema } from '@/lib/schema';
 
 export default function Topics({ topics }) {
+  const collectionSchema = createCollectionPageSchema(
+    {
+      name: 'Topics — The Dime Podcast',
+      description: 'Browse The Dime Podcast by topic.',
+      url: 'https://www.dimepodcast.com/topics',
+    },
+    topics.map((t) => ({
+      name: t.topic,
+      url: `https://www.dimepodcast.com/topics/${t.slug}`,
+    }))
+  );
+
   return (
     <>
-      <Head>
-        <title>Topics — The Dime Podcast</title>
-        <meta name="description" content="Browse The Dime Podcast by topic — capital raising, M&A, regulation, rescheduling, and more cannabis business subjects covered across episodes." />
-        <link rel="canonical" href="https://www.dimepodcast.com/topics" />
-        <meta property="og:title" content="Topics — The Dime Podcast" />
-        <meta property="og:description" content="Browse every episode by subject." />
-        <meta property="og:url" content="https://www.dimepodcast.com/topics" />
-      </Head>
+      <SeoHead
+        title="Topics"
+        description="Browse The Dime Podcast by topic — capital raising, M&A, regulation, rescheduling, and more cannabis business subjects covered across episodes."
+        path="/topics"
+      />
+      <Schema schema={collectionSchema} />
       <Header />
 
       <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
