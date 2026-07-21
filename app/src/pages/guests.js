@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import SeoHead from '@/src/components/SeoHead';
 import { PODCAST_RATING } from '@/lib/ratings';
+import { getAllGuests, guestToSlug } from '@/lib/guests';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -51,7 +53,20 @@ const GUESTS_TICKER = [
   'Kevin Carrillo', 'Malcolm Boyce', 'Rena Sherbill', 'Bruce Eckfeldt',
 ];
 
-export default function ForGuests() {
+export async function getStaticProps() {
+  const guests = await getAllGuests();
+  const guestSlugs = guests.reduce((acc, g) => {
+    acc[g.slug] = true;
+    return acc;
+  }, {});
+
+  return {
+    props: { guestSlugs },
+    revalidate: 3600,
+  };
+}
+
+export default function ForGuests({ guestSlugs }) {
   return (
     <>
       <SeoHead
@@ -113,11 +128,21 @@ export default function ForGuests() {
             Past Guests Include
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-            {GUESTS_TICKER.slice(0, 16).map((g) => (
-              <div key={g} style={{ fontSize: '12px', fontWeight: 500, color: '#3A4F66', padding: '12px 0', borderBottom: '1px solid var(--faint)', transition: 'color .15s', letterSpacing: '.02em' }}>
-                {g}
-              </div>
-            ))}
+            {GUESTS_TICKER.slice(0, 32).map((g) => {
+              const slug = guestToSlug(g);
+              const hasProfile = !!guestSlugs[slug];
+              return (
+                <div key={g} style={{ fontSize: '12px', fontWeight: 500, padding: '12px 0', borderBottom: '1px solid var(--faint)', letterSpacing: '.02em' }}>
+                  {hasProfile ? (
+                    <Link href={`/guests/${slug}`} style={{ color: '#3A4F66', textDecoration: 'none' }}>
+                      {g}
+                    </Link>
+                  ) : (
+                    <span style={{ color: '#3A4F66' }}>{g}</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

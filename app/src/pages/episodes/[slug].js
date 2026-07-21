@@ -11,6 +11,7 @@ import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
 import { createPodcastEpisodeSchema, createFAQSchema, createBreadcrumbSchema } from '@/lib/schema';
 import { topicToSlug } from '@/lib/topicSlug';
+import { guestToSlug } from '@/lib/guests';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -130,7 +131,13 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
           </h1>
 
           <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 500 }}>
-            {episode.guest}
+            {episode.guest && episode.guest !== 'Guest' ? (
+              <Link href={`/guests/${guestToSlug(episode.guest)}`} style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--border-subtle)' }}>
+                {episode.guest}
+              </Link>
+            ) : (
+              episode.guest
+            )}
             {episode.company && (
               <span style={{ color: 'var(--text-muted)' }}>
                 {' / '}

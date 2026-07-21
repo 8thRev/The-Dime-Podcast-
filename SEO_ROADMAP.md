@@ -31,6 +31,7 @@ moment an item ships and stops being useful.
 - [x] GA4 moved from a raw `<script>` in `_document.js` to `next/script` (`_app.js`); baseline security headers (`next.config.js`); ESLint config added (`next/core-web-vitals`)
 - [x] Video legacy-slug 301 redirect, mirroring the existing episode-slug redirect
 - [x] Real per-episode sitemap `lastmod` (from the RSS `pubDate`, via `next-sitemap.config.js`'s `transform`) instead of a single build timestamp for every URL — video/topic/static URLs still fall back to build time (see Hub layer below)
+- [x] Guest entity pages (`/guests/[slug]`, `app/lib/guests.ts`) — derived entirely from the guest/company data `lib/rss.ts` already extracts per episode, no new data source needed. Each page gets `Person` + `BreadcrumbList` schema, an initials-avatar (no photo — see note below), and a full linked list of that guest's episodes. The existing `/guests` "Past Guests Include" ticker now links every name with a matching profile instead of showing dead text, and the episode-detail guest byline links to the guest's page. Deliberately *not* done: pulling headshots from LinkedIn or elsewhere on the web — that's a scraping-ToS and copyright/right-of-publicity problem at this scale, not a code problem, so guests get an initials avatar instead (same pattern as `Testimonials.js`). If real, rights-cleared photos are ever supplied for specific guests, they can be wired in the same way `testimonials.json`'s `photo` field already is.
 
 ## Guardrails — how new pages stay correct
 
@@ -55,7 +56,8 @@ Re-check at +30 days (crawl-level fixes should be visible) and +60-90 days (orga
 
 ## MVP — now
 
-- [ ] Guest entity pages (`/guests/[slug]`) — `/guests` today is only a "become a guest" ticker of ~180 real guest names with no links or schema; each name is a real, currently-invisible search query ("[Name] cannabis podcast"). `createPersonSchema` in `app/lib/schema.ts` already exists as a building block for this.
+- [ ] Split composite guest credits ("Kristin & Eric Rogers", "Emily Fisher & Dr June Chin") into separate `Person` entities instead of one combined entity page — needs real name-parsing, deliberately deferred when guest entity pages shipped (see Shipped) rather than guessed at with a quick regex
+- [ ] Backfill AI transcripts for the ~270 episodes that don't have one yet (`bot/transcript_pipeline.py`) — this is the actual content-and-authority lever; the technical SEO/entity-page work only helps pages that have real content behind them
 
 ## Hub layer — next (as the library grows)
 
