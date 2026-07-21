@@ -3,6 +3,11 @@
 // Channel: @thedime_cannabis | ID: UCcck3tzBNXrJ1WJ8EtIVq1w
 
 const CHANNEL_ID = "UCcck3tzBNXrJ1WJ8EtIVq1w";
+// A channel's "uploads" playlist ID is its channel ID with the "UC" prefix
+// swapped for "UU". Listing it via playlistItems.list costs 1 quota unit per
+// page of 50, versus 100 units per page for search.list — a full back-catalog
+// pull drops from ~600 units to ~6, well under the 10k/day quota.
+const UPLOADS_PLAYLIST_ID = "UU" + CHANNEL_ID.slice(2);
 const API_KEY = process.env.YOUTUBE_API_KEY || "";
 const BASE = "https://www.googleapis.com/youtube/v3";
 
@@ -67,14 +72,13 @@ async function fetchAllVideoIds(): Promise<string[]> {
     do {
       const params = new URLSearchParams({
         key: API_KEY,
-        channelId: CHANNEL_ID,
-        part: "id",
-        type: "video",
+        playlistId: UPLOADS_PLAYLIST_ID,
+        part: "contentDetails",
         maxResults: "50",
         ...(pageToken ? { pageToken } : {}),
       });
 
-      const res = await fetch(`${BASE}/search?${params}`);
+      const res = await fetch(`${BASE}/playlistItems?${params}`);
       if (!res.ok) {
         console.error(`YouTube API error: ${res.status}`);
         break;
@@ -82,8 +86,8 @@ async function fetchAllVideoIds(): Promise<string[]> {
 
       const data = await res.json();
 
-      data.items?.forEach((item: { id: { videoId: string } }) => {
-        ids.push(item.id.videoId);
+      data.items?.forEach((item: { contentDetails: { videoId: string } }) => {
+        if (item.contentDetails?.videoId) ids.push(item.contentDetails.videoId);
       });
 
       pageToken = data.nextPageToken;

@@ -177,6 +177,18 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
           )}
         </header>
 
+        {transcript && transcript.summary && (
+          <section style={{ marginBottom: '48px' }}>
+            <AIDisclosure />
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              TL;DR
+            </h2>
+            <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
+              {transcript.summary}
+            </p>
+          </section>
+        )}
+
         <section style={{ marginBottom: '48px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', padding: '24px', borderRadius: '8px' }}>
           <div style={{ marginBottom: '16px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
             Listen Now
@@ -210,18 +222,6 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             </div>
           )}
         </section>
-
-        {transcript && transcript.summary && (
-          <section style={{ marginBottom: '56px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              TL;DR
-            </h2>
-            <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
-              {transcript.summary}
-            </p>
-          </section>
-        )}
 
         {transcript && transcript.takeaways?.length > 0 && (
           <section style={{ marginBottom: '56px' }}>

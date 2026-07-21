@@ -48,6 +48,20 @@ function buildLlmsTxt(episodes, topics) {
     const transcript = getTranscriptBySlug(ep.slug);
     if (transcript?.summary) {
       lines.push(`- [${ep.title}](${url}) — ${ep.guest}: ${transcript.summary}`);
+      // Emit the AI takeaways + FAQ (indented) for transcribed episodes — these
+      // answer-first, Q&A-shaped blocks are the content most readily lifted into
+      // LLM answers. Episodes without a transcript stay as a single link line.
+      if (transcript.takeaways?.length) {
+        lines.push('  Key takeaways:');
+        for (const t of transcript.takeaways) lines.push(`  - ${t}`);
+      }
+      if (transcript.faq?.length) {
+        lines.push('  FAQ:');
+        for (const f of transcript.faq) {
+          lines.push(`  - Q: ${f.question}`);
+          lines.push(`    A: ${f.answer}`);
+        }
+      }
     } else {
       lines.push(`- [${ep.title}](${url}) — ${ep.guest}`);
     }
