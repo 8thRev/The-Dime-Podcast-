@@ -9,6 +9,7 @@ so this uses the bearer token for every call, including listing videos.
 """
 
 import re
+import time
 
 import requests
 
@@ -37,9 +38,14 @@ class YouTubeClient:
 
     def __init__(self):
         self._access_token = None
+        self._token_expires_at = 0.0
 
     def _get_access_token(self) -> str:
-        if self._access_token:
+        # Backfill runs can take well over an hour, so the access token
+        # (typically ~1hr-lived) must be refreshed mid-run rather than
+        # cached for the client's lifetime, or every call after expiry
+        # fails with 401 Unauthorized.
+        if self._access_token and time.time() < self._token_expires_at:
             return self._access_token
 
         resp = requests.post(
@@ -53,7 +59,9 @@ class YouTubeClient:
             timeout=30,
         )
         resp.raise_for_status()
-        self._access_token = resp.json()["access_token"]
+        token_data = resp.json()
+        self._access_token = token_data["access_token"]
+        self._token_expires_at = time.time() + token_data.get("expires_in", 3600) - 60
         return self._access_token
 
     def _headers(self) -> dict:

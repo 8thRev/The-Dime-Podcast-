@@ -59,7 +59,20 @@ jobs:
             echo "No new transcripts to commit."
           else
             git commit -m "Add auto-generated episode transcripts [skip ci]"
-            git push
+            # Long backfill runs can overlap with other pushes to main (a
+            # merged PR, the daily schedule, another manual run); rebase
+            # onto the latest main and retry rather than losing the run's
+            # output to a rejected push.
+            for i in 1 2 3 4 5; do
+              if git push; then
+                exit 0
+              fi
+              echo "Push rejected (attempt $i/5), rebasing onto latest main..."
+              git fetch origin main
+              git rebase origin/main
+            done
+            echo "::error::Failed to push generated transcripts after 5 attempts"
+            exit 1
           fi
 
       - name: Upload logs on failure
