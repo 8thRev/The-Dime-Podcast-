@@ -128,20 +128,101 @@ const SKIP_DOMAINS = [
   "simplecast.com", "anchor.fm", "buzzsprout.com",
 ];
 
-function extractCompanyFromShowNotes(html: string): { company: string; companyUrl: string } {
-  const linkRe = /<a\s[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
-  let match: RegExpExecArray | null;
-  while ((match = linkRe.exec(html)) !== null) {
-    const href = match[1].trim();
-    const text = match[2].replace(/<[^>]+>/g, "").trim();
-    if (!href.startsWith("http") || !text) continue;
+// Hosts where the subdomain is the guest's actual identity and the base
+// domain is just the platform ("mitchellosak.substack.com" -> "Mitchellosak").
+// Everything else drops any subdomain and uses the label before the TLD
+// ("en.wikipedia.org" -> "Wikipedia", "scale.williemckenzie.com" -> "Williemckenzie").
+const SUBDOMAIN_IS_BRAND_HOSTS = ["substack.com", "myshopify.com", "wordpress.com", "blogspot.com", "wixsite.com"];
+
+// "organigram.ca" -> "Organigram", "cryocure.com" -> "Cryocure". Multi-word
+// domains with no separator (e.g. "ajnabiosciences.com") stay mashed
+// together — imperfect, but still a correct link with a readable-enough
+// label, which is what matters for an auto-detected fallback.
+function hostnameToCompanyName(hostname: string): string {
+  const labels = hostname.split(".");
+  const platformSuffix = SUBDOMAIN_IS_BRAND_HOSTS.find(
+    (h) => hostname === h || hostname.endsWith("." + h)
+  );
+  const isSubdomainOfPlatform = platformSuffix && labels.length > platformSuffix.split(".").length;
+  const base = isSubdomainOfPlatform
+    ? labels[0]
+    : labels.length >= 2
+      ? labels[labels.length - 2]
+      : labels[0];
+  return base
+    .split(/[-_]/)
+    .filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+// Show notes sometimes wrap guest links in an email-tracking redirect
+// (e.g. Streak: "streaklinks.com/<id>/https%3A%2F%2Fayrwellness.com%2F").
+// The redirect host isn't the guest's company, so unwrap to the
+// percent-encoded destination URL when one is embedded in the path.
+function unwrapTrackingRedirect(raw: string): string {
+  let current = raw;
+  for (let i = 0; i < 3; i++) {
+    const embedded = current.match(/https?%3A%2F%2F.+/i);
+    if (!embedded) break;
+    let decoded: string;
     try {
-      const hostname = new URL(href).hostname.replace(/^www\./, "");
+      decoded = decodeURIComponent(embedded[0]);
+    } catch {
+      break;
+    }
+    if (decoded === current) break;
+    current = decoded;
+  }
+  return current;
+}
+
+// Company links are only auto-detected from the show notes' "Guest Links"
+// section (heading text varies a little: "Guest Links:", "Guest Links",
+// "Follow Guest Links"). About half of episodes don't have one — those get
+// no auto-detected company rather than a guessed one. Scanning the *whole*
+// show notes (the old approach) reliably picked up the "Newton Insights"
+// sponsor read or the "Eighth Revolution" footer link instead, since both
+// appear in every episode's boilerplate and neither is on SKIP_DOMAINS.
+function extractCompanyFromShowNotes(html: string): { company: string; companyUrl: string } {
+  const headingMatch = html.match(/guest\s*links?\s*:?\s*<\/(?:strong|b)>\s*<\/p>/i);
+  if (!headingMatch || headingMatch.index === undefined) return { company: "", companyUrl: "" };
+
+  const afterHeading = html.slice(headingMatch.index + headingMatch[0].length);
+  // The "Our Links" heading text varies ("Our Links:", "Follow us: Our
+  // Links.") and a few episodes skip it entirely, going straight into the
+  // boilerplate — but every episode's boilerplate links Bryan's Twitter/X
+  // and the "Eighth Revolution" sponsor site, so those are more reliable
+  // end-of-guest-links boundaries than the heading itself.
+  const headingEndMatch = afterHeading.match(/our\s*links?/i);
+  const boilerplateMatch = afterHeading.match(
+    /href=["']https?:\/\/(?:www\.)?(?:(?:x|twitter)\.com\/BryanFields24|eighthrevolution\.com)/i
+  );
+  const endIndex = [headingEndMatch?.index, boilerplateMatch?.index]
+    .filter((i): i is number => i !== undefined)
+    .sort((a, b) => a - b)[0];
+  const section = endIndex !== undefined ? afterHeading.slice(0, endIndex) : afterHeading;
+
+  // Guest links show up both as <a href> tags and as bare text URLs (some
+  // episodes never wrap them in an anchor at all). A few episodes' show
+  // notes have two different links pasted back-to-back with no separator
+  // (e.g. "linkedin.com/in/xhttps://realcompany.com/") — the lookahead stops
+  // each match before a second embedded scheme so the two are split into
+  // separate candidates instead of one match swallowing both.
+  const urlRe = /(https?:\/\/(?:(?!https?:\/\/)[^\s"'<>)])+)|(\bwww\.(?:(?!https?:\/\/)[^\s"'<>)])+)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = urlRe.exec(section)) !== null) {
+    const raw = unwrapTrackingRedirect(
+      (match[1] || `https://${match[2]}`).replace(/[.,;)]+$/, "")
+    );
+    try {
+      const url = new URL(raw);
+      const hostname = url.hostname.replace(/^www\./, "");
       if (SKIP_DOMAINS.some((d) => hostname === d || hostname.endsWith("." + d))) continue;
+      return { company: hostnameToCompanyName(hostname), companyUrl: raw };
     } catch {
       continue;
     }
-    return { company: text, companyUrl: href };
   }
   return { company: "", companyUrl: "" };
 }
