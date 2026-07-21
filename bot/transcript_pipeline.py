@@ -134,7 +134,13 @@ def main() -> int:
     print(f"Processed: {processed}  Skipped: {skipped}  Failed: {failed}")
     print("=" * 80)
 
-    return 0 if failed == 0 else 1
+    # A per-episode failure (bad captions, malformed Claude JSON, etc.) is
+    # already handled by skipping just that episode and continuing — it
+    # isn't systemic, and it self-heals on the next run since the episode
+    # has no output file yet. Only the early returns above (bad config, RSS
+    # feed down, YouTube listing failed) represent an actually broken run,
+    # so those are the only ones that should fail the CI job.
+    return 0
 
 
 if __name__ == "__main__":
