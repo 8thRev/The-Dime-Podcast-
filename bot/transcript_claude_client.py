@@ -28,13 +28,19 @@ class TranscriptClaudeClient:
         self.max_tokens = config.TRANSCRIPT_MAX_TOKENS
 
     def generate_artifacts(
-        self, guest_name: str, company: str, episode_title: str, raw_transcript: str
+        self,
+        guest_name: str,
+        company: str,
+        episode_title: str,
+        raw_transcript: str,
+        source_description: str | None = None,
     ) -> tuple[bool, dict]:
         """
         Returns (success, data) where data has keys: cleaned_transcript,
         takeaways, faq, quotes, topics. data is {} on failure.
         """
-        prompt = get_transcript_prompt(guest_name, company, episode_title, raw_transcript)
+        kwargs = {"source_description": source_description} if source_description else {}
+        prompt = get_transcript_prompt(guest_name, company, episode_title, raw_transcript, **kwargs)
 
         for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
             success, data, retryable = self._generate_once(prompt, attempt)

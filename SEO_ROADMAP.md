@@ -64,7 +64,9 @@ Re-check at +30 days (crawl-level fixes should be visible) and +60-90 days (orga
 ## MVP — now
 
 - [ ] Split composite guest credits ("Kristin & Eric Rogers", "Emily Fisher & Dr June Chin") into separate `Person` entities instead of one combined entity page — needs real name-parsing, deliberately deferred when guest entity pages shipped (see Shipped) rather than guessed at with a quick regex
-- [ ] Backfill AI transcripts for the ~270 episodes that don't have one yet (`bot/transcript_pipeline.py`) — this is the actual content-and-authority lever; the technical SEO/entity-page work only helps pages that have real content behind them
+- [ ] Backfill AI transcripts for the remaining ~236 episodes that don't have one yet — this is the actual content-and-authority lever; the technical SEO/entity-page work only helps pages that have real content behind them. Two sources feed this, run separately:
+  - `bot/transcript_pipeline.py` — YouTube captions, for any episode with a matched video (scheduled, ongoing, runs itself as new episodes/videos publish)
+  - `bot/backfill_transcript.py` — manual one-off path for episodes with no YouTube captions, using a raw transcript pulled from Riverside.fm's internal transcript API (see PR #23, "Riverside pull 1"). **This source is now exhausted** — all 78 Riverside recordings on file (Feb 2025–present) are either already transcribed or matched and backfilled; every remaining episode predates Riverside adoption entirely. The next round needs a different transcript source (e.g. pulling audio straight from Simplecast through a transcription service) — there's no more low-hanging fruit from Riverside.
 
 ## Hub layer — next (as the library grows)
 
