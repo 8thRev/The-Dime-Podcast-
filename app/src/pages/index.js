@@ -60,16 +60,6 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
           .hero-subtitle {
             font-size: clamp(14px, 3vw, 19px) !important;
           }
-          .pain-points {
-            grid-template-columns: 1fr !important;
-          }
-          .pain-point-item {
-            border-right: none !important;
-            border-bottom: 1px solid var(--faint);
-          }
-          .pain-point-item:last-child {
-            border-bottom: none !important;
-          }
           .newsletter-section {
             grid-template-columns: 1fr !important;
             gap: clamp(24px, 5vw, 48px) !important;
@@ -210,6 +200,11 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 
         </div>
 
+        {/* GUEST VIDEO TESTIMONIALS */}
+        <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
+          <Testimonials items={testimonials} filter="video" heading="Hear From Recent Guests" maxWidth={800} borderBottom={false} />
+        </div>
+
         {/* LATEST EPISODES */}
         <div style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
           <div style={{ padding: '48px', maxWidth: '1200px', margin: '0 auto' }}>
@@ -288,27 +283,8 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         </section>
       )}
 
-      {/* PAIN POINTS */}
-      <section className="pain-points" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
-        {[
-          { icon: '◈', label: 'Capital Discipline', body: 'How operators are structuring financing to survive compression, not chase growth.' },
-          { icon: '◈', label: 'Regulatory Reads', body: 'State-by-state dynamics, rescheduling timelines, and what DC actually moves on.' },
-          { icon: '◈', label: 'Operational Frameworks', body: 'Cultivation economics, extraction margins, and the systems that decide who stays.' },
-          { icon: '◈', label: 'Financing Structures', body: 'Debt walls, credit terms, and capital allocation decisions keeping companies alive.' },
-        ].map((p, i) => (
-          <div key={i} className="pain-point-item" style={{ padding: '40px 36px', borderRight: i < 3 ? '1px solid var(--border-subtle)' : 'none' }}>
-            <span className="mono" style={{ fontSize: '20px', color: 'var(--text-accent)', display: 'block', marginBottom: 18, fontWeight: 700 }}>
-              {p.icon}
-            </span>
-            <div className="syne" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-headline)', letterSpacing: '.06em', marginBottom: 12 }}>
-              {p.label}
-            </div>
-            <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.75, fontWeight: 400 }}>
-              {p.body}
-            </div>
-          </div>
-        ))}
-      </section>
+      {/* SOCIAL PROOF / TESTIMONIALS */}
+      <Testimonials items={testimonials} filter="quote" />
 
       {/* NEWSLETTER BAND */}
       <section className="newsletter-section" style={{ padding: '96px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
@@ -334,9 +310,6 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
           </p>
         </div>
       </section>
-
-      {/* SOCIAL PROOF / TESTIMONIALS */}
-      <Testimonials items={testimonials} />
 
       <Footer />
     </>
