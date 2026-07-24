@@ -7,14 +7,22 @@ on:
   schedule:
     - cron: '0 13 * * *'
 
-  # Manual triggering — also used for one-off larger backfill runs by
-  # raising the limit.
+  # Manual triggering — also used for backfill runs. Backfill needs both
+  # inputs: `limit` has to be large enough to *reach* old untranscribed
+  # uploads, which then queues everything untranscribed behind them, so
+  # `max_new` is what actually bounds the run. A transcribed episode costs
+  # 250 YouTube quota units (captions.list 50 + captions.download 200)
+  # against a 10,000/day cap, so ~35 is a day's worth with headroom.
   workflow_dispatch:
     inputs:
       limit:
-        description: 'Number of most recent episodes to check (already-processed ones are skipped)'
+        description: 'How many recent videos to scan (already-transcribed ones are skipped). ~262 covers the whole channel.'
         required: false
         default: '10'
+      max_new:
+        description: 'Max episodes to transcribe this run. 0 = no cap. Each costs ~250 YouTube quota units of 10,000/day.'
+        required: false
+        default: '0'
 
 permissions:
   contents: write
@@ -45,6 +53,7 @@ jobs:
           YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           TRANSCRIPT_LIMIT: ${{ github.event.inputs.limit || '10' }}
+          TRANSCRIPT_MAX_NEW: ${{ github.event.inputs.max_new || '0' }}
         run: |
           cd bot
           python transcript_pipeline.py

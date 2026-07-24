@@ -124,11 +124,30 @@ Actions job cap (~60-90 episodes/run at 4-6 min each).
 
 Two cheap follow-ups worth taking:
 
-- The **6 unmatched** uploads are matcher gaps, not missing episodes — all
-  six are real episodes whose YouTube titles were reworded past the
-  matcher's threshold (e.g. "The Story That Brought CBD to the White House",
-  "Hemp vs. THC: The Cannabis Drink Showdown"). Hand-mapping them is 6 more
-  episodes for a few minutes' work.
+- The **6 unmatched** uploads are worth 3 episodes, not 6. Checking each
+  against the episodes published nearest it:
+  - **3 are second videos for episodes that already have a transcript** —
+    the Jushi/Virginia upload is the Trent Woloveck episode (he is Jushi's
+    Chief Strategy Director), the White House CBD upload is the Bill
+    Morachnick Charlotte's Web episode, and "Richard Proud" is the "Richie
+    Proud" episode. Forcing these to match would have overwritten good
+    transcripts, so the matcher declining was the right call. Note for W2:
+    **one episode can have several videos**, so the video↔episode map has to
+    be many-to-one, not a pair.
+  - **3 are genuine gaps**: Jesse Redmond (2024-10-24), Erik Knutson /
+    Keef Brands (2024-10-10), and Rena Sherbill.
+- **The matcher's 60-day window is the reason for the Sherbill miss**, and
+  it is a structural risk for back-catalog uploads generally: that episode
+  published 2021-04-23 but was uploaded to YouTube 2021-07-08, 76 days
+  later. The guest fast-path in `Matcher.find_best_match` normally rescues
+  such cases before the window is ever consulted — which is how the Feb 2024
+  bulk re-upload of 2019-2023 episodes matched at all — but it needs a
+  *strict* name match, and "Rena Sherbill" against the RSS feed's "Rena
+  Sherbill Senior Editor" scores 0.65 against a 0.85 threshold. Falling
+  through to the scored path then puts it outside the window and it is
+  dropped. Widening the window is the wrong fix (it invites bad matches);
+  letting the fast path accept a full-name-contained-in-credit match is the
+  narrow one.
 - Only **1** upload genuinely lacks captions (the 2022 VetCBD episode), so
   "needs a different transcript source" is a ~1-episode problem among videos
   that exist. The real residual gap is the ~39 episodes with no full-length
