@@ -56,5 +56,8 @@ htmlcov/
 *.tmp
 temp/
 
+# Resumable state for coverage_report.py --census (derived, re-fetchable)
+bot/caption_census_cache.json
+
 # Claude Code
 .claude/
