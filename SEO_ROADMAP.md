@@ -90,10 +90,16 @@ actually buying.
 
 - [x] **Caption-track census** — run 1 of 2 complete (Actions run
   `30058384055`, 2026-07-24). Results below.
-- [ ] **GSC Coverage export** — submitted vs discovered vs indexed. The only
-  genuinely unknown baseline left in the plan.
+- [ ] **GSC Coverage export** — submitted vs discovered vs indexed. No bulk
+  Index Coverage API exists (`bot/gsc_client.py` only wraps Search
+  Analytics); this needs a manual Search Console UI export
+  (Indexing → Pages) — the only gate left with no automated path.
 - [ ] **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
-  assumed ~0, never actually confirmed.
+  `GA4Client.ai_referrer_sessions()` shipped 2026-07-24
+  (`bot/ga4_client.py`), wired into the weekly email
+  (`bot/seo_report.py`). Code verified against mocked GA4 responses; the
+  live number still needs a `seo-report.yml` dispatch (no GA4 credentials
+  available outside Actions) — assumed ~0 until that runs.
 
 #### Census result — the backfill is not source-limited, it is quota-limited
 
@@ -174,6 +180,19 @@ without trying.
 | Cross-links present in **server** HTML | 0 | 100% of mapped pairs, both directions |
 | GSC submitted / discovered | 563 / TBD | 850 / ≥60% of 850 |
 | `npm run build && npm run checkseo` | green | green |
+
+**2026-07-24 progress**: `video-episode-map.json` generator shipped
+(`bot/video_episode_map.py`) — reuses the existing `Matcher` from
+`bot/simplecast_feed.py`, groups matches many-to-one, verified against
+stubbed YouTube/RSS fixtures. Frontend plumbing shipped too:
+`app/lib/videoEpisodeMap.ts` (typed forward/reverse lookups) and `videoId`
+added to `TranscriptData` (`app/lib/transcripts.ts`); `npm run build &&
+checkseo` green. **Not done yet**: the script hasn't been run against
+live YouTube data (needs the same OAuth secrets as the census, only
+available in Actions — no workflow dispatches it yet, unlike
+`coverage-census.yml`), so `app/content/video-episode-map.json` doesn't
+exist on disk, and the cross-link UI on episode/video page templates
+hasn't been built. Both are next.
 
 ### Day 30 — 2026-08-22
 

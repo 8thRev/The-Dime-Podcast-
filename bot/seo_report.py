@@ -127,6 +127,15 @@ def traffic_sources_table_html(rows: list[dict]) -> str:
     return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
 
 
+def ai_referrer_table_html(by_source: dict[str, int]) -> str:
+    if not by_source:
+        return "<p><em>No AI-referrer sessions in this window.</em></p>"
+    lines = ["<tr><th align='left'>Source / medium</th><th>Sessions</th></tr>"]
+    for source, sessions in sorted(by_source.items(), key=lambda kv: kv[1], reverse=True):
+        lines.append(f"<tr><td>{source}</td><td align='right'>{sessions}</td></tr>")
+    return "<table border='1' cellpadding='6' cellspacing='0'>" + "".join(lines) + "</table>"
+
+
 def search_terms_table_html(rows: list[dict]) -> str:
     if not rows:
         return "<p><em>No data.</em></p>"
@@ -157,11 +166,15 @@ def build_report(
     full_current_queries = gsc.query(start, end, dimension="query", row_limit=250)
     gainers, losers = build_movers(full_current_queries, prev_queries)
 
-    ga4_totals = ga4_prev_totals = ga4_pages = None
+    ga4_totals = ga4_prev_totals = ga4_pages = ai_referrers = None
     if ga4 is not None:
         ga4_totals = ga4.totals(start, end)
         ga4_prev_totals = ga4.totals(prev_start, prev_end)
         ga4_pages = ga4.top_pages(start, end, row_limit=TOP_N)
+        # Trailing 30 days rather than the report's own 7-day window -- AI
+        # referral volume is expected to be low, so a longer lookback is
+        # needed to tell "genuinely zero" apart from "just a quiet week".
+        ai_referrers = ga4.ai_referrer_sessions()
 
     youtube_videos = None
     if youtube is not None:
@@ -219,6 +232,13 @@ def build_report(
         text_lines.append("Top pages by sessions:")
         for row in ga4_pages:
             text_lines.append(f"  {row['sessions']:>4} sessions  {row['pageviews']:>5} pageviews  {row['path']}")
+
+    if ai_referrers is not None:
+        text_lines.append("")
+        text_lines.append("AI Referrer Sessions (trailing 30 days -- ChatGPT, Perplexity, Claude):")
+        text_lines.append(f"  Total: {ai_referrers['total']}")
+        for source, sessions in sorted(ai_referrers["by_source"].items(), key=lambda kv: kv[1], reverse=True):
+            text_lines.append(f"  {sessions:>4} sessions  {source}")
 
     if youtube_videos is not None:
         text_lines.append("")
@@ -283,6 +303,16 @@ def build_report(
         </ul>
         <h3>Top pages by sessions</h3>
         {ga4_pages_table_html(ga4_pages)}
+        """
+
+    if ai_referrers is not None:
+        html_body += f"""
+        <h2>AI Referrer Sessions</h2>
+        <p>Trailing 30 days -- sessions from ChatGPT, Perplexity, or Claude.</p>
+        <ul>
+          <li>Total: <b>{ai_referrers['total']}</b></li>
+        </ul>
+        {ai_referrer_table_html(ai_referrers['by_source'])}
         """
 
     if youtube_videos is not None:
