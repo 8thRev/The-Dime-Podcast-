@@ -369,6 +369,15 @@ def main() -> int:
     simplecast = SimplecastClient() if config.SIMPLECAST_API_TOKEN else None
     subject, html_body, text_body = build_report(gsc, ga4, youtube, youtube_analytics, simplecast)
 
+    # Printed unconditionally, before the send attempt, so a downstream SMTP
+    # failure (auth, network, whatever) never discards a report that was
+    # already fully computed -- the numbers are otherwise gone for good.
+    print("=" * 80)
+    print(subject)
+    print("=" * 80)
+    print(text_body)
+    print("=" * 80)
+
     email_client = EmailClient()
     success = email_client.send_report(subject, html_body, text_body)
     return 0 if success else 1
