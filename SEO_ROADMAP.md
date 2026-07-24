@@ -217,6 +217,28 @@ hasn't been built. Both are next.
   not match "Richie Proud", so the three correctly-declined second-video
   uploads stay declined.
 
+**Cross-verified against live YouTube data (2026-07-24)**, by generating the map
+locally with a real `YOUTUBE_API_KEY` and building the site:
+- 892 uploads on the channel → 341 full-length → **310 matched → 283 episodes**,
+  comfortably past the Day-9 target of ≥250. 23 episodes have more than one
+  video, confirming the many-to-one map shape was necessary.
+- Build produced **843 pages** (up from 556 without the key — the 287 video
+  pages). Both cross-link directions verified in **server** HTML via `curl`
+  (no JS): the Chris Guthrie episode links to its video and the video links
+  back. An unmapped episode renders no "Watch this episode" block.
+- **Bug found and fixed by this exercise.** `bot/youtube_client.py` (which feeds
+  the map) does not apply the 2024-02-28 audio-only-re-upload exclusion that
+  `app/lib/youtube.ts:142` applies, so the map contained **30 video IDs with no
+  `/videos/[slug]` page**. No broken links resulted — the UI resolves IDs
+  through `getAllVideos()` and drops misses — but coverage was overstated: 283
+  episodes appeared mapped while only 276 could render a link, and **7 episodes
+  advertised nothing but pageless videos**. `build_map` now skips
+  `AUDIO_ONLY_REUPLOAD_DATE`, keeping it in sync with `youtube.ts`.
+- Note the two sides still use different duration floors (`youtube_client.py`
+  1800s vs `youtube.ts` 180s). Left alone deliberately: that constant also
+  governs the transcript pipeline, so changing it is out of scope here. Effect
+  is under-inclusion (a missing link), not a broken one.
+
 **Still outstanding**: the map workflow has not been run yet, so the JSON does
 not exist on disk and the cross-links render nothing in production until it is
 dispatched once. That is the next action.
