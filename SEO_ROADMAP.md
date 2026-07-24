@@ -61,6 +61,104 @@ Baseline snapshot to be taken from a fresh Ahrefs re-crawl + Google Search Conso
 
 Re-check at +30 days (crawl-level fixes should be visible) and +60-90 days (organic traffic trend, which lags further behind).
 
+## Checkpoints — dated targets for the 30-day content push
+
+Run `python bot/coverage_report.py` to produce every leading metric below in
+one shot. It reads `app/content/transcripts/*.json` + the live RSS feed, so
+the measurement can't drift between checkpoints the way a hand-assembled
+audit does. `--census` adds the YouTube reachability ceiling (needs OAuth,
+spends quota — see the script docstring).
+
+### Baseline — 2026-07-23
+
+| Metric | Value |
+|---|---|
+| Published episodes | 303 |
+| Episodes with a transcript | **63 (20.8%)** — 36 `youtube_captions`, 27 `riverside_transcript` |
+| FAQ pairs / takeaways / quotes | 536 / 504 / 315 |
+| Transcript words | 386,439 |
+| Per-episode average | 8.5 FAQ, 8.0 takeaways, ~6,134 words |
+| Companies with ≥2 episodes | 82 (of 500 distinct) |
+| People with ≥2 episodes | 30 (of 236 distinct) |
+| Distinct topics | 20 |
+
+At full coverage those extrapolate to ~2,578 FAQ pairs and ~1.86M indexed
+words — that ceiling, not a traffic number, is what the backfill is
+actually buying.
+
+### Day 1 gates — measure before committing to any target
+
+- **Caption-track census** (`coverage_report.py --census`). The automated
+  path can only reach episodes whose matched video has a caption track, and
+  nobody has ever counted those. Until this is a number, every coverage
+  target below is a guess. Note `captions.list` costs 50 quota units/video
+  against a 10,000/day cap, so a full sweep spans two days; the script
+  caches and resumes.
+- **GSC Coverage export** — submitted vs discovered vs indexed. The only
+  genuinely unknown baseline in the whole plan.
+- **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
+  assumed ~0, never actually confirmed.
+
+### Day 9 — 2026-07-31
+
+Everything here is fully under our control. No traffic metric belongs in
+this column; at 8 days post-resubmit those are noise, and reading them only
+invites course-correcting on variance.
+
+| Metric | Baseline | Target |
+|---|---|---|
+| Transcripts | 63 | ≥130, **and** every caption-having video exhausted |
+| FAQ pairs | 536 | ≥1,100 |
+| Transcript words | 386k | ≥800k |
+| Episodes with `FAQPage` schema | 63 | = transcript count |
+| `video-episode-map.json` | doesn't exist | ≥250 of ~287 videos mapped |
+| `videoId` on newly written transcripts | 0 | 100% |
+| Cross-links present in **server** HTML | 0 | 100% of mapped pairs, both directions |
+| GSC submitted / discovered | 563 / TBD | 850 / ≥60% of 850 |
+| `npm run build && npm run checkseo` | green | green |
+
+### Day 30 — 2026-08-22
+
+| Metric | Baseline | Target |
+|---|---|---|
+| Transcripts | 63 | ≥240 (79%); 303 only with a new transcript source |
+| FAQ pairs | 536 | ≥2,040 |
+| Transcript words | 386k | ≥1.45M |
+| Company entity pages | 0 | ≥82, every one gated at ≥2 real episodes (build fails otherwise) |
+| Topic hubs with aggregated FAQ blocks | 0 | 20 |
+| `/questions` index | none | live, 1 URL |
+| Episodes with a real `og:image` | 0 | = mapped count (`i.ytimg.com`, not `og-default.jpg`) |
+| Video pages with chapters / `Clip` schema | 0 | ≥36 (the ones with stored `raw_captions_srt`) |
+| Sitemap `video:video` + real video `lastmod` | 0 | ~287 |
+| YouTube descriptions linking to episode pages | ~0 | ≥100 |
+| GSC discovered | TBD | ≥90% of published URLs |
+| GSC indexed | TBD | ≥60% **of the Day-1 URL set only** |
+| GSC impressions | TBD | +30–60% |
+| GSC clicks | TBD | +0–20% (lagging — don't over-read) |
+| AI-referrer sessions | ~0 | first non-zero |
+
+Indexation is deliberately scored only against URLs that existed on Day 1.
+Anything published in week 2–3 will still be in Google's discovery queue on
+Day 30, and judging it as "not indexed" would make a working plan look
+broken.
+
+### Corrections to earlier assumptions
+
+- **The 28-topics-vs-20-hubs gap does not exist.** Measured over published
+  episodes there are exactly 20 distinct topics, and all 20 have hubs. No
+  work to do here.
+- **The audio-only re-uploads are invisible to the site but visible to the
+  pipeline.** The Feb 2024 bulk upload of 54 back-catalog episodes is
+  filtered out of `/videos` by `app/lib/youtube.ts`, but `bot/youtube_client.py`
+  filters only on duration — so those uploads are still candidates for the
+  transcript pipeline, and YouTube auto-captions audio uploads. If they have
+  caption tracks, that is ~54 episodes of coverage from a source the Riverside
+  note above declared exhausted. The Day-1 census settles it.
+- **One transcript is orphaned.** `chris-guthrie-why-cannabis-companies-shouldnt-vibe-code-their-erp.json`
+  (the lone `manual_transcript`) has no matching episode in the RSS feed —
+  the published slug is `understand-this-before-you-use-ai-to-build-software-ft-chris-guthrie`,
+  so that transcript currently renders nowhere. Hence 63 live, not 64.
+
 ## MVP — now
 
 - [ ] Split composite guest credits ("Kristin & Eric Rogers", "Emily Fisher & Dr June Chin") into separate `Person` entities instead of one combined entity page — needs real name-parsing, deliberately deferred when guest entity pages shipped (see Shipped) rather than guessed at with a quick regex
