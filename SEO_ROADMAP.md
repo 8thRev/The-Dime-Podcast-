@@ -36,7 +36,6 @@ moment an item ships and stops being useful.
 - [x] `llms.txt` now emits per-episode key takeaways + FAQ (Q/A) for transcribed episodes, not just the one-line summary (`app/src/pages/llms.txt.js`) — more answer-shaped, citable text for LLM crawlers
 - [x] YouTube video listing switched from `search.list` (100 quota units/page) to the uploads-playlist `playlistItems.list` (1 unit/page) — a full back-catalog pull drops from ~600 units to ~6 (`app/lib/youtube.ts`). Note: video detail pages still need `YOUTUBE_API_KEY` set in the build env to generate + enter the sitemap (currently 0 `/videos/[slug]` URLs without it)
 - [x] Guest entity pages (`/guests/[slug]`, `app/lib/guests.ts`) — derived entirely from the guest/company data `lib/rss.ts` already extracts per episode, no new data source needed. Each page gets `Person` + `BreadcrumbList` schema, an initials-avatar (no photo — see note below), and a full linked list of that guest's episodes. The existing `/guests` "Past Guests Include" ticker now links every name with a matching profile instead of showing dead text, and the episode-detail guest byline links to the guest's page. Deliberately *not* done: pulling headshots from LinkedIn or elsewhere on the web — that's a scraping-ToS and copyright/right-of-publicity problem at this scale, not a code problem, so guests get an initials avatar instead (same pattern as `Testimonials.js`). If real, rights-cleared photos are ever supplied for specific guests, they can be wired in the same way `testimonials.json`'s `photo` field already is.
-- [x] Guest entity pages (`/guests/[slug]`, `app/lib/guests.ts`) — derived entirely from the guest/company data `lib/rss.ts` already extracts per episode, no new data source needed. Each page gets `Person` + `BreadcrumbList` schema, an initials-avatar (no photo — see note below), and a full linked list of that guest's episodes. The existing `/guests` "Past Guests Include" ticker now links every name with a matching profile instead of showing dead text, and the episode-detail guest byline links to the guest's page. Deliberately *not* done: pulling headshots from LinkedIn or elsewhere on the web — that's a scraping-ToS and copyright/right-of-publicity problem at this scale, not a code problem, so guests get an initials avatar instead (same pattern as `Testimonials.js`). If real, rights-cleared photos are ever supplied for specific guests, they can be wired in the same way `testimonials.json`'s `photo` field already is.
 - [x] Fixed guest `company`/`companyUrl` attribution in `extractCompanyFromShowNotes()` (`app/lib/rss.ts`) — it used to scan the *entire* episode show notes for the first link not on `SKIP_DOMAINS`, which on ~150 of 303 episodes (any without a "Guest Links" section) landed on the "Newton Insights" sponsor read or "Eighth Revolution" footer link and published that as the guest's company on their entity page. Detection is now scoped to the show notes' "Guest Links" section specifically (bounded by the "Our Links" heading or the boilerplate Twitter/Eighth-Revolution links, both of which vary in markup across episodes), and falls back to no company rather than a wrong one when that section is absent. Verified against all 303 live feed items.
   - Follow-up fix after re-verifying against the live feed: two different guest links glued together with no separator (e.g. a LinkedIn URL immediately followed by `https://theflowery.co/`) were being truncated down to just the first one, silently dropping a real company link on the "Ilya Shmidt" episode; a small number of episodes wrap guest links in an email-tracking redirect (Streak's `streaklinks.com/<id>/<url-encoded-destination>`), which published the redirect host itself ("Streaklinks") as the company instead of the actual destination (AYR Wellness, on the David Goubert episode); and `hostnameToCompanyName()` left a literal dot in the label for subdomained hosts (`en.wikipedia.org` → "En.wikipedia", `mitchellosak.substack.com` → "Mitchellosak.substack"). All three are fixed in `app/lib/rss.ts` and re-verified against all 303 live feed items with zero regressions on the other 128 previously-correct results.
 
@@ -193,6 +192,34 @@ available in Actions — no workflow dispatches it yet, unlike
 `coverage-census.yml`), so `app/content/video-episode-map.json` doesn't
 exist on disk, and the cross-link UI on episode/video page templates
 hasn't been built. Both are next.
+
+**2026-07-24 progress (2)**: both of the "next" items above are now built.
+- **Map workflow** — `.github/workflows/video-episode-map.yml` dispatches
+  `bot/video_episode_map.py` with the same YouTube OAuth secrets as the
+  census, commits `app/content/video-episode-map.json` back using the
+  transcript pipeline's rebase-and-retry push loop, and also runs weekly
+  (Mon 14:00 UTC, an hour after the daily pipeline so the two don't contend
+  for quota). `SCAN_LIMIT` is now read from the environment so the workflow's
+  `scan_limit` input actually reaches the script — it was previously a
+  hardcoded constant the input could not affect.
+- **Cross-link UI** — episode pages render "Watch this episode" beneath the
+  audio player (many-to-one: every mapped upload is listed, not just the
+  first); video pages render "Full episode, transcript & show notes →"
+  beneath the embed. Both resolve in `getStaticProps`, so the links are in
+  **server** HTML. Both degrade to rendering nothing when the map file or
+  `YOUTUBE_API_KEY` is absent — verified by a clean `npm run build &&
+  checkseo` (556 pages) with the map file missing.
+- **Matcher fix** — `_name_contained` lets the guest fast path accept a full
+  name embedded in a longer RSS credit ("Rena Sherbill" in "Rena Sherbill
+  Senior Editor", which scores 0.65 against the 0.85 threshold). The 60-day
+  date window is deliberately unchanged. Guarded against false positives: a
+  bare first name (<2 tokens) can never match, and "Richard Proud" still does
+  not match "Richie Proud", so the three correctly-declined second-video
+  uploads stay declined.
+
+**Still outstanding**: the map workflow has not been run yet, so the JSON does
+not exist on disk and the cross-links render nothing in production until it is
+dispatched once. That is the next action.
 
 ### Day 30 — 2026-08-22
 

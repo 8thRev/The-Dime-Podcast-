@@ -18,6 +18,7 @@ single output file.
 """
 
 import json
+import os
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -29,8 +30,12 @@ OUTPUT_PATH = Path(__file__).resolve().parent.parent / "app" / "content" / "vide
 
 # The channel has ~287 full-length uploads total (see SEO_ROADMAP.md Day-9
 # target); scan comfortably past that so a fresh upload never falls outside
-# the window before this is re-run.
-SCAN_LIMIT = 1000
+# the window before this is re-run. Overridable via SCAN_LIMIT so the
+# workflow's scan_limit input actually reaches the script.
+try:
+    SCAN_LIMIT = int(os.getenv("SCAN_LIMIT", "1000"))
+except ValueError:
+    SCAN_LIMIT = 1000
 
 
 def build_map(videos: list[dict], episodes: list[dict]) -> tuple[dict[str, list[str]], int]:

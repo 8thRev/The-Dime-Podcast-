@@ -8,6 +8,8 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { getAllVideos, getVideoBySlug } from '@/lib/youtube';
 import { createVideoObjectSchema } from '@/lib/schema';
+import { getEpisodeSlugForVideo } from '@/lib/videoEpisodeMap';
+import { getEpisodeBySlug } from '@/lib/rss';
 
 export async function getStaticPaths() {
   const videos = await getAllVideos();
@@ -40,16 +42,31 @@ export async function getStaticProps({ params }) {
     .filter((v) => v.id !== video.id)
     .slice(0, 5);
 
+  // Cross-link back to the episode page, which holds the transcript, FAQ and
+  // show notes for this same conversation. Without this the two URLs compete
+  // for the same query instead of pointing at each other. Null (not undefined
+  // — props must stay JSON-serializable) when the map hasn't been generated
+  // yet or this upload has no confident episode match.
+  const episodeSlug = getEpisodeSlugForVideo(video.id);
+  let linkedEpisode = null;
+  if (episodeSlug) {
+    const ep = await getEpisodeBySlug(episodeSlug);
+    if (ep) {
+      linkedEpisode = { slug: ep.slug, title: ep.title, num: ep.num };
+    }
+  }
+
   return {
     props: {
       video,
       relatedVideos,
+      linkedEpisode,
     },
     revalidate: 3600,
   };
 }
 
-export default function VideoPage({ video, relatedVideos }) {
+export default function VideoPage({ video, relatedVideos, linkedEpisode = null }) {
   const schema = createVideoObjectSchema(video);
 
   return (
@@ -121,6 +138,23 @@ export default function VideoPage({ video, relatedVideos }) {
             allowFullScreen
           />
         </section>
+
+        {linkedEpisode && (
+          <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '20px', borderRadius: '4px' }}>
+            <div className="mono" style={{ marginBottom: '8px', fontSize: '10px', fontWeight: '700', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+              Episode {linkedEpisode.num}
+            </div>
+            <Link
+              href={`/episodes/${linkedEpisode.slug}`}
+              style={{ color: 'var(--teal)', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}
+            >
+              Full episode, transcript &amp; show notes →
+            </Link>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--mid)', fontFamily: 'Georgia, serif' }}>
+              {linkedEpisode.title}
+            </div>
+          </section>
+        )}
 
         <section style={{ marginBottom: '80px' }}>
           <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--mid)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
