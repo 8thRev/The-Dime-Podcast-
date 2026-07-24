@@ -165,9 +165,11 @@ def reachability_census(
     youtube = YouTubeClient()
     matcher = simplecast_feed.build_matcher(episodes)
 
-    print(f"Listing up to {scan_limit} full-length uploads...")
+    # Progress goes to stderr, not stdout: --json's output has to stay
+    # parseable when redirected to a file.
+    print(f"Listing up to {scan_limit} full-length uploads...", file=sys.stderr)
     videos = youtube.list_recent_videos(scan_limit)
-    print(f"Found {len(videos)} videos\n")
+    print(f"Found {len(videos)} videos\n", file=sys.stderr)
 
     cache = load_cache()
     buckets: dict[str, list[dict]] = {
@@ -200,7 +202,7 @@ def reachability_census(
             try:
                 has_captions = youtube.get_caption_track_id(video["id"]) is not None
             except Exception as e:
-                print(f"  caption check failed for {video['id']}: {e}")
+                print(f"  caption check failed for {video['id']}: {e}", file=sys.stderr)
                 buckets["unknown"].append(entry)
                 continue
             spent += 1

@@ -1,0 +1,96 @@
+name: Coverage Census
+
+# Manual only. Answers "how many episodes can the automated transcript
+# pipeline ever reach?" by checking every full-length upload for a caption
+# track. Read-only: it never calls Claude and never writes to the repo.
+#
+# captions.list costs 50 quota units per video against a 10,000/day cap, so
+# a full ~290-video sweep does not fit in one day. Results are cached
+# between runs (actions/cache) and the run is budgeted, so the intended
+# usage is: dispatch, read "not yet checked" in the summary, dispatch again
+# the next day until it reaches 0.
+on:
+  workflow_dispatch:
+    inputs:
+      budget:
+        description: 'Max caption lookups this run (50 quota units each; 150 leaves room for the daily pipeline)'
+        required: false
+        default: '150'
+      scan_limit:
+        description: 'How many full-length uploads to list (1000 = whole channel)'
+        required: false
+        default: '1000'
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r bot/requirements.txt
+
+      # Restores whatever the previous census run saved, so caption lookups
+      # already paid for are never paid for twice. The run_id in the key
+      # makes every run save a fresh entry; restore-keys picks up the most
+      # recent one.
+      - name: Restore caption census cache
+        uses: actions/cache@v4
+        with:
+          path: bot/caption_census_cache.json
+          key: caption-census-${{ github.run_id }}
+          restore-keys: caption-census-
+
+      - name: Run census
+        env:
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+        run: |
+          cd bot
+          python coverage_report.py --census \
+            --budget "${{ github.event.inputs.budget || '150' }}" \
+            --scan-limit "${{ github.event.inputs.scan_limit || '1000' }}" \
+            | tee census-report.txt
+
+      # Second pass with a zero lookup budget: every caption result is
+      # already cached by now, so this re-emits the same census as JSON for
+      # the artifact at the cost of the video listing alone (~6 quota units).
+      - name: Emit machine-readable census
+        if: ${{ !cancelled() }}
+        env:
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+        run: |
+          cd bot
+          python coverage_report.py --census --budget 0 --json > census.json
+
+      - name: Write job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '```'
+            cat bot/census-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload census results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-census
+          path: |
+            bot/census.json
+            bot/census-report.txt
+          retention-days: 30

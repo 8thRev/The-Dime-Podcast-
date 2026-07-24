@@ -154,10 +154,15 @@ broken.
   transcript pipeline, and YouTube auto-captions audio uploads. If they have
   caption tracks, that is ~54 episodes of coverage from a source the Riverside
   note above declared exhausted. The Day-1 census settles it.
-- **One transcript is orphaned.** `chris-guthrie-why-cannabis-companies-shouldnt-vibe-code-their-erp.json`
-  (the lone `manual_transcript`) has no matching episode in the RSS feed —
-  the published slug is `understand-this-before-you-use-ai-to-build-software-ft-chris-guthrie`,
-  so that transcript currently renders nowhere. Hence 63 live, not 64.
+- **One transcript was a superseded duplicate, now deleted.**
+  `chris-guthrie-why-cannabis-companies-shouldnt-vibe-code-their-erp.json`
+  (the lone `manual_transcript`) had no matching episode in the RSS feed, so
+  it rendered nowhere. The same episode is published under
+  `understand-this-before-you-use-ai-to-build-software-ft-chris-guthrie`,
+  which already has a `youtube_captions` transcript generated 12 days later
+  and strictly richer — it has `summary`, `entities`, and `raw_captions_srt`,
+  none of which the manual one had. Deleted rather than renamed: renaming
+  would have clobbered the better file. Real coverage was always 63, not 64.
 
 ## MVP — now
 
