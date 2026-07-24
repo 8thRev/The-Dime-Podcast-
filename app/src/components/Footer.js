@@ -123,7 +123,7 @@ export default function Footer() {
             <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
               Connect
             </div>
-            <a href="mailto:sponsorship@thedime.com" style={footerLinkStyle}>Sponsorship</a>
+            <Link href="/sponsorship" style={footerLinkStyle}>Sponsorship</Link>
             <Link href="/newsletter" style={footerLinkStyle}>Newsletter</Link>
           </div>
         </div>

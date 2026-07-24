@@ -94,11 +94,21 @@ actually buying.
   Analytics); this needs a manual Search Console UI export
   (Indexing → Pages) — the only gate left with no automated path.
 - [ ] **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
-  `GA4Client.ai_referrer_sessions()` shipped 2026-07-24
-  (`bot/ga4_client.py`), wired into the weekly email
-  (`bot/seo_report.py`). Code verified against mocked GA4 responses; the
-  live number still needs a `seo-report.yml` dispatch (no GA4 credentials
-  available outside Actions) — assumed ~0 until that runs.
+  `GA4Client.ai_referrer_sessions()` shipped and dispatched live
+  2026-07-24 (Actions run `30095198022`): **Total: 0**. Not a trustworthy
+  read yet, but for a benign reason, not a bug: the `NEXT_PUBLIC_GA_ID`
+  gtag tag (`app/src/pages/_app.js`) only went live 2026-07-23 night —
+  it's a build-time env var, so it only fires starting from the first
+  deploy after it was set. The reported week (2026-07-15 to 2026-07-21)
+  entirely predates it, and the "trailing 30 days" query is still inside
+  GA4's standard-reporting processing lag (hours, sometimes ~1-2 days)
+  on top of less than a day of real collection. Re-check in 24-48 hours
+  once real data has had time to land — no property/tag fix needed.
+  Separately found and **not yet fixed**: `EMAIL_PASSWORD` has been
+  broken (SMTP auth failure) since 2026-07-17 — every run of
+  `seo-report.yml` and `daily.yml` that reaches the email-send step has
+  failed since then. Needs the Gmail App Password regenerated and
+  re-saved to the secret (human action, not automatable).
 
 #### Census result — the backfill is not source-limited, it is quota-limited
 
@@ -193,6 +203,26 @@ available in Actions — no workflow dispatches it yet, unlike
 exist on disk, and the cross-link UI on episode/video page templates
 hasn't been built. Both are next.
 
+**2026-07-24 backfill dispatch** (Actions run `30094672346`,
+`limit=262 max_new=35`): transcripts **66 → 81** (+15, confirmed via
+`coverage_report.py`), each new record carrying a real `videoId` — first
+production proof the PR #29 fix works. Fell well short of the 35 target:
+aborted on the 5-consecutive-failure circuit breaker
+(`bot/transcript_pipeline.py`) after hitting YouTube 403 quota errors at
+~52 minutes in. The assumption that quota resets at midnight Pacific
+(and so a 12:52 UTC dispatch would be on a fresh pool, clear of an
+earlier same-day failed run at 02:13 UTC) **did not hold up**: this run's
+own usage (15 successes + 6 failed attempts, all *new* API calls —
+verified `bot/transcript_pipeline.py`'s "already exists" skip path is a
+pure filesystem check, zero quota cost) totals nowhere near 10,000 units
+on its own, so residual exhaustion from earlier in the day was still in
+effect despite the theoretical reset window having passed. Ruled out a
+concurrent scheduled run as the cause (`gh run list` shows no `schedule`-
+triggered run fired in this window). **Lesson: don't plan same-day
+redispatch timing around the assumed reset schedule — verify quota
+headroom empirically before dispatching again.** Next dispatch should
+wait for a day with a verified-clean quota start.
+
 **2026-07-24 progress (2)**: both of the "next" items above are now built.
 - **Map workflow** — `.github/workflows/video-episode-map.yml` dispatches
   `bot/video_episode_map.py` with the same YouTube OAuth secrets as the
@@ -239,9 +269,18 @@ locally with a real `YOUTUBE_API_KEY` and building the site:
   governs the transcript pipeline, so changing it is out of scope here. Effect
   is under-inclusion (a missing link), not a broken one.
 
+**Independent corroboration of the quota finding**: the live cross-verification
+above exhausted the daily quota after only ~50 units of its own
+(`playlistItems` + `videos.list` paging, twice), returning
+`403 quotaExceeded`. That is nowhere near 10,000 units, so it confirms the
+backfill dispatch's conclusion from a second direction: the pool was already
+drained by earlier activity and did not reset on the assumed schedule. Treat
+quota headroom as something to measure, never to assume.
+
 **Still outstanding**: the map workflow has not been run yet, so the JSON does
 not exist on disk and the cross-links render nothing in production until it is
-dispatched once. That is the next action.
+dispatched once. That is the next action — and per the finding above, it should
+wait for a day with verified-clean quota rather than an assumed reset.
 
 ### Day 30 — 2026-08-22
 
