@@ -86,18 +86,53 @@ At full coverage those extrapolate to ~2,578 FAQ pairs and ~1.86M indexed
 words — that ceiling, not a traffic number, is what the backfill is
 actually buying.
 
-### Day 1 gates — measure before committing to any target
+### Day 1 gates
 
-- **Caption-track census** (`coverage_report.py --census`). The automated
-  path can only reach episodes whose matched video has a caption track, and
-  nobody has ever counted those. Until this is a number, every coverage
-  target below is a guess. Note `captions.list` costs 50 quota units/video
-  against a 10,000/day cap, so a full sweep spans two days; the script
-  caches and resumes.
-- **GSC Coverage export** — submitted vs discovered vs indexed. The only
-  genuinely unknown baseline in the whole plan.
-- **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
+- [x] **Caption-track census** — run 1 of 2 complete (Actions run
+  `30058384055`, 2026-07-24). Results below.
+- [ ] **GSC Coverage export** — submitted vs discovered vs indexed. The only
+  genuinely unknown baseline left in the plan.
+- [ ] **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
   assumed ~0, never actually confirmed.
+
+#### Census result — the backfill is not source-limited, it is quota-limited
+
+| Bucket | Count |
+|---|---|
+| Full-length uploads scanned | 262 |
+| Already transcribed | 60 |
+| **Matched + has captions — the pipeline can reach these today** | **149** |
+| Matched but no caption track | 1 |
+| No confident episode match | 6 |
+| Not yet checked (quota budget) | 46 |
+
+**Automated-path ceiling so far: 212 / 303 (70%)**, rising to ~258 (85%) if
+the unchecked 46 carry captions at the same rate — which, at 149 of 150
+checked, they almost certainly do.
+
+This overturns the assumption the whole plan was built on. `SEO_ROADMAP.md`
+said the Riverside source was exhausted and implied the backfill had run out
+of runway; in fact **149 episodes are reachable by the existing automated
+pipeline right now**, needing no new transcript source at all. The audio-only
+re-upload theory was right: those uploads are invisible to `/videos` but
+fully visible to `bot/youtube_client.py`, and YouTube captioned them.
+
+The binding constraint is not transcript supply, it is YouTube quota:
+`captions.list` costs 50 units per episode against 10,000/day, so the
+pipeline can process at most ~190 episodes/day even ignoring the 6-hour
+Actions job cap (~60-90 episodes/run at 4-6 min each).
+
+Two cheap follow-ups worth taking:
+
+- The **6 unmatched** uploads are matcher gaps, not missing episodes — all
+  six are real episodes whose YouTube titles were reworded past the
+  matcher's threshold (e.g. "The Story That Brought CBD to the White House",
+  "Hemp vs. THC: The Cannabis Drink Showdown"). Hand-mapping them is 6 more
+  episodes for a few minutes' work.
+- Only **1** upload genuinely lacks captions (the 2022 VetCBD episode), so
+  "needs a different transcript source" is a ~1-episode problem among videos
+  that exist. The real residual gap is the ~39 episodes with no full-length
+  upload at all.
 
 ### Day 9 — 2026-07-31
 
@@ -105,11 +140,15 @@ Everything here is fully under our control. No traffic metric belongs in
 this column; at 8 days post-resubmit those are noise, and reading them only
 invites course-correcting on variance.
 
+Targets raised after the census: the original ≥130 was set before we knew
+149 episodes were already reachable, which made it a target we'd clear
+without trying.
+
 | Metric | Baseline | Target |
 |---|---|---|
-| Transcripts | 63 | ≥130, **and** every caption-having video exhausted |
-| FAQ pairs | 536 | ≥1,100 |
-| Transcript words | 386k | ≥800k |
+| Transcripts | 63 | ≥212, **and** every caption-having video exhausted |
+| FAQ pairs | 536 | ≥1,800 |
+| Transcript words | 386k | ≥1.3M |
 | Episodes with `FAQPage` schema | 63 | = transcript count |
 | `video-episode-map.json` | doesn't exist | ≥250 of ~287 videos mapped |
 | `videoId` on newly written transcripts | 0 | 100% |
@@ -121,9 +160,9 @@ invites course-correcting on variance.
 
 | Metric | Baseline | Target |
 |---|---|---|
-| Transcripts | 63 | ≥240 (79%); 303 only with a new transcript source |
-| FAQ pairs | 536 | ≥2,040 |
-| Transcript words | 386k | ≥1.45M |
+| Transcripts | 63 | ≥258 (85%); ~264 with the 6 unmatched hand-mapped. 303 needs a source for the ~39 episodes with no video at all |
+| FAQ pairs | 536 | ≥2,190 |
+| Transcript words | 386k | ≥1.58M |
 | Company entity pages | 0 | ≥82, every one gated at ≥2 real episodes (build fails otherwise) |
 | Topic hubs with aggregated FAQ blocks | 0 | 20 |
 | `/questions` index | none | live, 1 URL |
