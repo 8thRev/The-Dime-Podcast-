@@ -65,6 +65,25 @@ class Config:
     TRANSCRIPT_MAX_TOKENS: int = int(os.getenv("TRANSCRIPT_MAX_TOKENS", "64000"))
     TRANSCRIPT_LIMIT: int = int(os.getenv("TRANSCRIPT_LIMIT", "10"))
 
+    # How many episodes a run may actually transcribe, as opposed to
+    # TRANSCRIPT_LIMIT, which only bounds how many videos it *scans*. The
+    # two are the same thing for the daily run (the newest videos are the
+    # untranscribed ones) but come apart badly for backfill: reaching an
+    # untranscribed 2024 upload means scanning ~260 videos, which then
+    # queues every one of the ~149 untranscribed episodes behind it.
+    #
+    # That overruns two hard ceilings at once — the 6-hour Actions job cap
+    # (~60-90 episodes at 4-6 min each) and, sooner, the YouTube quota: a
+    # transcribed episode costs 250 units (captions.list 50 +
+    # captions.download 200) against 10,000/day, so a day's quota is ~40
+    # episodes. Past that the run doesn't stop cleanly, it starts failing
+    # 403s until MAX_CONSECUTIVE_FAILURES aborts it.
+    #
+    # 0 means no cap, which is right for the daily run — it should process
+    # however many genuinely new episodes appeared, and that is never more
+    # than a handful.
+    TRANSCRIPT_MAX_NEW: int = int(os.getenv("TRANSCRIPT_MAX_NEW", "0"))
+
     # SEO report (Search Console). GSC_SERVICE_ACCOUNT_JSON is either a raw
     # JSON string (GitHub Actions secret) or a path to the downloaded key
     # file (local dev).
