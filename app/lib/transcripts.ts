@@ -22,6 +22,10 @@ export type TranscriptData = {
   topics: string[];
   entities: TranscriptEntities;
   raw_captions_srt?: string;
+  // YouTube video ID this transcript was generated from. Only present on
+  // transcripts written after the video-episode cross-linking work (PR #28
+  // onward) — older transcripts predate this field.
+  videoId?: string;
 };
 
 const CONTENT_DIR = path.join(process.cwd(), "content", "transcripts");

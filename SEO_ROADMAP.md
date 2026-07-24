@@ -90,10 +90,16 @@ actually buying.
 
 - [x] **Caption-track census** — run 1 of 2 complete (Actions run
   `30058384055`, 2026-07-24). Results below.
-- [ ] **GSC Coverage export** — submitted vs discovered vs indexed. The only
-  genuinely unknown baseline left in the plan.
+- [ ] **GSC Coverage export** — submitted vs discovered vs indexed. No bulk
+  Index Coverage API exists (`bot/gsc_client.py` only wraps Search
+  Analytics); this needs a manual Search Console UI export
+  (Indexing → Pages) — the only gate left with no automated path.
 - [ ] **GA4 AI-referrer sessions** (chatgpt.com, perplexity.ai, claude.ai) —
-  assumed ~0, never actually confirmed.
+  `GA4Client.ai_referrer_sessions()` shipped 2026-07-24
+  (`bot/ga4_client.py`), wired into the weekly email
+  (`bot/seo_report.py`). Code verified against mocked GA4 responses; the
+  live number still needs a `seo-report.yml` dispatch (no GA4 credentials
+  available outside Actions) — assumed ~0 until that runs.
 
 #### Census result — the backfill is not source-limited, it is quota-limited
 
@@ -124,11 +130,30 @@ Actions job cap (~60-90 episodes/run at 4-6 min each).
 
 Two cheap follow-ups worth taking:
 
-- The **6 unmatched** uploads are matcher gaps, not missing episodes — all
-  six are real episodes whose YouTube titles were reworded past the
-  matcher's threshold (e.g. "The Story That Brought CBD to the White House",
-  "Hemp vs. THC: The Cannabis Drink Showdown"). Hand-mapping them is 6 more
-  episodes for a few minutes' work.
+- The **6 unmatched** uploads are worth 3 episodes, not 6. Checking each
+  against the episodes published nearest it:
+  - **3 are second videos for episodes that already have a transcript** —
+    the Jushi/Virginia upload is the Trent Woloveck episode (he is Jushi's
+    Chief Strategy Director), the White House CBD upload is the Bill
+    Morachnick Charlotte's Web episode, and "Richard Proud" is the "Richie
+    Proud" episode. Forcing these to match would have overwritten good
+    transcripts, so the matcher declining was the right call. Note for W2:
+    **one episode can have several videos**, so the video↔episode map has to
+    be many-to-one, not a pair.
+  - **3 are genuine gaps**: Jesse Redmond (2024-10-24), Erik Knutson /
+    Keef Brands (2024-10-10), and Rena Sherbill.
+- **The matcher's 60-day window is the reason for the Sherbill miss**, and
+  it is a structural risk for back-catalog uploads generally: that episode
+  published 2021-04-23 but was uploaded to YouTube 2021-07-08, 76 days
+  later. The guest fast-path in `Matcher.find_best_match` normally rescues
+  such cases before the window is ever consulted — which is how the Feb 2024
+  bulk re-upload of 2019-2023 episodes matched at all — but it needs a
+  *strict* name match, and "Rena Sherbill" against the RSS feed's "Rena
+  Sherbill Senior Editor" scores 0.65 against a 0.85 threshold. Falling
+  through to the scored path then puts it outside the window and it is
+  dropped. Widening the window is the wrong fix (it invites bad matches);
+  letting the fast path accept a full-name-contained-in-credit match is the
+  narrow one.
 - Only **1** upload genuinely lacks captions (the 2022 VetCBD episode), so
   "needs a different transcript source" is a ~1-episode problem among videos
   that exist. The real residual gap is the ~39 episodes with no full-length
@@ -155,6 +180,19 @@ without trying.
 | Cross-links present in **server** HTML | 0 | 100% of mapped pairs, both directions |
 | GSC submitted / discovered | 563 / TBD | 850 / ≥60% of 850 |
 | `npm run build && npm run checkseo` | green | green |
+
+**2026-07-24 progress**: `video-episode-map.json` generator shipped
+(`bot/video_episode_map.py`) — reuses the existing `Matcher` from
+`bot/simplecast_feed.py`, groups matches many-to-one, verified against
+stubbed YouTube/RSS fixtures. Frontend plumbing shipped too:
+`app/lib/videoEpisodeMap.ts` (typed forward/reverse lookups) and `videoId`
+added to `TranscriptData` (`app/lib/transcripts.ts`); `npm run build &&
+checkseo` green. **Not done yet**: the script hasn't been run against
+live YouTube data (needs the same OAuth secrets as the census, only
+available in Actions — no workflow dispatches it yet, unlike
+`coverage-census.yml`), so `app/content/video-episode-map.json` doesn't
+exist on disk, and the cross-link UI on episode/video page templates
+hasn't been built. Both are next.
 
 ### Day 30 — 2026-08-22
 

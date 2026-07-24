@@ -7,7 +7,13 @@ app/content/transcripts/{slug}.json for the site to render.
 
 Idempotent: episodes that already have a transcript file are skipped, so
 this is safe to re-run on a schedule for ongoing new episodes as well as
-one-off backfill batches (raise TRANSCRIPT_LIMIT for a bigger backfill run).
+one-off backfill batches.
+
+Backfill needs both knobs. TRANSCRIPT_LIMIT bounds how many videos are
+*scanned* — it has to be large enough to reach old untranscribed uploads —
+while TRANSCRIPT_MAX_NEW bounds how many episodes are actually
+*transcribed*, which is what keeps a run inside the YouTube daily quota and
+the 6-hour Actions job cap. Re-running picks up where the last run stopped.
 """
 
 import json
@@ -44,7 +50,11 @@ def main() -> int:
         return 1
 
     limit = config.TRANSCRIPT_LIMIT
-    print(f"Processing up to {limit} most recent episodes\n")
+    max_new = config.TRANSCRIPT_MAX_NEW
+    print(f"Scanning up to {limit} most recent videos")
+    if max_new:
+        print(f"Transcribing at most {max_new} episodes this run (~{max_new * 250} YouTube quota units)")
+    print()
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -69,8 +79,20 @@ def main() -> int:
     failed = 0
     consecutive_failures = 0
     aborted = False
+    remaining = 0
 
     for i, video in enumerate(videos, 1):
+        # Once the per-run cap is hit, keep walking so the summary can
+        # report how much backlog is left — but do it without spending
+        # quota, since counting what's left is only worth doing if it's
+        # free. A missing output file is enough to identify a candidate;
+        # whether it has captions is the next run's problem.
+        if max_new and processed >= max_new:
+            match = matcher.find_best_match(video["title"], video["publishedAt"])
+            if match and not (OUTPUT_DIR / f"{match['slug']}.json").exists():
+                remaining += 1
+            continue
+
         print(f"[{i}/{len(videos)}] {video['title']}")
 
         match = matcher.find_best_match(video["title"], video["publishedAt"])
@@ -141,6 +163,11 @@ def main() -> int:
         record = {
             "slug": slug,
             "source": "youtube_captions",
+            # The video this episode's transcript was generated from. The
+            # matcher has always known it and thrown it away; persisting it
+            # is what lets episode and video pages cross-link instead of
+            # competing for the same query (see SEO_ROADMAP.md).
+            "videoId": video["id"],
             "generatedAt": datetime.now(timezone.utc).isoformat(),
             "aiGenerated": True,
             # Preserved even though nothing renders it yet — timestamp data
@@ -158,6 +185,9 @@ def main() -> int:
     print("=" * 80)
     print("SUMMARY")
     print(f"Processed: {processed}  Skipped: {skipped}  Failed: {failed}")
+    if max_new and processed >= max_new:
+        print(f"Hit the {max_new}-episode cap for this run.")
+        print(f"Still untranscribed in the scanned range: {remaining}. Re-run to continue.")
     if aborted:
         print(f"Aborted after {consecutive_failures} consecutive failures — see errors above.")
     print("=" * 80)

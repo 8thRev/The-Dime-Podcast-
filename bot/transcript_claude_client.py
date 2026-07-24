@@ -96,7 +96,16 @@ class TranscriptClaudeClient:
                     text = text[4:]
                 text = text.strip()
 
-            data = json.loads(text)
+            # strict=False permits literal control characters (most often a
+            # raw newline) inside string values. Claude emits them fairly
+            # often inside `cleaned_transcript`, which is by far the longest
+            # string in the response, and strict parsing rejects the entire
+            # object over one of them. Retrying does fix it -- but a retry
+            # here means regenerating tens of thousands of output tokens, so
+            # tolerating the character is worth far more than it costs. The
+            # transcript text is unaffected either way; only the parser's
+            # strictness changes.
+            data = json.loads(text, strict=False)
 
             missing = REQUIRED_KEYS - data.keys()
             if missing:
