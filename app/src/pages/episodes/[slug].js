@@ -12,6 +12,8 @@ import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
 import { createPodcastEpisodeSchema, createFAQSchema, createBreadcrumbSchema } from '@/lib/schema';
 import { topicToSlug } from '@/lib/topicSlug';
 import { guestToSlug } from '@/lib/guests';
+import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
+import { getAllVideos } from '@/lib/youtube';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -59,18 +61,35 @@ export async function getStaticProps({ params }) {
     })
     .slice(0, 5);
 
+  // Cross-link to the YouTube video(s) for this episode. One episode can have
+  // several uploads (a re-cut, a second video), so the map is many-to-one.
+  // getAllVideos() needs YOUTUBE_API_KEY and the map file needs the
+  // video-episode-map workflow to have run — both degrade to an empty list, in
+  // which case the section simply doesn't render.
+  const videoIds = getVideoIdsForEpisode(episode.slug);
+  let episodeVideos = [];
+  if (videoIds.length > 0) {
+    const allVideos = await getAllVideos();
+    const byId = new Map(allVideos.map((v) => [v.id, v]));
+    episodeVideos = videoIds
+      .map((id) => byId.get(id))
+      .filter(Boolean)
+      .map((v) => ({ slug: v.slug, title: v.title, duration: v.duration }));
+  }
+
   return {
     props: {
       episode,
       relatedEpisodes,
       transcript,
       episodeTopics,
+      episodeVideos,
     },
     revalidate: 3600,
   };
 }
 
-export default function EpisodePage({ episode, relatedEpisodes, transcript, episodeTopics }) {
+export default function EpisodePage({ episode, relatedEpisodes, transcript, episodeTopics, episodeVideos = [] }) {
   // Prefer the AI-generated fixed-taxonomy topics (crawlable hub pages
   // exist for these) over freeform RSS keywords, falling back to RSS tags
   // for episodes that don't have transcript coverage yet. Only the former
@@ -203,6 +222,28 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             src={episode.audioUrl}
             title={episode.title}
           />
+
+          {episodeVideos.length > 0 && (
+            <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
+              <div style={{ marginBottom: '12px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                {episodeVideos.length > 1 ? 'Watch this episode on YouTube' : 'Watch this episode'}
+              </div>
+              {episodeVideos.map((v) => (
+                <Link
+                  key={v.slug}
+                  href={`/videos/${v.slug}`}
+                  style={{ display: 'block', color: 'var(--text-accent)', textDecoration: 'none', fontWeight: 600, fontSize: '15px', marginBottom: '6px' }}
+                >
+                  ▶ {v.title}
+                  {v.duration && (
+                    <span className="mono" style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '11px', marginLeft: '8px' }}>
+                      {v.duration}
+                    </span>
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
 
         <section style={{ marginBottom: '80px' }}>

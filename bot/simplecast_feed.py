@@ -105,6 +105,28 @@ def _names_match(a: str, b: str) -> bool:
     return SequenceMatcher(None, a, b).ratio() >= 0.85
 
 
+def _name_contained(video_guest: str, ep_guest: str) -> bool:
+    """True when the video's guest name appears in full, as consecutive whole
+    words, inside a longer RSS credit — e.g. "Rena Sherbill" inside "Rena
+    Sherbill Senior Editor".
+
+    _names_match alone can't cover this: that pair scores 0.65 against a 0.85
+    threshold, so the guest fast path misses, and the scored path then drops
+    the episode because back-catalog uploads routinely fall outside the 60-day
+    date window (the Sherbill episode published 2021-04-23 but was uploaded
+    76 days later). Widening that window would invite bad matches across the
+    whole feed; recognising a contained full name is the narrow fix.
+
+    Requires at least two name tokens, so a bare first name can never match
+    every episode that shares it.
+    """
+    a = video_guest.strip().lower().split()
+    b = ep_guest.strip().lower().split()
+    if len(a) < 2 or len(b) <= len(a):
+        return False
+    return any(b[i:i + len(a)] == a for i in range(len(b) - len(a) + 1))
+
+
 def _closest_by_date(candidates: list[dict], video_published_at: str) -> dict:
     """Break ties between multiple episodes sharing the same guest (repeat
     guests happen) by picking whichever RSS episode published closest in
@@ -207,8 +229,21 @@ class Matcher:
         video_guest = extract_guest(video_title)
 
         # Fast path: an unambiguous guest-name match is as good as it gets.
+        # _name_contained also accepts a full name embedded in a longer RSS
+        # credit ("Rena Sherbill" in "Rena Sherbill Senior Editor"), which
+        # _names_match scores too low to catch — without it those fall through
+        # to the scored path and get dropped by the date window whenever the
+        # upload lags the episode by more than 60 days.
         if video_guest:
-            strict = [ep for ep in self.episodes if ep.get("guest") and _names_match(video_guest, ep["guest"])]
+            strict = [
+                ep
+                for ep in self.episodes
+                if ep.get("guest")
+                and (
+                    _names_match(video_guest, ep["guest"])
+                    or _name_contained(video_guest, ep["guest"])
+                )
+            ]
             if len(strict) == 1:
                 return strict[0]
             if len(strict) > 1:

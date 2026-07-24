@@ -18,6 +18,7 @@ single output file.
 """
 
 import json
+import os
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -29,8 +30,18 @@ OUTPUT_PATH = Path(__file__).resolve().parent.parent / "app" / "content" / "vide
 
 # The channel has ~287 full-length uploads total (see SEO_ROADMAP.md Day-9
 # target); scan comfortably past that so a fresh upload never falls outside
-# the window before this is re-run.
-SCAN_LIMIT = 1000
+# the window before this is re-run. Overridable via SCAN_LIMIT so the
+# workflow's scan_limit input actually reaches the script.
+try:
+    SCAN_LIMIT = int(os.getenv("SCAN_LIMIT", "1000"))
+except ValueError:
+    SCAN_LIMIT = 1000
+
+# The Feb 28 2024 bulk re-upload of the old audio-only back catalogue is
+# excluded from the video library by app/lib/youtube.ts, so those uploads have
+# no /videos/[slug] page to link to. This map must apply the same rule or it
+# emits video IDs the site cannot resolve. Keep in sync with youtube.ts.
+AUDIO_ONLY_REUPLOAD_DATE = "2024-02-28"
 
 
 def build_map(videos: list[dict], episodes: list[dict]) -> tuple[dict[str, list[str]], int]:
@@ -39,12 +50,19 @@ def build_map(videos: list[dict], episodes: list[dict]) -> tuple[dict[str, list[
     Returns (map, matched_count). Videos with no confident match (Matcher
     returns None) are skipped entirely, mirroring how transcript_pipeline.py
     and coverage_report.py both treat a None match as "not this episode."
+
+    Videos the site never builds a page for are skipped too — see
+    AUDIO_ONLY_REUPLOAD_DATE. Including them would inflate this map with IDs
+    that /videos/[slug] can never resolve, so an episode would advertise more
+    videos than it can actually link to.
     """
     matcher = simplecast_feed.build_matcher(episodes)
 
     by_slug: dict[str, list[str]] = defaultdict(list)
     matched = 0
     for video in videos:
+        if video.get("publishedAt", "").startswith(AUDIO_ONLY_REUPLOAD_DATE):
+            continue
         match = matcher.find_best_match(video["title"], video["publishedAt"])
         if not match:
             continue

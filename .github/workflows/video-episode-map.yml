@@ -1,0 +1,87 @@
+name: Video/Episode Map
+
+# Regenerates app/content/video-episode-map.json — the many-to-one map from
+# episode slug to every matching YouTube video ID that lets episode pages and
+# video pages cross-link in both directions.
+#
+# bot/video_episode_map.py needs the same YouTube OAuth secrets as the census,
+# which only exist in Actions, so this is the only place it can run. Cheap
+# compared to the census: it lists uploads (~6 quota units) and never calls
+# captions.list or Claude.
+#
+# Scheduled weekly so newly published videos get mapped without anyone
+# remembering to dispatch it, plus manual dispatch for on-demand refreshes.
+on:
+  workflow_dispatch:
+    inputs:
+      scan_limit:
+        description: 'How many full-length uploads to list (1000 = whole channel)'
+        required: false
+        default: '1000'
+  schedule:
+    # Mondays 14:00 UTC — an hour after the daily transcript pipeline (13:00)
+    # so the two never contend for the same YouTube quota window.
+    - cron: '0 14 * * 1'
+
+jobs:
+  map:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r bot/requirements.txt
+
+      - name: Build video/episode map
+        env:
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+          SCAN_LIMIT: ${{ github.event.inputs.scan_limit || '1000' }}
+        run: |
+          cd bot
+          python video_episode_map.py | tee map-report.txt
+
+      - name: Write job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '```'
+            cat bot/map-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push the map
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "dime-transcript-bot"
+          git config user.email "actions@github.com"
+          git add app/content/video-episode-map.json
+          if git diff --cached --quiet; then
+            echo "Map unchanged; nothing to commit."
+          else
+            git commit -m "Update video/episode map [skip ci]"
+            # Mirrors the transcript pipeline's retry: this can race a merged
+            # PR or the daily pipeline pushing to main, and the map is cheap
+            # to rebuild but annoying to lose.
+            for i in 1 2 3 4 5; do
+              if git push; then
+                exit 0
+              fi
+              echo "Push rejected (attempt $i/5), rebasing onto latest main..."
+              git fetch origin main
+              git rebase origin/main
+            done
+            echo "::error::Failed to push video/episode map after 5 attempts"
+            exit 1
+          fi
