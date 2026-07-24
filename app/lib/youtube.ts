@@ -136,6 +136,11 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
         // Skip Shorts (under 3 minutes)
         if (parseDurationSeconds(item.contentDetails.duration) < 180) return;
 
+        // Skip the Feb 28, 2024 bulk re-upload of the old audio-only back
+        // catalog (54 episodes uploaded within the same minute, static
+        // show-logo thumbnail instead of real video) — not real video content.
+        if (item.snippet.publishedAt.startsWith("2024-02-28")) return;
+
         const fullSlug = slugify(item.snippet.title);
         const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");
 
