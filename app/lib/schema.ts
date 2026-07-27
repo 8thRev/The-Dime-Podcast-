@@ -1,6 +1,8 @@
 // lib/schema.ts
 // Helpers for generating JSON-LD schema markup
 
+import { SPONSOR_NAME, SPONSOR_URL, SPONSOR_ORG_ID } from "./sponsor";
+
 export interface SchemaMarkup {
   "@context": string;
   "@type": string;
@@ -75,6 +77,16 @@ export function createPodcastEpisodeSchema(
     potentialAction: {
       "@type": "ListenAction",
       target: `https://player.simplecast.com/${episode.id}`,
+    },
+    // Reference (not a full definition) of Newton's Organization node. The
+    // @id is the exact one the Newton site emits for itself, so the two
+    // sites' JSON-LD resolve to one entity rather than two look-alikes.
+    // Mirrors the visible sponsor slot on the page (SponsorSlot.js).
+    sponsor: {
+      "@type": "Organization",
+      "@id": SPONSOR_ORG_ID,
+      name: SPONSOR_NAME,
+      url: SPONSOR_URL,
     },
   };
 

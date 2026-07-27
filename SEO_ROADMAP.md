@@ -40,6 +40,15 @@ moment an item ships and stops being useful.
   - Follow-up fix after re-verifying against the live feed: two different guest links glued together with no separator (e.g. a LinkedIn URL immediately followed by `https://theflowery.co/`) were being truncated down to just the first one, silently dropping a real company link on the "Ilya Shmidt" episode; a small number of episodes wrap guest links in an email-tracking redirect (Streak's `streaklinks.com/<id>/<url-encoded-destination>`), which published the redirect host itself ("Streaklinks") as the company instead of the actual destination (AYR Wellness, on the David Goubert episode); and `hostnameToCompanyName()` left a literal dot in the label for subdomained hosts (`en.wikipedia.org` → "En.wikipedia", `mitchellosak.substack.com` → "Mitchellosak.substack"). All three are fixed in `app/lib/rss.ts` and re-verified against all 303 live feed items with zero regressions on the other 128 previously-correct results.
 - [x] Fixed live 404s on 7 of 287 `/videos/[slug]` pages (`app/lib/youtube.ts`). Root cause: `fetchAllVideoIds`/`fetchVideoDetails` silently swallowed YouTube API errors — a bare `console.error` + `break`/`catch` that returned whatever had been collected so far, indistinguishable from "the rest of the channel doesn't exist." Once a transient hiccup (quota, 5xx) hit *during* an ISR background regeneration for a specific video page, `getVideoBySlug` returning `null` made `getStaticProps` return `notFound: true`, which permanently overwrote that page's previously-good cached HTML with a 404 — confirmed live (all 7 URLs 404'd consistently across repeated requests, and the video itself is still public on YouTube). Both fetch functions now throw on API failure instead, so Next.js keeps serving the last good page and retries on the next request rather than caching a false 404; per-item processing is now wrapped so one malformed item (missing `statistics`, missing `thumbnails.high`) can't cascade into dropping every video after it in the fetch order. Also added a conversion CTA to `/videos` (`app/src/pages/videos.js`), which previously had no capture mechanism at all. Went with a "Subscribe on YouTube" button (`?sub_confirmation=1` deep link) rather than email: video-page visitors have already shown video intent, so a one-click platform-native subscribe matches that better than an email form, and the site's email list ("First Principles") is a distinct written-analysis product, not an episode-alert feed, so wiring it up here would have overpromised on what signing up gets you.
 
+- [x] Templated Newton Insights sponsor slot on **all 303** episode pages (`app/lib/sponsor.ts`, `app/src/components/SponsorSlot.js`, wired in `app/src/pages/episodes/[slug].js`), plus a `sponsor` Organization node on the episode `PodcastEpisode` JSON-LD (`app/lib/schema.ts`). Newton is a sister company (both it and The Dime are Eighth Revolution LLC) and this site's search authority is meant to route to Newton. Before this, the only Newton link on the site came from per-episode Simplecast show notes — present on **48 of 303** episodes. Specifics worth keeping:
+  - Target is `https://www.newton-insights.com/?utm_source=Thedime&utm_medium=referral&utm_campaign=episode_sponsor` — Newton's **homepage**. An earlier revision of this block pointed at `/request-demo`; it was retargeted before merge and the full reasoning lives in the header comment of `app/lib/sponsor.ts`. Short version: 303 templated site-wide links carrying commercial anchors into a conversion page is a recognizable manipulative-link footprint; the homepage is the hub that distributes authority to the rest of the Newton site anyway (its internal links to `/request-demo` were `<button onClick>` handlers no crawler could follow, which has since been fixed on the Newton side); and a listener mid-episode is cold traffic for whom a demo form is a high-commitment ask. Anchors were rewritten brand-led to match.
+  - UTM params, not the shorter `?ref=dime` this block first used. GA4 only auto-parses `utm_*`, and the `rel="noreferrer"` below strips the Referer header — so `?ref=dime` would have landed all 303 links in GA4 as **direct traffic**, unattributable. `utm_source` reuses the existing `Thedime` value so reporting stays continuous; the distinct medium/campaign separate this templated slot from the hand-written show-note reads. No SEO cost: Newton's homepage serves a self-referencing canonical, so the parameterized URL consolidates.
+  - `rel="noopener noreferrer"`, deliberately **no `nofollow`** — passing equity is the entire point, and the relationship is disclosed in the block itself ("Episode Sponsor · Newton Insights").
+  - Anchor text is picked from 10 descriptive variants (and the lead paragraph from 3) by hashing the episode slug — **deterministic, not random**. 303 byte-identical anchors read as machine link-building, and a random per-render pick would produce a server/client hydration mismatch. Verified distribution across the 303 built pages: 18–41 uses per anchor, and a given episode renders the same anchor on every rebuild.
+  - **Duplicate handling**: on the 48 episodes whose show-notes HTML already renders the sponsor read, the block collapses to a compact one-line credit (`compact` prop, driven by `showNotesMentionSponsor()`) so the same pitch doesn't appear twice on one page. Verified in built HTML: 255 pages full mode, 48 compact — exactly the 48 that carry the read.
+  - The `sponsor` node uses `@id: https://www.newton-insights.com/#organization`, the same `@id` the Newton site emits for its own Organization, so the two sites' JSON-LD resolve to one entity instead of two look-alikes. Verified all 303 `PodcastEpisode` blocks parse and carry it, with the existing FAQ/Breadcrumb blocks intact.
+- [x] Host-level 301 for the `eighthrevolution.com` alias domain (`app/next.config.js` `redirects()` with a `has` host condition, both apex and `www`). That host is aliased onto this same deployment: its homepage served the Dime homepage, but `/episodes`, `/episodes/<slug>`, `/guests`, `/topics`, `/about`, and `/newsletter` all 404'd on it — crawl budget and any inbound equity going into dead URLs. Uses `statusCode: 301` rather than `permanent: true` (which Next emits as a 308); both are permanent to Google, but 301 needs no qualification for older crawlers and link tools. Loop safety is structural, not incidental: Next compiles `has` host values to `new RegExp("^" + value + "$")` against the lowercased, port-stripped Host header, and the dots are escaped — so `dimepodcast.com`/`www.dimepodcast.com`, the destination, can never match. Verified against a real `next start` with forged Host headers: 301 for apex/`www`/mixed-case/with-port `eighthrevolution.com` (query strings preserved), 200 and no redirect for both dimepodcast.com forms.
+
 ## Guardrails — how new pages stay correct
 
 Every page renders `<SeoHead>` (`app/src/components/SeoHead.js`) instead of a hand-rolled `next/head` block. It owns title/description truncation (`truncateTitle`/`truncateDescription` in `app/lib/schema.ts`), the canonical tag, and OG/Twitter tags — so a new page can't reintroduce the duplicate-description or uncapped-length bugs by construction. Two enforcement layers back this up:
@@ -188,6 +197,7 @@ without trying.
 | `video-episode-map.json` | doesn't exist | ≥250 of ~287 videos mapped |
 | `videoId` on newly written transcripts | 0 | 100% |
 | Cross-links present in **server** HTML | 0 | 100% of mapped pairs, both directions |
+| Episode pages with a followable Newton link | 48 (show notes only) | 303 |
 | GSC submitted / discovered | 563 / TBD | 850 / ≥60% of 850 |
 | `npm run build && npm run checkseo` | green | green |
 
@@ -282,6 +292,32 @@ quota headroom as something to measure, never to assume.
 not exist on disk and the cross-links render nothing in production until it is
 dispatched once. That is the next action — and per the finding above, it should
 wait for a day with verified-clean quota rather than an assumed reset.
+
+**2026-07-27 — Newton link routing**: the sponsor slot, sponsor schema, and
+`eighthrevolution.com` 301 all shipped (see Shipped). Episode pages carrying a
+followable Newton link went 48 → 303. The slot was retargeted from
+`/request-demo` to Newton's homepage before merge, and `?ref=dime` swapped for
+UTM params so GA4 can attribute the traffic — both decisions are documented in
+the Shipped entry and in `app/lib/sponsor.ts`. Two things this exercise
+surfaced that are **not** fixed here:
+
+- **`/videos/[slug]` cannot be built locally right now.** A full `npm run
+  build` with the real `YOUTUBE_API_KEY` fails on `playlistItems API error:
+  403` — the same quota exhaustion documented above, and now the third
+  independent sighting of it. Verification was done with the key blanked
+  (`YOUTUBE_API_KEY= npm run build`), which is the documented clean-degrade
+  path: 556 pages, no video pages. Confirmed the 403 is pre-existing by
+  reproducing it on an unmodified tree. Nothing in this change touches
+  `/videos`.
+- **Episode-page payload bloat.** `getStaticProps` in
+  `app/src/pages/episodes/[slug].js` passes the full `relatedEpisodes`
+  objects, each carrying its complete `showNotes` HTML, into `__NEXT_DATA__`
+  — so every episode page ships up to 5 other episodes' show notes it never
+  renders. This is the same bug already fixed for `/episodes` (see Shipped,
+  "the `/episodes` list props were slimmed"), just not for the detail page.
+  Found while counting Newton links in the built HTML: a naive grep reported
+  194 pages carrying the show-notes sponsor link instead of 48, because the
+  other 146 had it inside a *related* episode's serialized props.
 
 ### Day 30 — 2026-08-22
 

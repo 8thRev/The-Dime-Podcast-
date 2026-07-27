@@ -7,6 +7,8 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import AIDisclosure from '@/src/components/AIDisclosure';
+import SponsorSlot from '@/src/components/SponsorSlot';
+import { showNotesMentionSponsor } from '@/lib/sponsor';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
 import { createPodcastEpisodeSchema, createFAQSchema, createBreadcrumbSchema } from '@/lib/schema';
@@ -100,6 +102,10 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
   // the truncated RSS show-notes description — prefer it for meta tags
   // (and thus search/social snippets) whenever it's available.
   const metaDescription = transcript?.summary || episode.description;
+  // ~48 of 303 episodes carry the Newton read inside their Simplecast show
+  // notes, which render verbatim above. On those, the templated slot drops to
+  // its compact form so the same pitch doesn't appear twice on one page.
+  const sponsorInShowNotes = showNotesMentionSponsor(episode.showNotes);
   const schema = createPodcastEpisodeSchema(episode, undefined, {
     aiGenerated: !!transcript,
     entities: transcript?.entities,
@@ -371,6 +377,8 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             </div>
           </section>
         )}
+
+        <SponsorSlot slug={episode.slug} compact={sponsorInShowNotes} />
 
         {relatedEpisodes.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
