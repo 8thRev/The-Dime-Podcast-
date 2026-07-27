@@ -59,6 +59,12 @@ function formatViews(count: string): string {
   return `${n} views`;
 }
 
+// Throws on any API/network failure instead of silently truncating the
+// result. A partial ID list would look identical to "the rest of the
+// channel doesn't exist" to callers, so a transient quota/network error
+// here must not be swallowed into a shorter-but-still-valid-looking list —
+// see the matching note on fetchVideoDetails for why that distinction
+// matters all the way up to getStaticProps.
 async function fetchAllVideoIds(): Promise<string[]> {
   if (!API_KEY) {
     console.warn("YOUTUBE_API_KEY not configured - videos will not load");
@@ -68,71 +74,79 @@ async function fetchAllVideoIds(): Promise<string[]> {
   const ids: string[] = [];
   let pageToken: string | undefined;
 
-  try {
-    do {
-      const params = new URLSearchParams({
-        key: API_KEY,
-        playlistId: UPLOADS_PLAYLIST_ID,
-        part: "contentDetails",
-        maxResults: "50",
-        ...(pageToken ? { pageToken } : {}),
-      });
+  do {
+    const params = new URLSearchParams({
+      key: API_KEY,
+      playlistId: UPLOADS_PLAYLIST_ID,
+      part: "contentDetails",
+      maxResults: "50",
+      ...(pageToken ? { pageToken } : {}),
+    });
 
-      const res = await fetch(`${BASE}/playlistItems?${params}`);
-      if (!res.ok) {
-        console.error(`YouTube API error: ${res.status}`);
-        break;
-      }
+    const res = await fetch(`${BASE}/playlistItems?${params}`);
+    if (!res.ok) {
+      throw new Error(`YouTube playlistItems API error: ${res.status}`);
+    }
 
-      const data = await res.json();
+    const data = await res.json();
 
-      data.items?.forEach((item: { contentDetails: { videoId: string } }) => {
-        if (item.contentDetails?.videoId) ids.push(item.contentDetails.videoId);
-      });
+    data.items?.forEach((item: { contentDetails: { videoId: string } }) => {
+      if (item.contentDetails?.videoId) ids.push(item.contentDetails.videoId);
+    });
 
-      pageToken = data.nextPageToken;
-    } while (pageToken);
-  } catch (error) {
-    console.error("Error fetching YouTube videos:", error);
-  }
+    pageToken = data.nextPageToken;
+  } while (pageToken);
 
   return ids;
 }
 
+// Throws on any API/network failure rather than returning whatever was
+// collected so far. getStaticProps for /videos/[slug] treats "video missing
+// from this list" as proof the video doesn't exist and 404s it — which is
+// correct when the list is complete, but was previously also happening on
+// a bare API hiccup (quota, transient 5xx) that silently truncated the
+// list. Because Next.js keeps the last good ISR page when getStaticProps
+// throws (instead of overwriting it with the notFound result), a real
+// video's page no longer gets permanently replaced by a 404 that only
+// heals itself if some future revalidation happens to succeed.
 async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
   if (!API_KEY || ids.length === 0) return [];
 
   const videos: YTVideo[] = [];
 
-  try {
-    for (let i = 0; i < ids.length; i += 50) {
-      const chunk = ids.slice(i, i + 50);
-      const params = new URLSearchParams({
-        key: API_KEY,
-        id: chunk.join(","),
-        part: "snippet,contentDetails,statistics",
-      });
+  for (let i = 0; i < ids.length; i += 50) {
+    const chunk = ids.slice(i, i + 50);
+    const params = new URLSearchParams({
+      key: API_KEY,
+      id: chunk.join(","),
+      part: "snippet,contentDetails,statistics",
+    });
 
-      const res = await fetch(`${BASE}/videos?${params}`);
-      if (!res.ok) {
-        console.error(`YouTube API error: ${res.status}`);
-        break;
-      }
+    const res = await fetch(`${BASE}/videos?${params}`);
+    if (!res.ok) {
+      throw new Error(`YouTube videos API error: ${res.status}`);
+    }
 
-      const data = await res.json();
+    const data = await res.json();
 
-      data.items?.forEach((item: {
-        id: string;
-        snippet: {
-          title: string;
-          description: string;
-          publishedAt: string;
-          tags?: string[];
-          thumbnails: { maxres?: { url: string }; high: { url: string } };
-        };
-        contentDetails: { duration: string };
-        statistics: { viewCount: string };
-      }) => {
+    data.items?.forEach((item: {
+      id: string;
+      snippet: {
+        title: string;
+        description: string;
+        publishedAt: string;
+        tags?: string[];
+        thumbnails: { maxres?: { url: string }; high?: { url: string }; medium?: { url: string }; default?: { url: string } };
+      };
+      contentDetails: { duration: string };
+      statistics?: { viewCount?: string };
+    }) => {
+      // A single video with an unexpected shape (e.g. view count hidden by
+      // the creator, an unusual thumbnail set) must not take the rest of
+      // this chunk and every later chunk down with it — forEach re-throws
+      // synchronously into the enclosing scope, which previously had
+      // nothing but the outer try/catch to stop that cascade.
+      try {
         // Skip Shorts (under 3 minutes)
         if (parseDurationSeconds(item.contentDetails.duration) < 180) return;
 
@@ -143,6 +157,12 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
 
         const fullSlug = slugify(item.snippet.title);
         const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");
+        const thumbnail =
+          item.snippet.thumbnails.maxres?.url ||
+          item.snippet.thumbnails.high?.url ||
+          item.snippet.thumbnails.medium?.url ||
+          item.snippet.thumbnails.default?.url ||
+          "";
 
         videos.push({
           id: item.id,
@@ -150,7 +170,7 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
           legacySlug: truncatedSlug !== fullSlug ? truncatedSlug : "",
           title: item.snippet.title,
           description: item.snippet.description,
-          thumbnail: item.snippet.thumbnails.maxres?.url || item.snippet.thumbnails.high.url,
+          thumbnail,
           publishedAt: item.snippet.publishedAt,
           date: new Date(item.snippet.publishedAt).toLocaleDateString("en-US", {
             month: "short",
@@ -159,15 +179,15 @@ async function fetchVideoDetails(ids: string[]): Promise<YTVideo[]> {
           }),
           duration: formatDuration(item.contentDetails.duration),
           durationISO: item.contentDetails.duration,
-          viewCount: formatViews(item.statistics.viewCount),
+          viewCount: formatViews(item.statistics?.viewCount || "0"),
           embedUrl: `https://www.youtube.com/embed/${item.id}?autoplay=1&rel=0&color=white`,
           watchUrl: `https://www.youtube.com/watch?v=${item.id}`,
           tags: item.snippet.tags?.slice(0, 6) || [],
         });
-      });
-    }
-  } catch (error) {
-    console.error("Error fetching YouTube video details:", error);
+      } catch (error) {
+        console.error(`Skipping malformed YouTube video item ${item?.id}:`, error);
+      }
+    });
   }
 
   return videos.sort((a, b) =>

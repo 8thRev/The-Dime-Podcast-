@@ -4,6 +4,7 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
+import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import { getAllVideos } from '@/lib/youtube';
 import { createCollectionPageSchema } from '@/lib/schema';
 
@@ -52,6 +53,20 @@ export default function Videos({ allVideos }) {
             onChange={(e) => setQuery(e.target.value)}
             style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', outline: 'none' }}
           />
+        </div>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', padding: '28px 32px', marginBottom: 48, background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px' }}>
+          <div style={{ maxWidth: 420 }}>
+            <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 10 }}>
+              Never Miss An Episode
+            </div>
+            <p className="crimson" style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: 0 }}>
+              Get every new episode and the First Principles newsletter delivered the moment it drops.
+            </p>
+          </div>
+          <div style={{ flex: '0 1 420px', minWidth: 280 }}>
+            <ConvertKitEmbed />
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24, marginBottom: 60 }}>
