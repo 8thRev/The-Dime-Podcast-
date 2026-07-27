@@ -1,0 +1,77 @@
+name: Video Catalog
+
+# Regenerates app/content/videos.json — the whole YouTube catalogue the site
+# renders /videos, /videos/[slug], the homepage and episode cross-links from.
+#
+# This exists so the website never calls the YouTube API itself. getAllVideos()
+# returns the entire channel and runs in getStaticProps on ~400 ISR pages, so
+# every cold lambda used to repeat a full ~16-request catalogue pull; that
+# multiplied out to >10k requests/day, exhausted the shared quota, and took the
+# bot pipelines and production builds down with it. One scheduled pull a day
+# costs ~16 units total and the site costs nothing.
+on:
+  workflow_dispatch:
+  schedule:
+    # 08:00 UTC daily — just after YouTube's quota reset (midnight Pacific)
+    # and well before the transcript pipeline at 13:00, so a runaway anywhere
+    # else in the day can never starve the one job the website depends on.
+    - cron: '0 8 * * *'
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build video catalog
+        env:
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+        run: |
+          cd app
+          node scripts/build-video-catalog.mjs | tee catalog-report.txt
+
+      - name: Write job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '```'
+            cat app/catalog-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push the catalog
+        if: ${{ !cancelled() }}
+        run: |
+          git config user.name "dime-transcript-bot"
+          git config user.email "actions@github.com"
+          git add app/content/videos.json
+          if git diff --cached --quiet; then
+            echo "Catalog unchanged; nothing to commit."
+          else
+            # Deliberately NOT [skip ci], unlike the map workflow: the site
+            # reads this file out of the deployed bundle, so the catalogue
+            # only reaches production if this push triggers a Vercel deploy.
+            # Safe from loops — no workflow in this repo triggers on push.
+            git commit -m "Update video catalog"
+            # Mirrors the map/transcript pipelines' retry: this can race a
+            # merged PR or another scheduled job pushing to main.
+            for i in 1 2 3 4 5; do
+              if git push; then
+                exit 0
+              fi
+              echo "Push rejected (attempt $i/5), rebasing onto latest main..."
+              git fetch origin main
+              git rebase origin/main
+            done
+            echo "::error::Failed to push video catalog after 5 attempts"
+            exit 1
+          fi

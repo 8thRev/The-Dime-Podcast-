@@ -4,11 +4,21 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Ensure the AI-generated transcript JSON files (read via fs at request
-  // time in lib/transcripts.ts) are included in the episode page's
-  // serverless function bundle.
+  // Ensure the JSON content files read via fs at request time are included in
+  // each route's serverless function bundle. ISR revalidation re-runs
+  // getStaticProps in the deployed lambda, so anything missing here reads as
+  // absent at runtime even though it was present at build time:
+  // transcripts (lib/transcripts.ts), the video catalogue (lib/youtube.ts)
+  // and the episode<->video map (lib/videoEpisodeMap.ts).
   outputFileTracingIncludes: {
-    '/episodes/[slug]': ['./content/transcripts/**'],
+    '/episodes/[slug]': [
+      './content/transcripts/**',
+      './content/videos.json',
+      './content/video-episode-map.json',
+    ],
+    '/videos': ['./content/videos.json'],
+    '/videos/[slug]': ['./content/videos.json', './content/video-episode-map.json'],
+    '/': ['./content/videos.json'],
   },
   async headers() {
     return [
