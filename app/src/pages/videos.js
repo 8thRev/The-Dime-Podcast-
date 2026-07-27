@@ -4,7 +4,6 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
-import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import { getAllVideos } from '@/lib/youtube';
 import { createCollectionPageSchema } from '@/lib/schema';
 
@@ -55,18 +54,20 @@ export default function Videos({ allVideos }) {
           />
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'center', justifyContent: 'space-between', padding: '28px 32px', marginBottom: 48, background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px' }}>
-          <div style={{ maxWidth: 420 }}>
-            <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 10 }}>
-              Never Miss An Episode
-            </div>
-            <p className="crimson" style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: 0 }}>
-              Get every new episode and the First Principles newsletter delivered the moment it drops.
-            </p>
-          </div>
-          <div style={{ flex: '0 1 420px', minWidth: 280 }}>
-            <ConvertKitEmbed />
-          </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', marginBottom: 48, background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px' }}>
+          <span className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+            New episode every week — never miss one.
+          </span>
+          <a
+            href="https://www.youtube.com/@TheDimePodcast?sub_confirmation=1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-teal"
+            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            Subscribe on YouTube
+          </a>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24, marginBottom: 60 }}>
