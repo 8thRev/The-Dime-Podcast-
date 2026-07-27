@@ -14,7 +14,7 @@ from datetime import date
 import requests
 
 from config import config
-from youtube_client import CHANNEL_ID
+from youtube_client import CHANNEL_ID, raise_for_status
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://youtubeanalytics.googleapis.com/v2/reports"
@@ -40,7 +40,7 @@ class YouTubeAnalyticsClient:
             },
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         self._access_token = resp.json()["access_token"]
         return self._access_token
 
@@ -59,7 +59,7 @@ class YouTubeAnalyticsClient:
             headers=self._headers(),
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         return resp.json()
 
     def totals(self, start: date, end: date) -> dict:

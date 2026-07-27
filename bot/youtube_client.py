@@ -25,6 +25,22 @@ CHANNEL_ID = "UCcck3tzBNXrJ1WJ8EtIVq1w"  # @thedime_cannabis
 MIN_EPISODE_DURATION_SECONDS = 1800  # 30 minutes
 
 
+def raise_for_status(resp: requests.Response) -> None:
+    """Raise on HTTP errors, keeping Google's JSON error body in the message.
+
+    requests' own message stops at the status line, which makes every API
+    failure look identical. Google puts the actionable part in the body --
+    `quotaExceeded` (wait for the daily reset) vs `accessNotConfigured`
+    (API disabled on the project) vs an insufficient-scope `forbidden`
+    (re-run get_youtube_refresh_token.py) all arrive as a bare 403.
+    """
+    if resp.ok:
+        return
+    raise requests.HTTPError(
+        f"{resp.status_code} for {resp.url}: {resp.text[:500]}", response=resp
+    )
+
+
 def _parse_iso8601_duration(duration: str) -> int:
     match = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", duration or "")
     if not match:
@@ -58,7 +74,7 @@ class YouTubeClient:
             },
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         token_data = resp.json()
         self._access_token = token_data["access_token"]
         self._token_expires_at = time.time() + token_data.get("expires_in", 3600) - 60
@@ -74,7 +90,7 @@ class YouTubeClient:
             headers=self._headers(),
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         items = resp.json().get("items", [])
         return items[0]["contentDetails"]["relatedPlaylists"]["uploads"]
 
@@ -107,7 +123,7 @@ class YouTubeClient:
             resp = requests.get(
                 f"{API_BASE}/playlistItems", params=params, headers=self._headers(), timeout=30
             )
-            resp.raise_for_status()
+            raise_for_status(resp)
             data = resp.json()
             pages_scanned += 1
 
@@ -143,7 +159,7 @@ class YouTubeClient:
             headers=self._headers(),
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         return {
             item["id"]: _parse_iso8601_duration(item["contentDetails"]["duration"])
             for item in resp.json().get("items", [])
@@ -159,7 +175,7 @@ class YouTubeClient:
             headers=self._headers(),
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         stats = {}
         for item in resp.json().get("items", []):
             s = item["statistics"]
@@ -179,7 +195,7 @@ class YouTubeClient:
             headers=self._headers(),
             timeout=30,
         )
-        resp.raise_for_status()
+        raise_for_status(resp)
         items = resp.json().get("items", [])
         if not items:
             return None
