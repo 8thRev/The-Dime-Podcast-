@@ -33,6 +33,12 @@ on:
         default: false
         type: boolean
 
+# Two pushes in quick succession would otherwise overlap, each sleeping out
+# its own deploy wait and racing the other's submission.
+concurrency:
+  group: indexnow
+  cancel-in-progress: false
+
 jobs:
   submit:
     runs-on: ubuntu-latest
@@ -41,8 +47,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Need the previous commit to diff against for changed-URL mode.
-          fetch-depth: 2
+          # Full history: changed-URL mode diffs against the push event's
+          # "before" SHA, which a shallow clone would not contain, and a push
+          # carrying several commits would otherwise have all but its last
+          # commit silently dropped.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -59,10 +68,14 @@ jobs:
           npm ci
           npm run build
 
+      # Note: github.event.inputs.* are strings, so these compare against
+      # 'true'/'all' rather than booleans. Switching to the typed `inputs.*`
+      # context without dropping the quotes would silently evaluate false.
+      # On a push event both are null, which yields the --changed branch.
       - name: Submit to IndexNow
         working-directory: app
         run: |
           node scripts/submit-indexnow.mjs \
-            ${{ github.event.inputs.mode == 'all' && '--all' || '--changed HEAD~1' }} \
+            ${{ github.event.inputs.mode == 'all' && '--all' || format('--changed {0}', github.event.before || 'HEAD~1') }} \
             ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }} \
             --wait-seconds 300

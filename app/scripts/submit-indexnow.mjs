@@ -21,7 +21,7 @@
 //   --wait-seconds N   sleep before verifying (lets a deploy finish first)
 
 import { execFileSync } from 'child_process';
-import { readdirSync, readFileSync, existsSync } from 'fs';
+import { readdirSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -63,7 +63,9 @@ function findKey() {
   for (const entry of readdirSync(publicDir)) {
     if (!entry.endsWith('.txt')) continue;
     const name = entry.replace(/\.txt$/, '');
-    if (!/^[a-f0-9-]{8,128}$/i.test(name)) continue;
+    // The spec allows [a-zA-Z0-9-], not just hex — a regenerated key with a
+    // letter past 'f' must still be found rather than silently missed.
+    if (!/^[a-zA-Z0-9-]{8,128}$/.test(name)) continue;
     const contents = readFileSync(join(publicDir, entry), 'utf8').trim();
     if (contents === name) return name;
   }
@@ -116,10 +118,14 @@ function urlsForChangedFile(file) {
     const route = page[1];
     // Not user-facing HTML routes.
     if (route.startsWith('_') || route === 'llms.txt') return paths;
-    // Dynamic template — see note above.
+    // API handlers aren't pages, and robots.txt disallows /api outright.
+    if (route === 'api' || route.startsWith('api/')) return paths;
+    // Dynamic template — see note above. A top-level dynamic route has no
+    // section hub to fall back to, so it maps to nothing rather than to a
+    // literal "/[slug]".
     if (route.includes('[')) {
       const section = route.split('/')[0];
-      paths.push(`/${section}`);
+      if (!section.includes('[')) paths.push(`/${section}`);
       return paths;
     }
     paths.push(route === 'index' ? '/' : `/${route.replace(/\/index$/, '')}`);
@@ -129,6 +135,8 @@ function urlsForChangedFile(file) {
   return paths;
 }
 
+// Returns null when the ref can't be diffed, so the caller can decide —
+// nothing here calls process.exit(), per the note on main().
 function urlsFromGitDiff(ref) {
   const root = repoRoot();
   let changed;
@@ -142,7 +150,7 @@ function urlsFromGitDiff(ref) {
       .filter(Boolean);
   } catch (error) {
     console.error(`Could not diff against "${ref}": ${error.message}`);
-    process.exit(1);
+    return null;
   }
 
   const paths = new Set();
@@ -253,7 +261,17 @@ async function main() {
   } else if (positional.length) {
     urls = positional.map(toUrl);
   } else {
-    urls = urlsFromGitDiff(flagValue('--changed', 'HEAD~1'));
+    // A push can carry more than one commit, so the workflow passes the
+    // event's "before" SHA. Fall back to the previous commit when that ref is
+    // absent or unreachable (manual runs, a shallow clone that doesn't
+    // contain it) rather than giving up and submitting nothing.
+    const ref = flagValue('--changed', 'HEAD~1');
+    urls = urlsFromGitDiff(ref);
+    if (urls === null && ref !== 'HEAD~1') {
+      console.warn(`Falling back to HEAD~1.`);
+      urls = urlsFromGitDiff('HEAD~1');
+    }
+    if (urls === null) return 1;
   }
 
   if (!urls.length) {
@@ -278,6 +296,16 @@ async function main() {
   console.log(`${urls.length} candidate URL(s):`);
   for (const url of urls) console.log(`  ${url}`);
 
+  // Before the wait and the verification pass, not after: a dry run exists to
+  // show what the mapping produced, and it should cost nothing and touch
+  // nothing. Checking this later meant `--dry-run --wait-seconds 300` (exactly
+  // what indexnow.yml passes) slept five minutes and sent live requests to
+  // production before printing a verdict.
+  if (dryRun) {
+    console.log(`[dry run] Would submit ${urls.length} URL(s) to ${ENDPOINT} as ${HOST}.`);
+    return 0;
+  }
+
   if (waitSeconds > 0) {
     console.log(`Waiting ${waitSeconds}s for the deploy to go live...`);
     await new Promise((resolve) => setTimeout(resolve, waitSeconds * 1000));
@@ -294,11 +322,6 @@ async function main() {
 
   if (!urls.length) {
     console.log('Nothing left to submit after verification.');
-    return 0;
-  }
-
-  if (dryRun) {
-    console.log(`[dry run] Would submit ${urls.length} URL(s) to ${ENDPOINT} as ${HOST}.`);
     return 0;
   }
 
