@@ -12,17 +12,8 @@ import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema, createWebsiteSchema } from '@/lib/schema';
 import testimonials from '@/content/testimonials.json';
 import { PODCAST_RATING } from '@/lib/ratings';
+import { getAllGuests, guestToSlug } from '@/lib/guests';
 
-const GUESTS_TICKER = [
-  'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
-  'Micah Anderson', 'Kristin & Eric Rogers', 'Trent Woloveck', 'John Shute',
-  'Brian Adams', 'Nicolas Guarino', 'Bill Morachnick', 'Ryan Crandall',
-  'Tyler Robson', 'Adam Stettner', 'Chris Emerson', 'Nick Kenny',
-  'Thomas Winstanley', 'Alex Kwon', 'Jared Maloof', 'Chris Ball',
-  'Jim Higdon', 'Ryan Castle', 'Mitchell Osak', 'Zach Edge',
-  'Dan Cook', 'Nadia Sabeh', 'David Fettner', 'Shahar Yamay',
-  'Hirsh Jain', 'Socrates Rosenfeld', 'Jesse Redmond', 'Brett Puffenbarger',
-];
 
 const TOPICS = [
   'MSO Strategy', 'Capital Structure', 'State Market Dynamics',
@@ -32,7 +23,7 @@ const TOPICS = [
   'Debt Walls', 'Cash Flow', 'Operational Frameworks', 'Hemp vs Cannabis',
 ];
 
-export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
+export default function Home({ latestEpisodes, episodeCount, latestVideos, guestTicker }) {
   const topicItems = [...TOPICS, ...TOPICS];
   const schema = createPodcastSchema('https://www.dimepodcast.com', PODCAST_RATING);
   const websiteSchema = createWebsiteSchema('https://www.dimepodcast.com');
@@ -138,7 +129,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         </div>
 
         {/* GUEST TICKER */}
-        <Ticker items={GUESTS_TICKER} />
+        <Ticker items={guestTicker} />
 
         {/* MAIN HERO CONTENT */}
         <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
@@ -316,17 +307,43 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
   );
 }
 
+// The marquee animates one full loop in a fixed 120s, so this can't just be
+// "every guest" — 222 names would scroll past too fast to read. It's the most
+// recent guests instead, which also keeps the homepage looking current.
+const TICKER_SIZE = 40;
+
+// Most-recently-featured guests, newest first, one entry per person.
+// Previously a hardcoded array that had drifted out of sync with the feed;
+// deriving it from the episodes this page already loads means new guests
+// appear on their own.
+function recentGuests(episodes, profiledSlugs) {
+  const seen = new Set();
+  const guests = [];
+  for (const episode of episodes) {
+    if (!episode.guest || episode.guest === 'Guest') continue;
+    const slug = guestToSlug(episode.guest);
+    // Only link guests that actually have a generated profile page.
+    if (seen.has(slug) || !profiledSlugs.has(slug)) continue;
+    seen.add(slug);
+    guests.push({ name: episode.guest, slug });
+    if (guests.length === TICKER_SIZE) break;
+  }
+  return guests;
+}
+
 export async function getStaticProps() {
   const episodes = await getAllEpisodes();
   const videos = await getAllVideos();
 
   const episodeCount = getLatestEpisodeNumber(episodes);
+  const profiledSlugs = new Set((await getAllGuests()).map((g) => g.slug));
 
   return {
     props: {
       latestEpisodes: episodes.slice(0, 10),
       episodeCount,
       latestVideos: videos.slice(0, 8),
+      guestTicker: recentGuests(episodes, profiledSlugs),
     },
     revalidate: 3600,
   };

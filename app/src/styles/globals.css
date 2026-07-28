@@ -590,6 +590,17 @@ textarea::placeholder {
   color: var(--text-accent);
 }
 
+/* Ticker names are links now. The marquee already pauses on hover
+   (.guest-ticker:hover), which is what makes them clickable. */
+a.ticker-name {
+  text-decoration: none;
+}
+
+a.ticker-name:hover,
+a.ticker-name:focus-visible {
+  color: var(--text-accent);
+}
+
 .ticker-separator {
   font-family: 'Syne Mono', monospace;
   font-size: clamp(10px, 2vw, 12px);
