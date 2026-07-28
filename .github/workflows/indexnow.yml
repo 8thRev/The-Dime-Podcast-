@@ -1,0 +1,68 @@
+name: IndexNow
+
+# Pings IndexNow (Bing, Yandex, Seznam, Naver — not Google) when published
+# content changes, so new episode pages get crawled in hours instead of
+# waiting on the engines' own schedule. See SEO_ROADMAP.md.
+#
+# Note: the transcript pipeline does NOT trigger this workflow, because its
+# auto-commits carry "[skip ci]" and GitHub skips push-event workflows for
+# that string. That pipeline submits its own URLs directly as a final step in
+# transcript-pipeline.yml. (Vercel does not honour [skip ci], so those commits
+# still deploy normally — only Actions skips them.)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/content/**'
+      - 'app/src/pages/**'
+
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'changed = URLs touched by the last commit; all = every sitemap URL (one-time seed only)'
+        required: false
+        default: 'changed'
+        type: choice
+        options:
+          - changed
+          - all
+      dry_run:
+        description: 'Print the URL list without submitting'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Need the previous commit to diff against for changed-URL mode.
+          fetch-depth: 2
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # A full re-seed reads the generated sitemap, which only exists after a
+      # build. The changed-URL path derives everything from the git diff, so it
+      # needs no build at all.
+      - name: Install dependencies and build (full seed only)
+        if: ${{ github.event.inputs.mode == 'all' }}
+        working-directory: app
+        run: |
+          npm ci
+          npm run build
+
+      - name: Submit to IndexNow
+        working-directory: app
+        run: |
+          node scripts/submit-indexnow.mjs \
+            ${{ github.event.inputs.mode == 'all' && '--all' || '--changed HEAD~1' }} \
+            ${{ github.event.inputs.dry_run == 'true' && '--dry-run' || '' }} \
+            --wait-seconds 300

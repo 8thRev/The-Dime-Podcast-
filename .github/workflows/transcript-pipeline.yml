@@ -59,6 +59,7 @@ jobs:
           python transcript_pipeline.py
 
       - name: Commit and push generated transcripts
+        id: commit
         if: ${{ !cancelled() }}
         run: |
           git config user.name "dime-transcript-bot"
@@ -66,7 +67,9 @@ jobs:
           git add app/content/transcripts
           if git diff --cached --quiet; then
             echo "No new transcripts to commit."
+            echo "committed=false" >> "$GITHUB_OUTPUT"
           else
+            echo "committed=true" >> "$GITHUB_OUTPUT"
             git commit -m "Add auto-generated episode transcripts [skip ci]"
             # Long backfill runs can overlap with other pushes to main (a
             # merged PR, the daily schedule, another manual run); rebase
@@ -83,6 +86,25 @@ jobs:
             echo "::error::Failed to push generated transcripts after 5 attempts"
             exit 1
           fi
+
+      # This has to live here rather than in indexnow.yml: the commit above
+      # carries "[skip ci]", which makes GitHub skip push-triggered workflows,
+      # so the IndexNow workflow would never fire for new transcripts.
+      # A failed ping is not worth failing the pipeline over — the content is
+      # already committed and will be crawled on the engines' own schedule.
+      - name: Set up Node for the IndexNow ping
+        if: ${{ steps.commit.outputs.committed == 'true' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Submit new episode URLs to IndexNow
+        if: ${{ steps.commit.outputs.committed == 'true' }}
+        continue-on-error: true
+        working-directory: app
+        # Waits out the Vercel build so the URLs are live before the engines
+        # come looking; the script also drops anything not returning 200.
+        run: node scripts/submit-indexnow.mjs --changed HEAD~1 --wait-seconds 300
 
       - name: Upload logs on failure
         if: failure()
