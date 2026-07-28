@@ -556,12 +556,24 @@ textarea::placeholder {
 .guest-ticker {
   display: flex;
   width: max-content;
-  animation: guestTicker 120s linear infinite;
+  /* Duration is set inline by Ticker.js, scaled to the number of names so the
+     scroll speed stays constant as the guest list grows. The 120s fallback is
+     the old fixed value, for the case where the variable is missing. */
+  animation: guestTicker var(--ticker-duration, 120s) linear infinite;
 }
 
 @media (max-width: 480px) {
   .guest-ticker {
-    animation-duration: 90s;
+    /* Was a flat 90s against a 120s desktop value — same 0.75 ratio, applied
+       to whatever the scaled duration works out to. */
+    animation-duration: calc(var(--ticker-duration, 120s) * 0.75);
+  }
+}
+
+/* An infinite marquee is exactly the kind of motion this setting is for. */
+@media (prefers-reduced-motion: reduce) {
+  .guest-ticker {
+    animation: none;
   }
 }
 

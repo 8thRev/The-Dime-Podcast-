@@ -307,16 +307,13 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos, guest
   );
 }
 
-// The marquee animates one full loop in a fixed 120s, so this can't just be
-// "every guest" — 222 names would scroll past too fast to read. It's the most
-// recent guests instead, which also keeps the homepage looking current.
-const TICKER_SIZE = 40;
-
-// Most-recently-featured guests, newest first, one entry per person.
-// Previously a hardcoded array that had drifted out of sync with the feed;
-// deriving it from the episodes this page already loads means new guests
-// appear on their own.
-function recentGuests(episodes, profiledSlugs) {
+// Every guest who has appeared, newest first, one entry per person.
+// Previously a hardcoded 32-name array that had drifted out of sync with the
+// feed; deriving it from the episodes this page already loads means new guests
+// appear on their own and a name can only come from a real episode.
+// The ticker scales its animation duration to the list length, so the full
+// catalogue scrolls at the same pace a short list would.
+function tickerGuests(episodes, profiledSlugs) {
   const seen = new Set();
   const guests = [];
   for (const episode of episodes) {
@@ -326,7 +323,6 @@ function recentGuests(episodes, profiledSlugs) {
     if (seen.has(slug) || !profiledSlugs.has(slug)) continue;
     seen.add(slug);
     guests.push({ name: episode.guest, slug });
-    if (guests.length === TICKER_SIZE) break;
   }
   return guests;
 }
@@ -343,7 +339,7 @@ export async function getStaticProps() {
       latestEpisodes: episodes.slice(0, 10),
       episodeCount,
       latestVideos: videos.slice(0, 8),
-      guestTicker: recentGuests(episodes, profiledSlugs),
+      guestTicker: tickerGuests(episodes, profiledSlugs),
     },
     revalidate: 3600,
   };
