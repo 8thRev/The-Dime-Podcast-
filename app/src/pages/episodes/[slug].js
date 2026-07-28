@@ -107,7 +107,6 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
   // its compact form so the same pitch doesn't appear twice on one page.
   const sponsorInShowNotes = showNotesMentionSponsor(episode.showNotes);
   const schema = createPodcastEpisodeSchema(episode, undefined, {
-    aiGenerated: !!transcript,
     entities: transcript?.entities,
     guest: episode.guest ? { name: episode.guest, company: episode.company, companyUrl: episode.companyUrl } : undefined,
   });

@@ -3,70 +3,24 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import SeoHead from '@/src/components/SeoHead';
 import { PODCAST_RATING } from '@/lib/ratings';
-import { getAllGuests, guestToSlug } from '@/lib/guests';
+import { getAllGuests } from '@/lib/guests';
 
-const GUESTS_TICKER = [
-  'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
-  'Micah Anderson', 'Kristin & Eric Rogers', 'Trent Woloveck', 'John Shute',
-  'Brian Adams', 'Nicolas Guarino', 'Bill Morachnick', 'Ryan Crandall',
-  'Tyler Robson', 'Adam Stettner', 'Chris Emerson', 'Nick Kenny',
-  'Thomas Winstanley', 'Alex Kwon', 'Jared Maloof', 'Chris Ball',
-  'Jim Higdon', 'Ryan Castle', 'Mitchell Osak', 'Zach Edge',
-  'Dan Cook', 'Nadia Sabeh', 'David Fettner', 'Shahar Yamay',
-  'Hirsh Jain', 'Socrates Rosenfeld', 'Jesse Redmond', 'Brett Puffenbarger',
-  'Tyler Nielsen', 'Ilya Shmidt', 'Brett Gelfand', 'George DeNardo',
-  'AnnaRae Grabstein', 'Emily Fisher & Dr June Chin', 'Christina Betancourt Johnson', 'Ron Gershoni',
-  'Luna Stower', 'Nick Kovacevich', 'Jeff Guillot', 'Jamie Pearson',
-  'Dan Shapiro', 'Trip McDermott', 'Chloe Kaleiokalani', 'Ben Burstein',
-  'Ralph Risch', 'Colin Keeler', 'Wendy Bronfein', 'Jack Grover',
-  'Kristian Andreassen', 'Yoko Miyashita', 'Cameron Clarke', 'Erik Knutson',
-  'Sundie Seefried', 'Travis Higginbotham', 'Zach Marburger', 'Emily Sisneros',
-  'Brandon Bobart', 'Mike Siebold', 'Rama Mayo', 'Alleh Lindquist',
-  'Jordan Isenstadt', 'Neil Kaufman', 'Mario Naric', 'Krista Raymer',
-  'Shane Johnson', 'Dr. Tassa Saldi', 'Chris Fontes', 'Anthony Coniglio',
-  'Seth Yakatan', 'Todd Harrison', 'Rick Bashkoff', 'Gabe Mendoza',
-  'Crystal Millican', 'Markel Bababekov', 'Bradley Nattrass', 'Charlie Bachtell',
-  'Kate Miller', 'Dr. Matthew Moore', 'Warren Bobrow', 'Lulu Tsui',
-  'Jon Levine', 'Jon Purow', 'Rob Sechrist', 'Harrison Bard',
-  'Anne Forkutza', 'Jeremy Johnson', 'Dr. Amanda Reiman', 'Bob Hoban',
-  'Matt Zorn', 'Kristi Palmer', 'Emma Beckerle', 'David Goubert',
-  'Christine Smith', 'Ted Lidie', 'Christina Wong', 'Brandon Barksdale',
-  'Lisa Buffo', 'Scott Grossman', 'Raj Grover', 'Rob Sims',
-  'Ian Rumpp', 'Michael Johnson', 'Luke Anderson', 'Aaron Miles',
-  'Alvaro Torres', 'John Yang', 'Jesse Campoamor', 'Elliot Lane',
-  'Chad Bronstein', 'Kim Rivers', 'Jason Spatafora', 'Coleman Beale',
-  'Olivia Alexander', 'Kristina Adduci', 'Max Simon', 'Adam Terry',
-  'Jane West', 'Graham Farrar', 'Brady Cobb', 'Damian Fagon',
-  'Kieve Huffman', 'Shaleen Title', 'Karson Humiston', 'Daniel Muller',
-  'Chris Chiari', 'Chris Becker', 'Matt Hawkins', 'Nate Lipton',
-  'Leslie Bocskor', 'Chris Piazza', 'Adam Young', 'Vince Ning',
-  'Kim Stuck', 'Ashley Reynolds', 'Jason Wild', 'Emily Paxhia',
-  'Josh Smith', 'Troy Datcher', 'Oren Schauble', 'Otha Smith',
-  'Nathan Mison', 'Franny Tacy', 'Lisa Weser', 'Lauren Wilson',
-  'Kaelan Castetter', 'Wes Campbell', 'Eric Levitt', 'Dede Perkins',
-  'Dr. Tim Shu', 'Gary Santo', 'Nicolas Schlienz', 'Jeff Ragovin',
-  'Robert Beasley', 'Rob Wirtz', 'Ben Larson', 'Tahir Johnson',
-  'Ashley Grimes', 'Ben Euhus', 'Sam Richard', 'Rosie Mattio',
-  'Jason Malcolm', 'Jordan Highley', 'Colin Landforce', 'Mona Zhang',
-  'Dr. John Abrams', 'Dr. Jason Lupoi', 'Johanna Nuding', 'Fabian Monaco',
-  'Josh Crossney', 'Neil Juneja', 'Jon Rubin', 'Jordan Zager',
-  'Kevin Carrillo', 'Malcolm Boyce', 'Rena Sherbill', 'Bruce Eckfeldt',
-];
 
 export async function getStaticProps() {
-  const guests = await getAllGuests();
-  const guestSlugs = guests.reduce((acc, g) => {
-    acc[g.slug] = true;
-    return acc;
-  }, {});
+  // Every guest with a profile page, alphabetised for directory use.
+  // getAllGuests() sorts by episode count, which is right for ranking but
+  // wrong for a list someone scans for a name.
+  const directory = (await getAllGuests())
+    .map(({ name, slug, episodeCount }) => ({ name, slug, episodeCount }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return {
-    props: { guestSlugs },
+    props: { directory },
     revalidate: 3600,
   };
 }
 
-export default function ForGuests({ guestSlugs }) {
+export default function ForGuests({ directory }) {
   return (
     <>
       <SeoHead
@@ -125,24 +79,26 @@ export default function ForGuests({ guestSlugs }) {
             </p>
           </div>
           <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 16 }}>
-            Past Guests Include
+            Past Guests — All {directory.length}
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-            {GUESTS_TICKER.slice(0, 32).map((g) => {
-              const slug = guestToSlug(g);
-              const hasProfile = !!guestSlugs[slug];
-              return (
-                <div key={g} style={{ fontSize: '12px', fontWeight: 500, padding: '12px 0', borderBottom: '1px solid var(--faint)', letterSpacing: '.02em' }}>
-                  {hasProfile ? (
-                    <Link href={`/guests/${slug}`} style={{ color: '#3A4F66', textDecoration: 'none' }}>
-                      {g}
-                    </Link>
-                  ) : (
-                    <span style={{ color: '#3A4F66' }}>{g}</span>
-                  )}
-                </div>
-              );
-            })}
+          {/* Every guest profile is linked here, not a sample. This page is
+              the only hub that links guest pages, so anything left out of the
+              list is reachable solely from its own episode's byline — a
+              single internal link, which is what Ahrefs flags and what keeps
+              those pages at the bottom of the crawl queue. */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', columnGap: 24 }}>
+            {directory.map((g) => (
+              <div key={g.slug} style={{ fontSize: '12px', fontWeight: 500, padding: '12px 0', borderBottom: '1px solid var(--faint)', letterSpacing: '.02em' }}>
+                <Link href={`/guests/${g.slug}`} style={{ color: '#3A4F66', textDecoration: 'none' }}>
+                  {g.name}
+                </Link>
+                {g.episodeCount > 1 && (
+                  <span className="mono" style={{ fontSize: '9px', color: '#00C9A7', marginLeft: 8 }}>
+                    {g.episodeCount}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
