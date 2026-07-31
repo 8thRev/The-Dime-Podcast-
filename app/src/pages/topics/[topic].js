@@ -4,6 +4,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { getAllTopics, getEpisodesByTopicSlug } from '@/lib/topics';
+import { getEditionsForTopic, toCard } from '@/lib/newsletter';
 import { createBreadcrumbSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
@@ -21,12 +22,17 @@ export async function getStaticProps({ params }) {
   }
 
   return {
-    props: { topic: result.topic, episodes: result.episodes, topicSlug: params.topic },
+    props: {
+      topic: result.topic,
+      episodes: result.episodes,
+      topicSlug: params.topic,
+      editions: getEditionsForTopic(params.topic).map(toCard),
+    },
     revalidate: 3600,
   };
 }
 
-export default function TopicPage({ topic, episodes, topicSlug }) {
+export default function TopicPage({ topic, episodes, topicSlug, editions = [] }) {
   const breadcrumbSchema = createBreadcrumbSchema([
     { name: 'Home', url: 'https://www.dimepodcast.com' },
     { name: 'Topics', url: 'https://www.dimepodcast.com/topics' },
@@ -56,6 +62,34 @@ export default function TopicPage({ topic, episodes, topicSlug }) {
         <h1 className="syne" style={{ fontSize: 'clamp(40px,6vw,72px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.95, marginBottom: 40 }}>
           {topic}
         </h1>
+
+        {/* Above the episode list on purpose: a topic hub is otherwise a bare
+            list of links, and the written editions are the only prose on it —
+            the part a search or answer engine can actually quote. */}
+        {editions.length > 0 && (
+          <div style={{ marginBottom: 48, paddingBottom: 8 }}>
+            <h2 className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
+              Analysis on {topic}
+            </h2>
+            {editions.map((e) => (
+              <Link
+                key={e.slug}
+                href={`/newsletter/${e.slug}`}
+                style={{ display: 'block', padding: '18px 0 18px 20px', borderLeft: '3px solid var(--text-accent)', marginBottom: 12, textDecoration: 'none', color: 'inherit' }}
+              >
+                <div className="crimson" style={{ fontSize: '20px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 6, lineHeight: 1.3 }}>
+                  {e.title}
+                </div>
+                <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: 6 }}>
+                  {e.description}
+                </div>
+                <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                  First Principles{e.dateDisplay && ` · ${e.dateDisplay}`}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {episodes.map((ep) => (
           <Link

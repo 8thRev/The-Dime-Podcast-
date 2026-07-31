@@ -8,10 +8,11 @@
 import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getAllTopics } from '@/lib/topics';
+import { getAllEditions } from '@/lib/newsletter';
 
 const SITE_URL = 'https://www.dimepodcast.com';
 
-function buildLlmsTxt(episodes, topics) {
+function buildLlmsTxt(episodes, topics, editions) {
   const lines = [];
 
   lines.push('# The Dime Podcast');
@@ -24,6 +25,29 @@ function buildLlmsTxt(episodes, topics) {
   lines.push(`Video library: ${SITE_URL}/videos`);
   lines.push(`Guest applications: ${SITE_URL}/guests`);
   lines.push('');
+
+  // Listed before Topics and Episodes deliberately: everything below this
+  // section is AI-generated from audio, while these are human-written
+  // analysis with a named author — the most citable text on the site.
+  // Descriptions only, not full bodies; the linked HTML pages carry the
+  // full text and are explicitly allowed to AI crawlers in robots.txt.
+  if (editions.length > 0) {
+    lines.push('## First Principles (written analysis)');
+    lines.push('');
+    lines.push('Human-written essays by Bryan Fields, one per episode. Not AI-generated.');
+    lines.push(`Archive: ${SITE_URL}/newsletter`);
+    lines.push('');
+    for (const e of editions) {
+      const url = `${SITE_URL}/newsletter/${e.slug}`;
+      const parts = [`- [${e.title}](${url})`];
+      if (e.dateDisplay) parts.push(`(${e.dateDisplay})`);
+      lines.push(`${parts.join(' ')}: ${e.description}`);
+      if (e.episodeSlug) {
+        lines.push(`  Episode: ${SITE_URL}/episodes/${e.episodeSlug}`);
+      }
+    }
+    lines.push('');
+  }
 
   lines.push('## Topics');
   lines.push('');
@@ -74,10 +98,11 @@ function buildLlmsTxt(episodes, topics) {
 export async function getServerSideProps({ res }) {
   const episodes = await getAllEpisodes();
   const topics = await getAllTopics();
+  const editions = getAllEditions();
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-  res.write(buildLlmsTxt(episodes, topics));
+  res.write(buildLlmsTxt(episodes, topics, editions));
   res.end();
 
   return { props: {} };

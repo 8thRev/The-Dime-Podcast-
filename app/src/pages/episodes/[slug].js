@@ -16,6 +16,7 @@ import { topicToSlug } from '@/lib/topicSlug';
 import { guestToSlug } from '@/lib/guests';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllVideos } from '@/lib/youtube';
+import { getEditionForEpisode } from '@/lib/newsletter';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -79,6 +80,19 @@ export async function getStaticProps({ params }) {
       .map((v) => ({ slug: v.slug, title: v.title, duration: v.duration }));
   }
 
+  // The First Principles edition written about this episode, if one exists.
+  // Only the fields the block renders are passed through — the full markdown
+  // body would otherwise ship into __NEXT_DATA__ unrendered.
+  const editionRecord = getEditionForEpisode(episode.slug);
+  const edition = editionRecord
+    ? {
+        slug: editionRecord.slug,
+        title: editionRecord.title,
+        description: editionRecord.description,
+        dateDisplay: editionRecord.dateDisplay,
+      }
+    : null;
+
   return {
     props: {
       episode,
@@ -86,12 +100,13 @@ export async function getStaticProps({ params }) {
       transcript,
       episodeTopics,
       episodeVideos,
+      edition,
     },
     revalidate: 3600,
   };
 }
 
-export default function EpisodePage({ episode, relatedEpisodes, transcript, episodeTopics, episodeVideos = [] }) {
+export default function EpisodePage({ episode, relatedEpisodes, transcript, episodeTopics, episodeVideos = [], edition = null }) {
   // Prefer the AI-generated fixed-taxonomy topics (crawlable hub pages
   // exist for these) over freeform RSS keywords, falling back to RSS tags
   // for episodes that don't have transcript coverage yet. Only the former
@@ -251,6 +266,26 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             </div>
           )}
         </section>
+
+        {/* Sits alongside the audio player and video link deliberately: this
+            is the third format of the same episode, and it's the only
+            human-written long-form text on the page. */}
+        {edition && (
+          <section style={{ marginBottom: '48px', borderLeft: '3px solid var(--text-accent)', paddingLeft: '20px' }}>
+            <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
+              The analysis behind this episode
+            </div>
+            <Link href={`/newsletter/${edition.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '19px', fontWeight: 600, lineHeight: 1.3, fontFamily: "'Crimson Pro', Georgia, serif", marginBottom: '8px' }}>
+              {edition.title}
+            </Link>
+            <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 10px' }}>
+              {edition.description}
+            </p>
+            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+              First Principles{edition.dateDisplay && ` · ${edition.dateDisplay}`}
+            </div>
+          </section>
+        )}
 
         <section style={{ marginBottom: '80px' }}>
           <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 400 }}>

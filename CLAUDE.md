@@ -3,7 +3,13 @@
 This repo has two parts:
 
 - `app/` — the Next.js site (dimepodcast.com): episode/video pages, SEO
-  schema helpers (`app/lib/schema.ts`), transcript rendering (`app/lib/transcripts.ts`).
+  schema helpers (`app/lib/schema.ts`), transcript rendering (`app/lib/transcripts.ts`),
+  the hand-written "First Principles" newsletter archive (`app/lib/newsletter.ts`,
+  markdown in `app/content/newsletter/*.md`).
+
+  Note the split in `app/content/`: `transcripts/*.json` is AI-generated from
+  audio and always renders behind an `<AIDisclosure>` banner; `newsletter/*.md`
+  is human-written and deliberately never does.
 - `bot/` — Python automation, two separate pipelines:
   - Guest research bot (daily via GitHub Actions, Trello → Claude → Word doc → email) — see [README.md](README.md).
   - Transcript pipeline (YouTube captions → Claude → episode page content, written to `app/content/transcripts/*.json`) — runs via [.github/workflows/transcript-pipeline.yml](.github/workflows/transcript-pipeline.yml), matching logic in `bot/simplecast_feed.py`.

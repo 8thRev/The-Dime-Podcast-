@@ -17,9 +17,11 @@ export default function Document() {
             page-specific declared here would render twice). */}
         <meta name="robots" content="index, follow" />
 
-        {/* Open Graph defaults */}
+        {/* Open Graph defaults. og:type is deliberately NOT here — it varies
+            per page (SeoHead's `ogType` prop) and next/head isn't deduped
+            against this Head, so a default here rendered a second, conflicting
+            og:type on every page. Same trap as the description tag above. */}
         <meta property="og:site_name" content="The Dime Podcast" />
-        <meta property="og:type" content="website" />
         <meta property="og:locale" content="en_US" />
 
         {/* Twitter / X Card defaults */}
