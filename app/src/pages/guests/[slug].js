@@ -10,7 +10,7 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import GuestAvatar from '@/src/components/GuestAvatar';
 import { getAllGuests, getGuestBySlug } from '@/lib/guests';
-import { getEditionsForGuest, toSummary } from '@/lib/newsletter';
+import { getEditionsForGuest, toListItem } from '@/lib/newsletter';
 import { createPersonSchema, createBreadcrumbSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
@@ -31,7 +31,7 @@ export async function getStaticProps({ params }) {
     props: {
       guest: result.guest,
       episodes: result.episodes,
-      editions: getEditionsForGuest(params.slug).map(toSummary),
+      editions: getEditionsForGuest(params.slug).map(toListItem),
     },
     revalidate: 3600,
   };

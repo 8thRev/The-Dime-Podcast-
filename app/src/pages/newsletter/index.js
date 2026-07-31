@@ -4,15 +4,15 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
-import { getAllEditions, toSummary } from '@/lib/newsletter';
+import { getAllEditions, toCard } from '@/lib/newsletter';
 import { createCollectionPageSchema } from '@/lib/schema';
 
 export async function getStaticProps() {
-  // toSummary() drops each edition's full markdown body — this page renders
-  // titles and descriptions only, and shipping 31 × ~600 words of unrendered
-  // prose into __NEXT_DATA__ is the payload-bloat trap already fixed on
-  // /episodes (see SEO_ROADMAP.md).
-  const editions = getAllEditions().map(toSummary);
+  // toCard() keeps only what this page renders — date, guest, title, blurb.
+  // Shipping the full markdown body (31 × ~600 words), or even the leftover
+  // linkedinUrl/topics/episodeSlug fields, into __NEXT_DATA__ is the
+  // payload-bloat trap already fixed on /episodes (see SEO_ROADMAP.md).
+  const editions = getAllEditions().map(toCard);
   return { props: { editions }, revalidate: 3600 };
 }
 

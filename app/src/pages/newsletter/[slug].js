@@ -9,7 +9,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
-import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdown, toSummary } from '@/lib/newsletter';
+import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdown, toListItem } from '@/lib/newsletter';
 import { getEpisodeBySlug } from '@/lib/rss';
 import { createArticleSchema, createBreadcrumbSchema } from '@/lib/schema';
 import { topicToSlug } from '@/lib/topicSlug';
@@ -60,7 +60,7 @@ export async function getStaticProps({ params }) {
     }
   }
 
-  const others = getRelatedEditions(edition.slug, 4).map(toSummary);
+  const others = getRelatedEditions(edition.slug, 4).map(toListItem);
 
   const { body, ...meta } = edition;
 

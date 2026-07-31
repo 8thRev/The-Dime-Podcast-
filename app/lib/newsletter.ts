@@ -222,13 +222,24 @@ export function renderMarkdown(body: string): string {
   return String(remark().use(html, { sanitize: false }).processSync(body));
 }
 
-// Slim projection for list/cross-link contexts — drops `body`, which would
-// otherwise ship every edition's full text into __NEXT_DATA__ on pages that
-// only render a title and date. Same payload-bloat trap already fixed on
-// /episodes (see SEO_ROADMAP.md).
-export type EditionSummary = Omit<NewsletterEdition, "body">;
+// Projections for list/cross-link contexts. These are allow-lists, not
+// `Omit<…, "body">`, because dropping only the body still shipped every
+// listed edition's `linkedinUrl`, `topics`, `episodeSlug` and `wordCount`
+// into __NEXT_DATA__ unrendered — which on an edition page meant four
+// unrendered linkedin.com URLs in the HTML of a page whose whole purpose is
+// to be the on-site home for that writing. Same payload trap as /episodes
+// (see SEO_ROADMAP.md), one level finer.
 
-export function toSummary(edition: NewsletterEdition): EditionSummary {
-  const { body: _body, ...summary } = edition;
-  return summary;
+/** Title + date only: "More First Principles", guest pages. */
+export type EditionListItem = Pick<NewsletterEdition, "slug" | "title" | "dateDisplay">;
+
+export function toListItem(e: NewsletterEdition): EditionListItem {
+  return { slug: e.slug, title: e.title, dateDisplay: e.dateDisplay };
+}
+
+/** Adds the blurb and guest, for surfaces that render a summary line. */
+export type EditionCard = EditionListItem & Pick<NewsletterEdition, "description" | "guest">;
+
+export function toCard(e: NewsletterEdition): EditionCard {
+  return { ...toListItem(e), description: e.description, guest: e.guest };
 }

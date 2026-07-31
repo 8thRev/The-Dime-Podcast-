@@ -4,7 +4,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { getAllTopics, getEpisodesByTopicSlug } from '@/lib/topics';
-import { getEditionsForTopic, toSummary } from '@/lib/newsletter';
+import { getEditionsForTopic, toCard } from '@/lib/newsletter';
 import { createBreadcrumbSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
@@ -26,7 +26,7 @@ export async function getStaticProps({ params }) {
       topic: result.topic,
       episodes: result.episodes,
       topicSlug: params.topic,
-      editions: getEditionsForTopic(params.topic).map(toSummary),
+      editions: getEditionsForTopic(params.topic).map(toCard),
     },
     revalidate: 3600,
   };
