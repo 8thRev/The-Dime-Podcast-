@@ -123,8 +123,10 @@ export default function Footer() {
             <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
               Connect
             </div>
+            {/* Newsletter deliberately isn't repeated here — it's already in
+                Navigate above, and the same href twice in one footer splits
+                the internal-link signal for no user benefit. */}
             <Link href="/sponsorship" style={footerLinkStyle}>Sponsorship</Link>
-            <Link href="/newsletter" style={footerLinkStyle}>Newsletter</Link>
           </div>
         </div>
 
