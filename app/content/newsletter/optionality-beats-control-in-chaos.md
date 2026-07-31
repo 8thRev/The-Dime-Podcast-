@@ -1,8 +1,9 @@
 ---
 title: "Optionality Beats Control in Chaos"
+metaTitle: "Cannabis Vertical Integration vs Scale"
 slug: optionality-beats-control-in-chaos
 date: 2026-03-05
-description: "In stable industries control compounds. In unstable ones flexibility compounds. Why cannabis infrastructure is either a moat or an anchor, and timing decides which."
+description: "In stable industries control compounds; in unstable ones flexibility does. Cannabis infrastructure is either a moat or an anchor."
 episodeSlug: jb-cheech-chong-ceo-building-a-national-cannabis-brand-through-trial-error-partnership
 guest: "Jonathan Black"
 topics: ["MSOs & Multi-State Operators", "Rescheduling & Federal Policy", "Branding & Marketing"]

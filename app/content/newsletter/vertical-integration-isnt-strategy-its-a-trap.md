@@ -1,8 +1,9 @@
 ---
 title: "Vertical Integration Isn't Strategy — It's a Trap"
+metaTitle: "Cannabis Vertical Integration: A Trap"
 slug: vertical-integration-isnt-strategy-its-a-trap
 date: 2025-09-22
-description: "Cannabis is trying to run six or seven businesses at once, in multiple states, with every supply chain locked to a single state. Most of it is solved next door."
+description: "Cannabis runs six or seven businesses at once, in multiple states, every supply chain locked to one state. Most of it is solved next door."
 episodeSlug: strategy-truths-lies-mature-industries-already-know-ft-mitchell-osak
 guest: "Mitchell Osak"
 topics: ["MSOs & Multi-State Operators", "Supply Chain & Distribution", "Branding & Marketing"]

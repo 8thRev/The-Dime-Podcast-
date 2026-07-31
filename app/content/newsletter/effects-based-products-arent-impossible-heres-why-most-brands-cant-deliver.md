@@ -1,8 +1,9 @@
 ---
 title: "Effects-Based Products Aren't Impossible — Here's Why Most Brands Can't Deliver"
+metaTitle: "Effects-Based Cannabis Products"
 slug: effects-based-products-arent-impossible-heres-why-most-brands-cant-deliver
 date: 2025-11-25
-description: "The gap between expectation and experience is why consumers don't return. Process control at every step is the only way effects-based cannabis products work."
+description: "The gap between expectation and experience is why consumers don't return. Process control is the only way effects-based cannabis works."
 episodeSlug: how-level-delivers-effects-based-cannabis-tablets-ft-chris-emerson
 guest: "Chris Emerson"
 topics: ["Consumer Trends", "Branding & Marketing", "Cultivation & Extraction"]

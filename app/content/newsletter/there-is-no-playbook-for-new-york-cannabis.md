@@ -1,5 +1,6 @@
 ---
 title: "There Is No Playbook for New York Cannabis"
+metaTitle: "No Playbook for New York Cannabis"
 slug: there-is-no-playbook-for-new-york-cannabis
 date: 2026-01-19
 description: "Jaunty's hockey stick in New York was never luck. New York punished assumptions fast, and what looks like momentum now is really accumulated lessons."

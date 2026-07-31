@@ -1,5 +1,6 @@
 ---
 title: "Dr. Greenhouse and the Power of a Personal Monopoly: Plants, HVAC, and Yield"
+metaTitle: "Cannabis HVAC and Yield: Dr. Greenhouse"
 slug: dr-greenhouse-and-the-power-of-a-personal-monopoly-plants-hvac-and-yield
 date: 2025-08-28
 description: "Dr. Greenhouse sits at the intersection of plant science, engineering, and HVAC — a rare overlap that makes her the irreplaceable expert on yield."

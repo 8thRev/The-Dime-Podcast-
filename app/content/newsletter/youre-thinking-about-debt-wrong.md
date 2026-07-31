@@ -1,8 +1,9 @@
 ---
 title: "You're Thinking About Debt Wrong"
+metaTitle: "Cannabis Debt Financing, Rethought"
 slug: youre-thinking-about-debt-wrong
 date: 2025-12-10
-description: "Debt isn't the problem. The terms are, the structure is, the timing is. If your margins beat your cost of capital, you're borrowing to outrun everyone else."
+description: "Debt isn't the problem — the terms are. If your margins beat your cost of capital, you're not borrowing to survive, you're borrowing to win."
 episodeSlug: youre-thinking-about-debt-wrong-the-secret-to-smart-financing-ft-adam-stettner
 guest: "Adam Stettner"
 topics: ["Capital Raising & Funding", "Investor Perspective"]

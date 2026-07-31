@@ -1,5 +1,6 @@
 ---
 title: "Would You Have the Courage?"
+metaTitle: "Building a Cannabis Brand: Ball Family"
 slug: would-you-have-the-courage
 date: 2025-10-09
 description: "Putting your family's name on a brand means there's nowhere to hide when things go wrong, and no shortcuts when things get hard."

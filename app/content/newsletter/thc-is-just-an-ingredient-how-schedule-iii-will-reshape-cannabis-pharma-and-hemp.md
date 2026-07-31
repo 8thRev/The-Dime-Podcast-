@@ -1,5 +1,6 @@
 ---
 title: "THC Is Just an Ingredient — How Schedule III Will Reshape Cannabis, Pharma & Hemp"
+metaTitle: "How Schedule III Reshapes Cannabis"
 slug: thc-is-just-an-ingredient-how-schedule-iii-will-reshape-cannabis-pharma-and-hemp
 date: 2025-09-15
 description: "What if cannabis operators had to buy cannabinoids from GMP-licensed manufacturers instead of retrofitting facilities? The supply chain flips overnight."
@@ -31,7 +32,7 @@ And the messy roadmap ahead is exactly why Zach's insight is so valuable.
 
 To be clear — I'm not saying that *will* happen. But I am saying this:
 
-### What got you here won't get you there.
+## What got you here won't get you there.
 
 The next phase isn't just about operational efficiency.
 

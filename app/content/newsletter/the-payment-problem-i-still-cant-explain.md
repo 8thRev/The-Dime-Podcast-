@@ -1,8 +1,9 @@
 ---
 title: "The Payment Problem I Still Can't Explain"
+metaTitle: "Cannabis Banking: Why Payments Break"
 slug: the-payment-problem-i-still-cant-explain
 date: 2026-04-13
-description: "Compliance does not equal permission. Why every cannabis payment solution is temporary infrastructure running on the card brands' tolerance."
+description: "Cannabis banking's hardest problem: compliance does not equal permission. Every payment solution runs on the card brands' tolerance."
 episodeSlug: the-legal-market-was-never-built-for-payments-why-cannabis-still-breaks-the-rules-ft-aubrey-amatelli
 guest: "Aubrey Amatelli"
 topics: ["Banking & Payments", "Regulatory & Compliance", "Retail & Dispensary Operations"]

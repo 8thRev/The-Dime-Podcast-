@@ -1,5 +1,6 @@
 ---
 title: "Beyond THC%: Unlocking Cannabis' True Language with Sensory Science"
+metaTitle: "Beyond THC%: Cannabis Sensory Science"
 slug: beyond-thc-unlocking-cannabis-true-language-with-sensory-science
 date: 2025-09-05
 description: "Nobody buys wine by ABV. THC% is pushing cannabis toward commodity, and sensory science backed by data is the missing lexicon."

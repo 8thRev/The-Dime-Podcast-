@@ -1,8 +1,9 @@
 ---
 title: "Before CBD Was a Category, It Was a Medical Necessity"
+metaTitle: "CBD as Medicine: Charlotte's Web"
 slug: before-cbd-was-a-category-it-was-a-medical-necessity
 date: 2026-01-13
-description: "CBD didn't earn acceptance through branding. It earned it because results showed up where nothing else worked. Standards arrive when outcomes and infrastructure converge."
+description: "CBD didn't earn acceptance through branding. It earned it because results showed up where nothing else worked — and Schedule III raises the bar again."
 episodeSlug: how-charlottes-web-unlocked-medical-cbd-ft-bill-morachnick
 guest: "Bill Morachnick"
 topics: ["Medical & Research", "Regulatory & Compliance", "Rescheduling & Federal Policy"]

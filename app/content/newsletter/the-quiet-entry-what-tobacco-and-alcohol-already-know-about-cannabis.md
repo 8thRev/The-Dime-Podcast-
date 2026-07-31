@@ -1,8 +1,9 @@
 ---
 title: "The Quiet Entry: What Tobacco & Alcohol Already Know About Cannabis"
+metaTitle: "Tobacco & Alcohol's Cannabis Playbook"
 slug: the-quiet-entry-what-tobacco-and-alcohol-already-know-about-cannabis
 date: 2025-11-20
-description: "Tobacco and alcohol are building IP, infrastructure, and data while the industry waits for regulation. It's not if they enter cannabis — it's when the rest of us notice."
+description: "Tobacco and alcohol are quietly building cannabis IP, infrastructure and data. It's not if they enter — it's when the rest of us notice."
 episodeSlug: what-tobacco-and-alcohol-taught-me-about-cannabis-ft-nick-kenny
 guest: "Nick Kenny"
 topics: ["International Markets", "Supply Chain & Distribution", "Consumer Trends"]

@@ -300,13 +300,22 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
           </p>
         </div>
         <div>
+          {/* "No third-party sponsorships" rather than the previous "no
+              sponsorship content" — the archive carries Newton Insights reads,
+              and Newton is a sister company (both Eighth Revolution LLC), not
+              a paid placement. The old wording read as false the moment a
+              reader opened an edition. */}
           <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.9, fontWeight: 500, letterSpacing: '.04em' }}>
             550-650 WORDS. ONE IDEA. NO FLUFF. FREE.<br />
-            NO SPONSORSHIP CONTENT. NO PARTNER PROMOTIONS.
+            NO THIRD-PARTY SPONSORSHIPS. NO PAID PLACEMENTS.
           </p>
           <ConvertKitEmbed />
           <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 14 }}>
-            Operator intelligence only. Unsubscribe anytime.
+            Operator intelligence only. Unsubscribe anytime.{' '}
+            <Link href="/newsletter" style={{ color: 'var(--text-accent)' }}>
+              Read the archive
+            </Link>
+            .
           </p>
         </div>
       </section>

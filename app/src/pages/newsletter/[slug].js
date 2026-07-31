@@ -9,11 +9,11 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
-import { getAllEditions, getEditionBySlug, renderMarkdown, toSummary } from '@/lib/newsletter';
+import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdown, toSummary } from '@/lib/newsletter';
 import { getEpisodeBySlug } from '@/lib/rss';
 import { createArticleSchema, createBreadcrumbSchema } from '@/lib/schema';
 import { topicToSlug } from '@/lib/topicSlug';
-import { guestToSlug } from '@/lib/guests';
+import { guestToSlug, getAllGuests } from '@/lib/guests';
 
 export async function getStaticPaths() {
   return {
@@ -35,14 +35,32 @@ export async function getStaticProps({ params }) {
   if (edition.episodeSlug) {
     const match = await getEpisodeBySlug(edition.episodeSlug);
     if (match) {
-      episode = { slug: match.slug, title: match.title, guest: match.guest, date: match.date, num: match.num };
+      // Prefer the frontmatter guest name over the RSS-derived one.
+      // extractGuest() in lib/rss.ts mis-parses a number of titles and
+      // returns a title fragment instead of a name (e.g. "Playbook for
+      // Cannabis: Building Trust Through Tech ft. Ashwin Raj"), which would
+      // otherwise be published here as a person's name and as anchor text.
+      // The frontmatter always carries the real name.
+      const guest = edition.guest || (match.guest !== 'Guest' ? match.guest : '');
+      // Only link the name when a guest entity page actually exists for it.
+      // Some correct names (Ashwin Raj, Jonathan Black) have no page, because
+      // extractGuest() couldn't parse them out of the episode title — linking
+      // those would publish a 404. Render them as plain text instead; the link
+      // appears on its own once that extraction is fixed.
+      const guestSlug = guest ? guestToSlug(guest) : '';
+      const hasGuestPage = guestSlug ? (await getAllGuests()).some((g) => g.slug === guestSlug) : false;
+      episode = {
+        slug: match.slug,
+        title: match.title,
+        guest,
+        guestSlug: hasGuestPage ? guestSlug : '',
+        date: match.date,
+        num: match.num,
+      };
     }
   }
 
-  const others = getAllEditions()
-    .filter((e) => e.slug !== edition.slug)
-    .slice(0, 4)
-    .map(toSummary);
+  const others = getRelatedEditions(edition.slug, 4).map(toSummary);
 
   const { body, ...meta } = edition;
 
@@ -75,7 +93,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
   return (
     <>
       <SeoHead
-        title={edition.title}
+        title={edition.metaTitle}
         description={edition.description}
         path={`/newsletter/${edition.slug}`}
         ogType="article"
@@ -132,12 +150,16 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             </Link>
             <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>
               Ep. {episode.num}
-              {episode.guest && episode.guest !== 'Guest' && (
+              {episode.guest && (
                 <>
                   {' · '}
-                  <Link href={`/guests/${guestToSlug(episode.guest)}`} style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>
-                    {episode.guest}
-                  </Link>
+                  {episode.guestSlug ? (
+                    <Link href={`/guests/${episode.guestSlug}`} style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>
+                      {episode.guest}
+                    </Link>
+                  ) : (
+                    episode.guest
+                  )}
                 </>
               )}
               {episode.date && ` · ${episode.date}`}

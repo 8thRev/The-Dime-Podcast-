@@ -1,8 +1,9 @@
 ---
 title: "You Have Data. The Decisions Are Still Wrong"
+metaTitle: "Cannabis Data vs Bad Decisions"
 slug: you-have-data-the-decisions-are-still-wrong
 date: 2026-05-11
-description: "Clean, organized data can still drive catastrophic decisions. The discount-spike loop that reads clearance as demand, and why it compounds across facilities."
+description: "Clean, organized data can still drive catastrophic decisions. The discount-spike loop that reads clearance as demand — and why it compounds."
 episodeSlug: the-hidden-margin-killer-for-msos-ft-braunz-muller
 guest: "Braunz Muller"
 topics: ["Data & Technology", "MSOs & Multi-State Operators", "Cultivation & Extraction"]

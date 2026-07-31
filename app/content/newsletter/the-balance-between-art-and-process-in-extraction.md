@@ -1,5 +1,6 @@
 ---
 title: "The Balance Between Art and Process in Extraction"
+metaTitle: "Cannabis Extraction: Art vs Process"
 slug: the-balance-between-art-and-process-in-extraction
 date: 2026-02-02
 description: "Over-standardize and quality suffers. Over-index on intuition and repeatability disappears. How experienced extraction teams hold both at once."

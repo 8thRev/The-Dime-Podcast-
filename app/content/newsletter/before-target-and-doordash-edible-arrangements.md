@@ -1,5 +1,6 @@
 ---
 title: "Before Target and DoorDash, Edible Arrangements"
+metaTitle: "Edibles.com: THC Goes Mainstream"
 slug: before-target-and-doordash-edible-arrangements
 date: 2025-11-12
 description: "Edibles.com quietly built one of the most intriguing cannabinoid access platforms in the country. Consumers can now shop by experience, not just by brand."

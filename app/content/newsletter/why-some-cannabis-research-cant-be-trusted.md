@@ -1,5 +1,6 @@
 ---
 title: "Why Some Cannabis Research Can't Be Trusted"
+metaTitle: "Why Cannabis Research Can't Be Trusted"
 slug: why-some-cannabis-research-cant-be-trusted
 date: 2025-09-25
 description: "When billions are on the line, research gets messy. Read closely, stay skeptical — and know which meta-analysis actually put the numbers on the table."

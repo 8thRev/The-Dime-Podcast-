@@ -1,5 +1,6 @@
 ---
 title: "The Internal Audit Most Companies Avoid"
+metaTitle: "The Cannabis Strategic Audit"
 slug: the-internal-audit-most-companies-avoid
 date: 2026-03-18
 description: "The market does not care about sunk costs. Separating the vision from the vehicles used to pursue it is the audit most leadership teams never run."

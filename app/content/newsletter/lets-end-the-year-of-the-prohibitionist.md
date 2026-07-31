@@ -1,5 +1,6 @@
 ---
 title: "Let's End the Year of the Prohibitionist."
+metaTitle: "Cannabis Lobbying: Access vs Influence"
 slug: lets-end-the-year-of-the-prohibitionist
 date: 2026-04-03
 description: "Access is a transaction. Influence is leverage. Cannabis has confused the two, and the scoreboard in Washington keeps saying so."

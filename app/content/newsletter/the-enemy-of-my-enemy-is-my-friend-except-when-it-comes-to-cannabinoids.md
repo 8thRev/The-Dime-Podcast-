@@ -1,5 +1,6 @@
 ---
 title: "The Enemy of My Enemy Is My Friend, Except When It Comes to Cannabinoids"
+metaTitle: "Who Is Lobbying Against Cannabinoids"
 slug: the-enemy-of-my-enemy-is-my-friend-except-when-it-comes-to-cannabinoids
 date: 2025-10-03
 description: "Logic doesn't work in the cannabinoid space. Power and influence do. Spirits, pharma, big ag and retail are all circling the same disruption."

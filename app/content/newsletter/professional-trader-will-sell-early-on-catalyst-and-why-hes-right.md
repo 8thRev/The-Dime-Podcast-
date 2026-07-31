@@ -1,5 +1,6 @@
 ---
 title: "Professional Trader Will Sell Early on Catalyst, And Why He's Right"
+metaTitle: "Why Cannabis Stocks Keep Round-Tripping"
 slug: professional-trader-will-sell-early-on-catalyst-and-why-hes-right
 date: 2026-03-24
 description: "If you've been through multiple pump-and-dump cycles, you're not early. You're just still here. Why cannabis stocks trade on plumbing, not fundamentals."

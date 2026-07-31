@@ -1,8 +1,9 @@
 ---
 title: "CBD: The Gateway Cannabinoid"
+metaTitle: "How Schedule III Starts With CBD"
 slug: cbd-the-gateway-cannabinoid
 date: 2025-12-22
-description: "CBD didn't take center stage at the EO press conference by accident. The FDA will not invent a new playbook for cannabis — it will apply the one it already knows."
+description: "Schedule III put CBD first for a reason: it's the lowest-friction entry point for FDA oversight. The agency will apply the playbook it knows."
 episodeSlug: schedule-iii-changes-everything-this-is-just-the-beginning
 guest: "Zach Edge"
 topics: ["Rescheduling & Federal Policy", "Regulatory & Compliance", "Medical & Research"]

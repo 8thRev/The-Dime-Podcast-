@@ -1,5 +1,6 @@
 ---
 title: "Meet Singular: The Tightrope of Product Innovation"
+metaTitle: "Cannabis Vape Innovation: Singular"
 slug: meet-singular-the-tightrope-of-product-innovation
 date: 2025-10-31
 description: "Product innovation in cannabis is a tightrope. The second-order effects — simplified SKUs, streamlined operations — are what quietly change everything."

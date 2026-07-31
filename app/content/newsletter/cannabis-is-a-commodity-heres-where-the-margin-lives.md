@@ -1,8 +1,9 @@
 ---
 title: "Cannabis Is a Commodity. Here's Where the Margin Lives"
+metaTitle: "Cannabis Is a Commodity: Where Margin Is"
 slug: cannabis-is-a-commodity-heres-where-the-margin-lives
 date: 2025-12-16
-description: "Cannabis supply chains will commoditize. Margins won't disappear — they'll move into manufacturing efficiency, extraction throughput, and distribution discipline."
+description: "Cannabis supply chains will commoditize. Margins won't disappear — they move into manufacturing efficiency and distribution discipline."
 episodeSlug: inside-sndls-hidden-scale-global-reach-supply-chain-powerhouse-ft-tyler-robson
 guest: "Tyler Robson"
 topics: ["Supply Chain & Distribution", "International Markets", "Cultivation & Extraction"]

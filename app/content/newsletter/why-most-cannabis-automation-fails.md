@@ -1,5 +1,6 @@
 ---
 title: "Why Most Cannabis Automation Fails"
+metaTitle: "Why Cannabis Automation Fails"
 slug: why-most-cannabis-automation-fails
 date: 2026-01-23
 description: "Automation executes. Robotics adapts. Confusing the two is how cannabis companies make expensive mistakes and lock themselves into the wrong path."

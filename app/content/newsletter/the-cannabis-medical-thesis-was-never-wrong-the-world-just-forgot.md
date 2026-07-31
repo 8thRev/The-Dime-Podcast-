@@ -1,5 +1,6 @@
 ---
 title: "The Cannabis Medical Thesis Was Never Wrong. The World Just Forgot."
+metaTitle: "The Cannabis Medical Thesis, Revisited"
 slug: the-cannabis-medical-thesis-was-never-wrong-the-world-just-forgot
 date: 2026-05-27
 description: "Cannabis started as a medical story, then the green rush buried it. The FDA's botanical drug pathway is what brings the original thesis back."

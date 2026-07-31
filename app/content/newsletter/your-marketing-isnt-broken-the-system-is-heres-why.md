@@ -1,8 +1,9 @@
 ---
 title: "Your Marketing Isn't Broken. The System Is. Here's Why"
+metaTitle: "Why Cannabis Marketing Underperforms"
 slug: your-marketing-isnt-broken-the-system-is-heres-why
 date: 2026-02-05
-description: "Marketing does not create value. It distributes value that already exists. If you doubled spend tomorrow, would the return scale or just expose what's broken?"
+description: "Cannabis marketing doesn't create value, it distributes it. If you doubled spend tomorrow, would returns scale or just expose what's broken?"
 episodeSlug: most-cannabis-marketing-fails-because-it-is-asked-to-solve-the-wrong-problems-ft-john-shute
 guest: "John Shute"
 topics: ["Branding & Marketing", "Retail & Dispensary Operations", "Data & Technology"]

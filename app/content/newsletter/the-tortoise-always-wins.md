@@ -1,5 +1,6 @@
 ---
 title: "The Tortoise Always Wins"
+metaTitle: "Cannabis Capital Discipline Wins"
 slug: the-tortoise-always-wins
 date: 2025-10-21
 description: "The disciplined operators looked slow and boring. As the debt wall closes in, the market will reward exactly one thing: prudent capital allocators."

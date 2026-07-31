@@ -1,5 +1,6 @@
 ---
 title: "It's Time to Admit Alcohol Is Paying ALOT of Attention"
+metaTitle: "Cannabis Beverages vs Alcohol"
 slug: its-time-to-admit-alcohol-is-paying-alot-of-attention
 date: 2026-02-24
 description: "Beverage does not need to replace alcohol to matter. It only needs to capture one occasion per week. When ritual shifts, categories follow."

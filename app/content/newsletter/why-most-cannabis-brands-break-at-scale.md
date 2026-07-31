@@ -1,8 +1,9 @@
 ---
 title: "Why Most Cannabis Brands Break at Scale"
+metaTitle: "Why Cannabis Brands Break at Scale"
 slug: why-most-cannabis-brands-break-at-scale
 date: 2026-01-07
-description: "Product inconsistency costs you a customer who switches and never returns — hidden from dashboards. Consistency isn't a slogan, it's engineered process control."
+description: "Product inconsistency costs you a customer who switches and never returns. Consistency isn't a slogan — it's engineered process control."
 episodeSlug: the-playbook-behind-consistent-cannabis-products-at-scale-ft-ryan-crandall
 guest: "Ryan Crandall"
 topics: ["Branding & Marketing", "MSOs & Multi-State Operators", "Cultivation & Extraction"]

@@ -24,7 +24,16 @@ import { topicToSlug } from "./topicSlug";
 
 export type NewsletterEdition = {
   slug: string;
+  /** Editorial headline. Rendered as the <h1> and in listings. */
   title: string;
+  /**
+   * Short title for the `<title>`/OG tags only. These are LinkedIn-style
+   * headlines, routinely 50-80 characters, and `buildPageTitle()` only has a
+   * 41-character budget once " — The Dime Podcast" is appended — long enough
+   * to amputate the actual keyword ("…How Schedule" cutting off before "III").
+   * Falls back to `title` when absent, which is correct for the short ones.
+   */
+  metaTitle: string;
   /** ISO date the edition was originally published (on LinkedIn). */
   date: string;
   /** Human-formatted date for display. */
@@ -113,6 +122,7 @@ function parseEdition(fileName: string): NewsletterEdition | null {
     return {
       slug,
       title,
+      metaTitle: String(data.metaTitle || "").trim() || title,
       date,
       dateDisplay: formatDate(date),
       description: String(data.description || "").trim() || excerptFromBody(body),
@@ -129,12 +139,18 @@ function parseEdition(fileName: string): NewsletterEdition | null {
   }
 }
 
+// Parsed once per server process. Without this, every episode page (303),
+// guest page (222) and topic hub re-reads and re-parses all 31 markdown files
+// during a build. Same memoization lib/rss.ts uses for the feed.
+let cache: NewsletterEdition[] | null = null;
+
 // All editions, newest first. Editions with no parseable date sort last
 // rather than being dropped — a missing date is a frontmatter bug worth
 // seeing on the page, not a reason to hide the writing.
 export function getAllEditions(): NewsletterEdition[] {
+  if (cache) return cache;
   if (!fs.existsSync(CONTENT_DIR)) return [];
-  return fs
+  cache = fs
     .readdirSync(CONTENT_DIR)
     .filter((f) => f.endsWith(".md"))
     .map(parseEdition)
@@ -144,6 +160,34 @@ export function getAllEditions(): NewsletterEdition[] {
       if (!b.date) return -1;
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     });
+  return cache;
+}
+
+// Editions related to `slug`, most-shared-topics first, backfilled by recency.
+// The naive "N newest" pick this replaced gave the four newest editions every
+// inbound link in the set and left the other 27 with none.
+export function getRelatedEditions(slug: string, limit = 4): NewsletterEdition[] {
+  const all = getAllEditions();
+  const selfIndex = all.findIndex((e) => e.slug === slug);
+  if (selfIndex === -1) return all.slice(0, limit);
+  const topics = new Set(all[selfIndex].topics);
+  const n = all.length;
+
+  return all
+    .map((e, i) => ({
+      e,
+      i,
+      shared: e.topics.filter((t) => topics.has(t)).length,
+      // Ring distance in publication order. Used only to break ties, but it's
+      // what guarantees no edition ends up with zero inbound links: an edition
+      // sharing no topic with anyone is still its neighbours' nearest tie.
+      // Plain recency as the tie-break left 2 of 31 unlinked from anywhere.
+      ring: Math.min((i - selfIndex + n) % n, (selfIndex - i + n) % n),
+    }))
+    .filter(({ i }) => i !== selfIndex)
+    .sort((a, b) => b.shared - a.shared || a.ring - b.ring)
+    .slice(0, limit)
+    .map(({ e }) => e);
 }
 
 export function getEditionBySlug(slug: string): NewsletterEdition | null {

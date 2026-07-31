@@ -1,8 +1,9 @@
 ---
 title: "Your Neighbor Is Destroying Your Supply Chain"
+metaTitle: "Pesticide Drift and Cannabis Supply"
 slug: your-neighbor-is-destroying-your-supply-chain
 date: 2026-03-11
-description: "A team can do everything right and still fail testing, because the problem started at the edge of a neighboring farm. Vertical integration as environmental defense."
+description: "Pesticide drift means a cannabis team can do everything right and still fail testing. Vertical integration as environmental defense."
 episodeSlug: prop-64-fine-print-pesticide-drift-the-economics-behind-concentrates-ft-micah-anderson
 guest: "Micah Anderson"
 topics: ["Supply Chain & Distribution", "Cultivation & Extraction", "Regulatory & Compliance"]

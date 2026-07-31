@@ -1,5 +1,6 @@
 ---
 title: "The Lyft Playbook for Cannabis"
+metaTitle: "The Lyft Playbook for Cannabis Tech"
 slug: the-lyft-playbook-for-cannabis
 date: 2025-10-23
 description: "Taxis didn't want rideshare. The world did. Every emerging industry has to earn its right to exist, and cannabis is living a version of the same story."
