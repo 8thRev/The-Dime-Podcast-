@@ -1,10 +1,33 @@
 // next-sitemap.config.js
 // Configuration for XML sitemaps
 
+const fs = require('fs');
+const path = require('path');
 const Parser = require('rss-parser');
 
 const siteUrl = process.env.SITE_URL || 'https://www.dimepodcast.com';
 const FEED_URL = 'https://feeds.simplecast.com/Vnrz0StH';
+const NEWSLETTER_DIR = path.join(__dirname, 'content', 'newsletter');
+
+// Static pages that get a hand-set priority rather than the config default.
+// These are emitted by additionalPaths() below AND auto-discovered by
+// next-sitemap's page scan, so transform() has to drop the scanned copy —
+// otherwise every one of them lands in the sitemap twice with conflicting
+// priority and lastmod, and which version Google honours is arbitrary.
+const STATIC_PAGES = [
+  { path: '/', priority: 1.0, changefreq: 'daily' },
+  { path: '/episodes', priority: 0.9, changefreq: 'daily' },
+  { path: '/videos', priority: 0.8, changefreq: 'daily' },
+  { path: '/topics', priority: 0.8, changefreq: 'weekly' },
+  { path: '/guests', priority: 0.7, changefreq: 'weekly' },
+  { path: '/about', priority: 0.6, changefreq: 'monthly' },
+  // Raised from 0.6/monthly: /newsletter is now an archive index over the
+  // First Principles editions, not a standalone signup form.
+  { path: '/newsletter', priority: 0.8, changefreq: 'weekly' },
+  { path: '/privacy', priority: 0.3, changefreq: 'yearly' },
+  { path: '/terms', priority: 0.3, changefreq: 'yearly' },
+];
+const STATIC_PAGE_PATHS = new Set(STATIC_PAGES.map((p) => p.path));
 
 // Named AI/LLM crawlers get an explicit allow rule rather than relying on
 // the wildcard fallthrough — makes this site's LLM-discoverability intent
@@ -43,6 +66,33 @@ async function getEpisodeLastmodBySlug() {
   return episodeLastmodCache;
 }
 
+// Real per-edition lastmod, read straight off the markdown frontmatter.
+// Unlike the episode dates above this needs no network call — the content
+// is on disk — so it's a plain sync read rather than a cached async fetch.
+// gray-matter is CommonJS, so requiring it from this plain-Node script is
+// safe (lib/newsletter.ts itself can't be imported here — it's TypeScript).
+let newsletterLastmodCache = null;
+function getNewsletterLastmodBySlug() {
+  if (newsletterLastmodCache) return newsletterLastmodCache;
+  newsletterLastmodCache = {};
+  try {
+    if (!fs.existsSync(NEWSLETTER_DIR)) return newsletterLastmodCache;
+    const matter = require('gray-matter');
+    for (const file of fs.readdirSync(NEWSLETTER_DIR)) {
+      if (!file.endsWith('.md')) continue;
+      const { data } = matter(fs.readFileSync(path.join(NEWSLETTER_DIR, file), 'utf-8'));
+      const slug = String(data.slug || file.replace(/\.md$/, '')).trim();
+      const parsed = new Date(data.date);
+      if (slug && !Number.isNaN(parsed.getTime())) {
+        newsletterLastmodCache[slug] = parsed.toISOString();
+      }
+    }
+  } catch (error) {
+    console.error('next-sitemap: could not read newsletter frontmatter for lastmod:', error.message);
+  }
+  return newsletterLastmodCache;
+}
+
 module.exports = {
   siteUrl,
   changefreq: 'weekly',
@@ -69,6 +119,10 @@ module.exports = {
   // Data API (quota cost for a nice-to-have), and topic/static pages
   // don't have a single authoritative "modified" date to source from.
   transform: async (config, path) => {
+    // Returning null drops the URL. additionalPaths() re-adds each of these
+    // with its intended priority — see STATIC_PAGES above.
+    if (STATIC_PAGE_PATHS.has(path)) return null;
+
     const episodeMatch = path.match(/^\/episodes\/(.+)$/);
     if (episodeMatch) {
       const lastmodBySlug = await getEpisodeLastmodBySlug();
@@ -82,6 +136,20 @@ module.exports = {
         };
       }
     }
+
+    const newsletterMatch = path.match(/^\/newsletter\/(.+)$/);
+    if (newsletterMatch) {
+      const lastmod = getNewsletterLastmodBySlug()[newsletterMatch[1]];
+      if (lastmod) {
+        return {
+          loc: path,
+          changefreq: 'monthly',
+          priority: 0.8,
+          lastmod,
+        };
+      }
+    }
+
     return {
       loc: path,
       changefreq: config.changefreq,
@@ -92,20 +160,7 @@ module.exports = {
   additionalPaths: async (config) => {
     const paths = [];
 
-    // Static pages with specific priorities
-    const staticPages = [
-      { path: '/', priority: 1.0, changefreq: 'daily' },
-      { path: '/episodes', priority: 0.9, changefreq: 'daily' },
-      { path: '/videos', priority: 0.8, changefreq: 'daily' },
-      { path: '/topics', priority: 0.8, changefreq: 'weekly' },
-      { path: '/guests', priority: 0.7, changefreq: 'weekly' },
-      { path: '/about', priority: 0.6, changefreq: 'monthly' },
-      { path: '/newsletter', priority: 0.6, changefreq: 'monthly' },
-      { path: '/privacy', priority: 0.3, changefreq: 'yearly' },
-      { path: '/terms', priority: 0.3, changefreq: 'yearly' },
-    ];
-
-    staticPages.forEach(({ path, priority, changefreq }) => {
+    STATIC_PAGES.forEach(({ path, priority, changefreq }) => {
       paths.push({
         loc: `${siteUrl}${path}`,
         changefreq,

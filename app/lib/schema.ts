@@ -176,6 +176,64 @@ export function createFAQSchema(
   };
 }
 
+// Article schema for a First Principles newsletter edition. Unlike the
+// episode/video schemas, these are human-written, so there is deliberately
+// no `disclaimer` field and the author is a Person rather than the show.
+//
+// `isPartOf` groups all 31+ editions under one CreativeWorkSeries so search
+// and LLM crawlers read them as a named publication rather than 31 loose
+// posts, and `about` points at the episode the edition analyses — the same
+// relationship the visible cross-link expresses, restated for machines.
+export function createArticleSchema(
+  edition: {
+    title: string;
+    description: string;
+    slug: string;
+    date: string;
+    episodeSlug?: string;
+    wordCount?: number;
+  },
+  siteUrl: string = "https://www.dimepodcast.com"
+): SchemaMarkup {
+  const url = `${siteUrl}/newsletter/${edition.slug}`;
+  const schema: SchemaMarkup = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: edition.title,
+    description: edition.description,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    datePublished: edition.date,
+    author: {
+      "@type": "Person",
+      name: "Bryan Fields",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "The Dime Podcast",
+      url: siteUrl,
+    },
+    isPartOf: {
+      "@type": "CreativeWorkSeries",
+      name: "First Principles",
+      url: `${siteUrl}/newsletter`,
+    },
+  };
+
+  if (edition.wordCount) {
+    schema.wordCount = edition.wordCount;
+  }
+
+  if (edition.episodeSlug) {
+    schema.about = {
+      "@type": "PodcastEpisode",
+      url: `${siteUrl}/episodes/${edition.episodeSlug}`,
+    };
+  }
+
+  return schema;
+}
+
 export function createVideoObjectSchema(
   video: {
     title: string;

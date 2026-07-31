@@ -10,6 +10,7 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import GuestAvatar from '@/src/components/GuestAvatar';
 import { getAllGuests, getGuestBySlug } from '@/lib/guests';
+import { getEditionsForGuest, toSummary } from '@/lib/newsletter';
 import { createPersonSchema, createBreadcrumbSchema } from '@/lib/schema';
 
 export async function getStaticPaths() {
@@ -27,12 +28,16 @@ export async function getStaticProps({ params }) {
   }
 
   return {
-    props: { guest: result.guest, episodes: result.episodes },
+    props: {
+      guest: result.guest,
+      episodes: result.episodes,
+      editions: getEditionsForGuest(params.slug).map(toSummary),
+    },
     revalidate: 3600,
   };
 }
 
-export default function GuestPage({ guest, episodes }) {
+export default function GuestPage({ guest, episodes, editions = [] }) {
   const personSchema = createPersonSchema({
     name: guest.name,
     company: guest.company || undefined,
@@ -132,6 +137,30 @@ export default function GuestPage({ guest, episodes }) {
           </Link>
         ))}
       </section>
+
+      {editions.length > 0 && (
+        <section style={{ padding: '0 48px 48px' }}>
+          <h2 className="mono" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 24 }}>
+            Written analysis
+          </h2>
+          {editions.map((e) => (
+            <Link
+              key={e.slug}
+              href={`/newsletter/${e.slug}`}
+              style={{ display: 'block', padding: '20px 0', borderBottom: '1px solid var(--faint)', textDecoration: 'none', color: 'inherit' }}
+              onMouseEnter={(ev) => { ev.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
+              onMouseLeave={(ev) => { ev.currentTarget.style.background = 'transparent'; }}
+            >
+              <div className="crimson" style={{ fontSize: '19px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 6, lineHeight: 1.3 }}>
+                {e.title}
+              </div>
+              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+                First Principles{e.dateDisplay && ` · ${e.dateDisplay}`}
+              </div>
+            </Link>
+          ))}
+        </section>
+      )}
 
       <Footer />
     </>
