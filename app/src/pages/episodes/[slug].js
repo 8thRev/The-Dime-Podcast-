@@ -45,7 +45,19 @@ export async function getStaticProps({ params }) {
     };
   }
 
-  const transcript = getTranscriptBySlug(episode.slug);
+  // `raw_captions_srt` is the verbatim ASR output kept on disk for future
+  // chapter/timestamp work. It is never rendered, but props are serialized
+  // into __NEXT_DATA__, so shipping it put ~106KB of unrendered text into the
+  // HTML of every transcribed episode (~3.6MB across the 89 that carry it).
+  //
+  // It is also raw machine output, so it holds the mishearings the pipeline
+  // corrects downstream — guest names garbled by ASR were reaching the served
+  // HTML through this field alone, where naive extractors and LLM crawlers
+  // that don't strip <script> tags would read them as page content.
+  const rawTranscript = getTranscriptBySlug(episode.slug);
+  const transcript = rawTranscript
+    ? Object.fromEntries(Object.entries(rawTranscript).filter(([k]) => k !== 'raw_captions_srt'))
+    : rawTranscript;
   const topicsBySlug = getAllTopicsBySlug();
   const episodeTopics = topicsBySlug[episode.slug] || [];
 

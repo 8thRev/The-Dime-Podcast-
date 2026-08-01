@@ -393,6 +393,23 @@ function unescapeMarkdownUnderscores(html: string): string {
   return html.replace(/(?:\\|%5C)_/gi, "_");
 }
 
+// The Simplecast show notes misspell the co-host's surname in a minority of
+// episodes — "Kellen" appears 30 times against 2,146 correct "Kellan", so this
+// is a typo in the source copy, not an alternate spelling. It renders in the
+// visible "Full Show Notes" block, so without this the site publishes a named
+// person's name wrong on ~30 episode pages.
+//
+// Canonical spelling is "Kellan Finney" (src/pages/about.js). Fixing the bare
+// first name covers "Kellen Finney" and standalone "Kellen" in the timestamped
+// chapter lists both; the follow-up passes then repair the surname where the
+// notes also garble it.
+function normalizeCohostName(html: string): string {
+  return html
+    .replace(/\bKellen\b/g, "Kellan")
+    .replace(/\bKellan Finny\b/g, "Kellan Finney")
+    .replace(/\bKellan Finn\b(?![ey])/g, "Kellan Finney");
+}
+
 let cachedEpisodes: Episode[] | null = null;
 
 export async function getAllEpisodes(): Promise<Episode[]> {
@@ -403,8 +420,8 @@ export async function getAllEpisodes(): Promise<Episode[]> {
 
     cachedEpisodes = feed.items.map((item, index) => {
       const { guest, company: extractedCompany } = extractGuest(item.title || "");
-      const showNotesRaw = unescapeMarkdownUnderscores(
-        item["content:encoded"] || item.itunes?.summary || ""
+      const showNotesRaw = normalizeCohostName(
+        unescapeMarkdownUnderscores(item["content:encoded"] || item.itunes?.summary || "")
       );
       const companyOverride = GUEST_COMPANY_MAP[guest];
       const autoDetected = companyOverride ? { company: "", companyUrl: "" } : extractCompanyFromShowNotes(showNotesRaw);

@@ -44,11 +44,28 @@ export type YTVideo = {
 // Returns null (not []) when the artifact is absent, so callers can tell
 // "not generated yet, fall back to the API" apart from "generated, and the
 // channel legitimately has no qualifying videos".
+// The YouTube descriptions carry the same co-host surname typo as the
+// Simplecast notes ("Kellen" for "Kellan Finney" — see normalizeCohostName in
+// lib/rss.ts). Normalising on read rather than patching content/videos.json
+// keeps the fix in place: that file is a generated artifact, rewritten daily
+// by .github/workflows/video-catalog.yml, so an edit to it would be reverted.
+function normalizeCohostName(text: string): string {
+  return text
+    .replace(/\bKellen\b/g, "Kellan")
+    .replace(/\bKellan Finny\b/g, "Kellan Finney")
+    .replace(/\bKellan Finn\b(?![ey])/g, "Kellan Finney");
+}
+
 function readCatalogFile(): YTVideo[] | null {
   try {
     if (!fs.existsSync(CATALOG_FILE)) return null;
     const parsed = JSON.parse(fs.readFileSync(CATALOG_FILE, "utf-8"));
-    return Array.isArray(parsed) ? (parsed as YTVideo[]) : null;
+    if (!Array.isArray(parsed)) return null;
+    return (parsed as YTVideo[]).map((v) => ({
+      ...v,
+      title: normalizeCohostName(v.title || ""),
+      description: normalizeCohostName(v.description || ""),
+    }));
   } catch (error) {
     console.error("Error reading videos.json:", error);
     return null;
