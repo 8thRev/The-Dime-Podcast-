@@ -26,7 +26,11 @@ export default function Document() {
 
         {/* Twitter / X Card defaults */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="@thedime_cannabis" />
+        {/* @thedime_cannabis was the YouTube handle pasted into an X field —
+            16 characters, which X cannot issue (15 max), so it resolved to
+            nothing on all 898 pages. The show's real handle appears 570 times
+            in the Simplecast feed as "The Dime on Twitter". */}
+        <meta name="twitter:site" content="@TheDime_8th" />
         <meta name="twitter:creator" content="@Bryanfields24" />
 
         {/* Podcast-specific */}
