@@ -5,7 +5,7 @@
 // and lib/transcripts within the server process) so it stays current as
 // bot/transcript_pipeline.py adds new episodes daily.
 
-import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
+import { getAllEpisodes } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getAllTopics } from '@/lib/topics';
 import { getAllEditions } from '@/lib/newsletter';
@@ -19,7 +19,12 @@ function buildLlmsTxt(episodes, topics, editions) {
   lines.push('');
   lines.push('> Cannabis business intelligence. Strategy conversations for operators, not observers.');
   lines.push('');
-  lines.push(`${getLatestEpisodeNumber(episodes)} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`);
+  // episodes.length, not getLatestEpisodeNumber(): the numbering has gaps, so
+  // the highest episode number (305) overstates the 303 episodes this file
+  // actually goes on to list. Elsewhere on the site that distinction is
+  // cosmetic; here it is a factual claim inside a document written to be
+  // ingested verbatim, sitting directly above the list that contradicts it.
+  lines.push(`${episodes.length} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`);
   lines.push('');
   lines.push(`About the hosts: ${SITE_URL}/about`);
   lines.push(`Video library: ${SITE_URL}/videos`);

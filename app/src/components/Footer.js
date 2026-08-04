@@ -19,9 +19,9 @@ const footerLinkStyle = {
 };
 
 const LISTEN_LINKS = [
-  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1479320141' },
-  { label: 'Spotify', href: 'https://open.spotify.com/show/3O8vp4wvOJpqJCLBPqvQpP' },
-  { label: 'YouTube', href: 'https://www.youtube.com/@TheDimePodcast' },
+  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1540199573' },
+  { label: 'Spotify', href: 'https://open.spotify.com/show/05y791a4A1vzTZ6DCZQHFz' },
+  { label: 'YouTube', href: 'https://www.youtube.com/@theDime_Cannabis' },
 ];
 
 export default function Footer() {

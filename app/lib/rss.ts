@@ -64,14 +64,156 @@ function slugify(title: string): string {
     .replace(/-+$/, "");
 }
 
+// Episode-title-slug -> the guest's real name. Takes precedence over the
+// regex parsing below, which cannot recover a name the title never contained
+// ("Emergency Update: Shane Pennington…" parses as no-guest under any rule
+// that doesn't know Shane is the guest) and shouldn't be contorted trying.
+//
+// An empty string means the episode genuinely has no guest — hosts only — so
+// it must produce no entity page at all. That is distinct from a missing key,
+// which means "fall through to the regexes".
+//
+// Keyed by title slug rather than by the parser's own output, so fixing the
+// parser can't silently orphan an entry. Names sourced from GUESTS_TICKER in
+// src/pages/guests.js and the `guest:` frontmatter in content/newsletter/*.md,
+// both of which are hand-maintained and correct.
+const GUEST_NAME_OVERRIDES: Record<string, string> = {
+  "an-inside-look-into-a-hemp-processing-facility-ft-malcolm-boyce-of-axtell-labs": "Malcolm Boyce",
+  "arizona-cannabis-legalization-ft-sam-richard-of-ada": "Sam Richard",
+  "behind-the-scenes-of-cannabis-lobbying-how-it-really-works-ft-the-liaison-group": "Erin Moffet & David Mangone",
+  "boosting-revenue-with-crop-cycle-monitoring-how-sensors-increase-your-yield-and-bottom-line": "Scott Campbell",
+  "budding-cannabis-news-who-are-the-next-major-companies-in-the-cannabis-market-with-matt-obrien-of-four-pm": "Matt O'Brien",
+  "cannabinoid-research-education-and-advocacy-ft-clinical-psychologist-nicolas-schlienz": "Nicolas Schlienz",
+  "cannabinoids-for-cancer-ft-msc-biochemist-ben-euhus": "Ben Euhus",
+  "cannabinoids-the-nfl-ft-delvin-breaux-sr": "Delvin Breaux Sr.",
+  "cannabis-compliance-a-moving-target-ft-dede-perkins-ceo-of-procanna": "Dede Perkins",
+  "cannabis-controversy-duis": "",
+  "cannabis-for-pets-ft-dr-tim-shu-of-vetcbd": "Dr. Tim Shu",
+  "cannabis-industry-secrets-ft-bruce-eckfeldt-host-of-the-thinking-outside-the-bud-podcast": "Bruce Eckfeldt",
+  "cannabis-potency-technology-purpl-pro-featuring-chad-lieber": "Chad Lieber",
+  "connecting-professional-cannabis-leaders-featuring-mike-mejer-of-greenlane-communications": "Mike Mejer",
+  "diversification-of-a-cannabis-mso-ft-gary-santo-ceo-of-tilt-holding": "Gary Santo",
+  "east-coast-infused-cannabis-beverage-leader-from-origin-to-exit-ft-matt-melander-levia": "Matt Melander",
+  // "Nate D" is the guest's actual public credit — it is how the episode title
+  // and the show notes name him, and he is co-founder of Turn/Made/Project
+  // Packs. Do NOT "complete" this to Nate Lipton: that is a different person
+  // (Growers House, ep. 109). Merging them publishes a false worksFor claim.
+  "ecosystem-secrets-how-premier-cannabis-brands-scale-ft-nate-d": "Nate D",
+  "emergency-update-shane-pennington-breaks-down-cannabis-rescheduling": "Shane Pennington",
+  "helping-cannabis-start-ups-light-up-how-leafwire-is-connecting-investors-start-ups-and-everyone-in-between-together": "Peter Vogel",
+  "high-tech-cannabis-extraction-ft-rob-wirtz-of-mach-technologies": "Rob Wirtz",
+  "how-grown-rogues-craft-cannabis-model-is-disrupting-the-industry-ft-obie-strickler": "Obie Strickler",
+  "how-trulieve-became-the-most-dominant-cannabis-company-in-the-world-ft-kim-rivers-part-1": "Kim Rivers",
+  "how-trulieve-became-the-most-dominant-cannabis-company-in-the-world-ft-kim-rivers-part-2": "Kim Rivers",
+  // Not host-only: the notes name both founders, "we sit down with the Carl
+  // Giannone & Jesse Pitts". Only the title is vague.
+  "if-you-like-flavors-come-to-traders-ft-founders-of-trade-roots": "Carl Giannone & Jesse Pitts",
+  "industrial-scale-cbd-hemp-operations-ft-pure-valley-solutions": "Austin Fricker & Nick Layton",
+  "las-vegas-newest-attraction-a-cannabis-consumption-lounge-a-stones-throw-away-from-the-strip": "Chris LaPorte",
+  "leading-the-way-into-cannabis-ft-the-cannabis-pr-queen-rosie-mattio": "Rosie Mattio",
+  "legally-protecting-yourself-cannabis-edition-ft-neil-juneja-of-gleam-law": "Neil Juneja",
+  "mainstream-medias-disconnect-with-the-cannabis-industry-ft-rena-sherbill-senior-editor-at-seeking-alpha-and-host-of-the-cannabis-investing-podcast": "Rena Sherbill",
+  "meet-the-queens-of-cannabis-ft-her-highness": "Laura Eisman & Allison Krongard",
+  "optimizing-cannabis-for-the-consumer-experience-ft-colin-landforce-cto-of-unrivaled-brands": "Colin Landforce",
+  "passing-the-smell-test-terpenes-edition-ft-dr-jason-lupoi-of-thar-process": "Dr. Jason Lupoi",
+  "peter-barsoom-how-1906s-has-crafted-microdosing-cannabinoids-with-targeted-effects": "Peter Barsoom",
+  "recent-news-georgias-senate-election": "",
+  "simplifying-cannabis-genetics-ft-jordan-zager-ceo-of-dewey-scientific": "Jordan Zager",
+  "texas-cannabis-shayda-torabi-ceo-of-restart-cbd": "Shayda Torabi",
+  "the-cannabis-titanic-the-reset-ahead-matt-karnes-on-what-the-numbers-say": "Matt Karnes",
+  "the-last-cannabis-mile-ft-cory-azzalino-of-eaze": "Cory Azzalino",
+  "the-leader-of-cannabis-intelligence-ft-arcview-consulting": "Jake Kuczeruk",
+  "the-leading-non-profit-of-cannabis-science-research-ft-dr-john-abrams-chairman-of-the-cesc": "Dr. John Abrams",
+  "the-lyft-playbook-for-cannabis-building-trust-through-tech-ft-ashwin-raj": "Ashwin Raj",
+  "the-mso-gang-how-an-internet-army-is-policing-the-cannabis-industry-ft-kevin-carrillo-host-of-the-cannabinoid-connect-podcast": "Kevin Carrillo",
+  "the-next-cannabis-unicorn-ft-jeff-ragovin-of-fyllo": "Jeff Ragovin",
+  "the-og-cannabis-edible-ft-eric-leslie-of-cheeba-chews": "Eric Leslie",
+  "the-secrets-of-global-cannabis-smuggling-with-kingpin-barry-foy": "Barry Foy",
+  "tony-verzura-innovating-with-authentic-cannabis-derived-terpenes-deconstructing-extracts": "Tony Verzura",
+  "viral-cannabis-brownie-ft-howard-schacter-of-marimed": "Howard Schacter",
+  "world-renowned-harvard-doctor-untangles-myths-misconceptions-and-medical-uses-of-cannabis-ft-dr-grinspoon": "Dr. Peter Grinspoon",
+
+  // Guest is named plainly in the title, but in a shape no safe regex
+  // generalises — "<Name> on <Topic>", "<Name> Reveals…", "<Topic>: <Name>
+  // on …". A rule loose enough to catch these also matches ordinary prose,
+  // so they are enumerated instead. Every name here appears verbatim in its
+  // own episode title.
+  "aaron-nosbisch-reveals-brz-marketing-secrets-a-beverage-exploding-toward-20-million": "Aaron Nosbisch",
+  "big-tobacco-is-moving-on-cannabis-the-global-strategy-is-unfolding-and-deepak-anand-reveals-wheres-next": "Deepak Anand",
+  "boris-jordan-on-curaleafs-european-strategy-building-coca-cola-of-cannabis": "Boris Jordan",
+  "caleb-counts-details-connecteds-35-million-rd-breeding-program-and-best-in-class-genetics-that-continues-to-deliver-hitters": "Caleb Counts",
+  "chris-violas-breaks-down-blazes-software-infrastructure": "Chris Violas",
+  "curaleafs-european-breakout-boris-jordan-strategy-for-the-hemp-company": "Boris Jordan",
+  "deciding-on-a-dose-medical-cannabis-research-with-dr-jean-talleryand-of-medicann": "Dr. Jean Talleryand",
+  "disrupting-cannabis-for-social-equity-martine-pierre-of-cannalution-leads-the-way-to-revolution": "Martine Pierre",
+  "dr-matthew-johnson-the-worlds-most-published-scientist-on-the-human-effects-of-psychedelics": "Dr. Matthew Johnson",
+  "ed-rosenthal-and-greg-baughman-youre-still-growing-cannabis-wrong": "Ed Rosenthal & Greg Baughman",
+  "fix-the-process-real-cannabis-manufacturing-tools-optimization-techniques-ft-murphy-murri": "Murphy Murri",
+  "from-one-of-the-nations-first-licensed-medical-operators-to-kingpin-statute-for-a-nonviolent-offense-luke-scarmazzos-shocking-story-vs-the-federal-government": "Luke Scarmazzo",
+  "hard-questions-for-cannabis-founders-tony-schor-on-creative-capital-and-ma-strategies": "Tony Schor",
+  "inside-the-lab-synthetic-cannabinoids-and-the-genomic-landscape-of-cannabis-with-dr-daniela-vergara": "Dr. Daniela Vergara",
+  "kim-rivers-discusses-trulieve-preparing-for-floridas-6-billion-opportunity": "Kim Rivers",
+  "no-exits-no-capital-no-bullsht-seth-yakatan-on-cannabis-reality": "Seth Yakatan",
+  "organigrams-competitive-edge-paolo-de-luca-on-bat-ma-strategy-and-the-cannabis-long-game": "Paolo De Luca",
+  "pablo-zuanic-on-cannabis-stocks-institutional-strategies-for-retail-investors": "Pablo Zuanic",
+  "paul-f-austin-on-exploring-psychedelics-creativity-hidden-benefits-microdosing-and-retreats": "Paul F. Austin",
+  "paul-weaver-of-boston-beer-company-on-big-alcohols-cannabis-strategy": "Paul Weaver",
+  "richie-proud-on-the-ianthus-turnaround-why-selling-arizona-fueled-core-market-growth": "Richie Proud",
+  "surprising-medical-uses-of-cannabis-first-hand-insights-from-dr-benjamin-caplan-on-cancer-dementia-and-skincare": "Dr. Benjamin Caplan",
+  "the-etiquette-of-high-society-sitting-down-with-author-and-journalist-andrew-ward-thecannawriter": "Andrew Ward",
+  "the-michelin-star-experience-gibran-washington-on-what-customers-actually-want": "Gibran Washington",
+  "trump-texas-sb3-the-rescheduling-timeline-jim-higdon-on-what-comes-next": "Jim Higdon",
+  // Both spellings are the same person — ep. 179's notes say "We invited Dr.
+  // Matt Moore back for a third time". Normalised to the "Matthew" form so all
+  // three appearances land on /guests/dr-matthew-moore, which already exists
+  // and is indexed, rather than minting a competing /guests/dr-matt-moore.
+  // GUESTS_TICKER also carries the "Matthew" form.
+  "what-is-delta-10-thc-with-dr-matt-moore": "Dr. Matthew Moore",
+  "delta-8-thc-deep-dive-featuring-dr-matt-moore": "Dr. Matthew Moore",
+  "willie-mckenzie-from-legacy-california-to-profitable-8-figure-cannabis-operation-building-the-elite-cannabis-operators-mastermind": "Willie McKenzie",
+};
+
+// Trailing affiliation the title tacks onto a name — "Cory Azzalino of Eaze",
+// "Gary Santo CEO of TILT Holding". Everything from the role/preposition on is
+// company, not person, and must not end up in Person.name or the slug.
+const NAME_TAIL_RE =
+  /\s+(?:of|at|from|with|host of|co-host of|founder of|ceo of|cto of|cfo of|coo of|president of|chairman of|senior editor at)\b.*$/i;
+
+// Leading epithet or credential — "MSc Biochemist Ben Euhus", "Clinical
+// Psychologist Nicolas Schlienz", "The Cannabis PR Queen Rosie Mattio".
+// Deliberately does NOT strip "Dr."/"Mr."/"Ms.", which are part of how these
+// guests are credited everywhere else on the site.
+const NAME_LEAD_RE =
+  /^(?:the\s+)?(?:msc\s+)?(?:biochemist|clinical\s+psychologist|kingpin|cannabis\s+pr\s+queen|pr\s+queen)\s+/i;
+
+function cleanGuestName(raw: string): string {
+  return raw
+    .replace(/\s*\((?:part|pt\.?)\s*\d+\)\s*$/i, "") // "(Part 1)" — same person, two episodes
+    .replace(/[)\]]+\s*$/, "") // stray unmatched close-paren, e.g. "Delvin Breaux Sr)"
+    .replace(NAME_TAIL_RE, "")
+    .replace(NAME_LEAD_RE, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function extractGuest(title: string): { guest: string; company: string } {
-  // Patterns: "Title ft. Guest Name", "Title with Guest Name", "Guest Name: Title"
-  const ftMatch = title.match(/ft\.?\s+([^,\n]+?)(?:\s*,|\s*$)/i);
-  const withMatch = title.match(/with\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
+  const override = GUEST_NAME_OVERRIDES[slugify(title)];
+  if (override !== undefined) return { guest: override || "Guest", company: "" };
+
+  // Patterns: "Title ft. Guest", "Title featuring Guest", "Title with Guest",
+  // "Guest Name: Title".
+  //
+  // \b on `ft` is load-bearing: without it the pattern fires inside ordinary
+  // words — "The Ly[ft] Playbook…", "Grown Rogue's Cra[ft] Cannabis Model…" —
+  // and captures the rest of the title as if it were a person's name.
+  const ftMatch = title.match(/\bft\.?\s+([^,\n]+?)(?:\s*,|\s*$)/i);
+  const featuringMatch = title.match(/\bfeaturing\s+([^,\n)]+?)(?:\s*[,)]|\s*$)/i);
+  const withMatch = title.match(/\bwith\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/);
   const colonMatch = title.match(/^([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+):\s/);
 
-  const guest = ftMatch?.[1] || withMatch?.[1] || colonMatch?.[1] || "Guest";
-  return { guest: guest.trim(), company: "" };
+  const raw = ftMatch?.[1] || featuringMatch?.[1] || withMatch?.[1] || colonMatch?.[1] || "";
+  const guest = cleanGuestName(raw);
+  return { guest: guest || "Guest", company: "" };
 }
 
 function formatDuration(raw: string): string {
@@ -233,6 +375,41 @@ const GUEST_COMPANY_MAP: Record<string, { company: string; companyUrl: string }>
   "Aubrey Amatelli": { company: "PayRio", companyUrl: "https://www.payrio.co" },
 };
 
+// Simplecast's editor markdown-escapes underscores, and the escape survives
+// into the published <content:encoded> HTML — so a handle like @todd_harrison
+// ships as a link to `todd\_harrison`, which is nobody. Every social link with
+// an underscore in the handle is broken this way.
+//
+// The feed carries the escape in two different encodings and both have to be
+// handled: the href is already percent-encoded (`twitter.com/todd%5C_harrison`,
+// 34 in the feed) while the anchor text keeps the literal backslash
+// (`twitter.com/todd\_harrison`, 68). Fixing only one leaves either a dead link
+// or a visibly mangled URL on the page.
+//
+// Scoped deliberately to the underscore case: an audit of the full feed found
+// `\_` to be the only backslash sequence present, so a general markdown
+// unescape would be strictly more risk for no additional fix.
+function unescapeMarkdownUnderscores(html: string): string {
+  return html.replace(/(?:\\|%5C)_/gi, "_");
+}
+
+// The Simplecast show notes misspell the co-host's surname in a minority of
+// episodes — "Kellen" appears 30 times against 2,146 correct "Kellan", so this
+// is a typo in the source copy, not an alternate spelling. It renders in the
+// visible "Full Show Notes" block, so without this the site publishes a named
+// person's name wrong on ~30 episode pages.
+//
+// Canonical spelling is "Kellan Finney" (src/pages/about.js). Fixing the bare
+// first name covers "Kellen Finney" and standalone "Kellen" in the timestamped
+// chapter lists both; the follow-up passes then repair the surname where the
+// notes also garble it.
+function normalizeCohostName(html: string): string {
+  return html
+    .replace(/\bKellen\b/g, "Kellan")
+    .replace(/\bKellan Finny\b/g, "Kellan Finney")
+    .replace(/\bKellan Finn\b(?![ey])/g, "Kellan Finney");
+}
+
 let cachedEpisodes: Episode[] | null = null;
 
 export async function getAllEpisodes(): Promise<Episode[]> {
@@ -243,7 +420,9 @@ export async function getAllEpisodes(): Promise<Episode[]> {
 
     cachedEpisodes = feed.items.map((item, index) => {
       const { guest, company: extractedCompany } = extractGuest(item.title || "");
-      const showNotesRaw = item["content:encoded"] || item.itunes?.summary || "";
+      const showNotesRaw = normalizeCohostName(
+        unescapeMarkdownUnderscores(item["content:encoded"] || item.itunes?.summary || "")
+      );
       const companyOverride = GUEST_COMPANY_MAP[guest];
       const autoDetected = companyOverride ? { company: "", companyUrl: "" } : extractCompanyFromShowNotes(showNotesRaw);
       const company = companyOverride?.company || autoDetected.company || extractedCompany;

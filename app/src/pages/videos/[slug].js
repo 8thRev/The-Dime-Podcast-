@@ -38,8 +38,25 @@ export async function getStaticProps({ params }) {
     };
   }
 
+  // Score by shared tags, then recency — mirroring the episode page's
+  // relatedEpisodes selection. The previous `.slice(0, 5)` took the first five
+  // of the catalogue for every video, so the same 5 URLs collected ~286
+  // inbound links each while the other 281 had exactly one (from /videos).
+  // That concentrated the whole video section's internal link equity on an
+  // arbitrary five and left the rest effectively unlinked.
+  //
+  // 56 of 287 videos carry no tags; those score 0 against everything and fall
+  // through to the recency tiebreak, which is the intended behaviour rather
+  // than a degenerate case.
   const relatedVideos = allVideos
     .filter((v) => v.id !== video.id)
+    .sort((a, b) => {
+      const tagOverlap = (v) => (v.tags || []).filter((t) => (video.tags || []).includes(t)).length;
+      const aShared = tagOverlap(a);
+      const bShared = tagOverlap(b);
+      if (bShared !== aShared) return bShared - aShared;
+      return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+    })
     .slice(0, 5);
 
   // Cross-link back to the episode page, which holds the transcript, FAQ and

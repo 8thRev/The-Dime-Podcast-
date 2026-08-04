@@ -32,12 +32,29 @@ export function truncateTitle(text: string | undefined | null, maxLength = 60): 
   return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + "…";
 }
 
-// Full `<title>` value: truncates the page-specific part, then appends the
-// site suffix — used by SeoHead so the suffix never itself pushes a title
-// over the limit.
-export function buildPageTitle(pageTitle: string, maxLength = 60): string {
-  const budget = maxLength - SUFFIX.length;
-  return truncateTitle(pageTitle, budget > 0 ? budget : maxLength) + SUFFIX;
+// Full `<title>` value. The budget is deliberately larger than the ~60 chars
+// Google *displays*: Google indexes the whole title string and only truncates
+// it for rendering, so cutting here throws away keywords permanently to win
+// nothing. Episode and video titles run to a median of ~74 characters.
+//
+// Two rules, in order:
+//  1. Append the suffix only when the whole thing still fits. It is brand
+//     boilerplate repeated on all 898 pages; the words it displaces are
+//     usually the guest's name — the highest-intent query an episode page has.
+//  2. Only truncate when the page title alone exceeds the budget.
+//
+// At the previous 60 with an unconditional suffix the page-specific budget was
+// 60 - 19 = 41 chars, which fit just 12% of episode/video titles and dropped
+// the "ft. <Guest>" credit from 231 of the 324 titles that carry one. At 70
+// that inverts: 46% render complete and 247 keep the credit. It also
+// un-collapses ~36 episode/video pairs whose titles were identical only
+// because the cut landed before the part that differed.
+export function buildPageTitle(pageTitle: string, maxLength = 70): string {
+  const trimmed = (pageTitle || "").trim();
+  if (!trimmed) return SUFFIX.replace(/^\s*—\s*/, "");
+  if (trimmed.length + SUFFIX.length <= maxLength) return trimmed + SUFFIX;
+  if (trimmed.length <= maxLength) return trimmed;
+  return truncateTitle(trimmed, maxLength);
 }
 
 export function createPodcastEpisodeSchema(
@@ -274,7 +291,13 @@ export function createPodcastSchema(
       "@type": "Organization",
       name: "The Dime Podcast",
     },
-    image: `${siteUrl}/logo.png`,
+    // Was `${siteUrl}/logo.png`, which has never existed — a 404 here
+    // invalidates the whole node for Google's podcast rich results. The show's
+    // real cover art is square and 2047x2047 as delivered (the 3000x3000 in
+    // the URL is a Simplecast path segment; the CDN caps below it), comfortably
+    // over the 1400x1400 minimum, and is the artwork every directory shows.
+    image:
+      "https://image.simplecastcdn.com/images/1a0a47e2-85d2-449a-9d9b-559883abfdcb/9dcf3518-cd67-4e0f-9f5c-c21c9ce295e3/3000x3000/dime-cover-art-new-v2.jpg",
   };
 
   if (rating) {
@@ -297,7 +320,15 @@ export function createOrganizationSchema(
     name: "The Dime Podcast",
     url: siteUrl,
     description: "Cannabis business intelligence.",
-    sameAs: ["https://twitter.com/thedime_cannabis"],
+    // A sameAs that 404s is worse than none — it is an explicit, wrong
+    // entity-reconciliation claim. The previous single entry pointed at a
+    // 16-character X handle that cannot exist. These are all verified live.
+    sameAs: [
+      "https://x.com/TheDime_8th",
+      "https://www.youtube.com/@theDime_Cannabis",
+      "https://podcasts.apple.com/us/podcast/the-dime/id1540199573",
+      "https://open.spotify.com/show/05y791a4A1vzTZ6DCZQHFz",
+    ],
   };
 }
 

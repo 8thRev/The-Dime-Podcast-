@@ -59,7 +59,7 @@ export default function Videos({ allVideos }) {
             New episode every week — never miss one.
           </span>
           <a
-            href="https://www.youtube.com/@TheDimePodcast?sub_confirmation=1"
+            href="https://www.youtube.com/@theDime_Cannabis?sub_confirmation=1"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-teal"
