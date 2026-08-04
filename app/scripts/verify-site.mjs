@@ -44,7 +44,7 @@ const flag = (name, fallback) => {
 // otherwise be ignored silently and the run would check localhost while
 // reporting a URL the operator believes was production — a green run about
 // the wrong site is worse than a crash.
-const BAD_ARGS = argv.filter((a) => !/^--(base|mode)=/.test(a));
+const BAD_ARGS = argv.filter((a) => !/^--(base|mode|expect-commit)=/.test(a));
 if (BAD_ARGS.length) {
   console.error(`Unrecognised argument(s): ${BAD_ARGS.join(' ')}`);
   console.error('Use --name=value form, e.g. --mode=full --base=https://www.dimepodcast.com');
@@ -53,6 +53,9 @@ if (BAD_ARGS.length) {
 
 const BASE = flag('base', 'http://localhost:3000').replace(/\/$/, '');
 const MODE = flag('mode', 'sample');
+// Only the production leg passes this, and only when running on main — see
+// check 16. Everywhere else the deployed commit is reported, not asserted.
+const EXPECT_COMMIT = flag('expect-commit', null);
 if (!['sample', 'full'].includes(MODE)) {
   console.error(`--mode must be "sample" or "full", got "${MODE}"`);
   process.exit(2);
@@ -505,6 +508,62 @@ else {
   if (s !== 200) fail('14 endpoints', `robots.txt Sitemap: ${sitemapRef} returned ${s}`);
 }
 log(`[14] endpoints: ${endpoints.length} checked`);
+
+// --- Check 16: is the running site built from the commit we think it is? -----
+
+// Every other check asks "is this site healthy?". A Vercel build that fails
+// after a bot commit leaves the *previous* deploy serving: 899 URLs 200, every
+// asset resolving, sitemap coherent — healthy, and stale. Only this check can
+// tell those apart, and it is the one failure mode the three jobs that commit
+// straight to main are most exposed to.
+const buildInfoRes = await getPage('/build-info.json');
+if (buildInfoRes.status !== 200) {
+  // Only a failure where the file must exist: a build we just made (it is
+  // written by `npm run build`, so its absence means that step was dropped),
+  // or a run that is actively asserting the commit. Against production before
+  // this ships, the file legitimately does not exist yet — failing there would
+  // just be a self-inflicted red until the first deploy carries it.
+  const message = `/build-info.json returned ${buildInfoRes.status || buildInfoRes.error}`;
+  if (EXPECT_COMMIT || IS_LOCAL) {
+    fail('16 deployed-commit', `${message} — the build did not write it (see scripts/write-build-info.mjs in npm run build)`);
+  } else {
+    log(`[16] ${message} — deploy predates the marker, not asserted`);
+  }
+} else {
+  let info;
+  try {
+    info = JSON.parse(buildInfoRes.body);
+  } catch (error) {
+    fail('16 deployed-commit', `/build-info.json is not valid JSON — ${error.message}`);
+  }
+  if (info) {
+    if (!EXPECT_COMMIT) {
+      log(`[16] deployed commit: ${info.commit} (built ${info.builtAt}) — not asserted, no --expect-commit`);
+    } else if (info.commit === EXPECT_COMMIT) {
+      log(`[16] deployed commit: ${info.commit} matches`);
+    } else {
+      // A deploy in flight is the benign explanation, so give it one chance to
+      // land before calling it a failure rather than reddening the nightly for
+      // a push that happened four minutes ago.
+      log(`[16] deployed commit ${info.commit} != expected ${EXPECT_COMMIT} — waiting 90s in case a deploy is in flight`);
+      await new Promise((resolve) => setTimeout(resolve, 90_000));
+      const retry = await getPage('/build-info.json');
+      let after = null;
+      try {
+        after = JSON.parse(retry.body).commit;
+      } catch {
+        /* fall through to the failure below */
+      }
+      if (after === EXPECT_COMMIT) log(`[16] deployed commit: ${after} matches after retry`);
+      else {
+        fail(
+          '16 deployed-commit',
+          `production is serving commit ${after ?? 'unknown'} but the branch head is ${EXPECT_COMMIT} — the deploy failed or never ran, so the site is healthy but stale`
+        );
+      }
+    }
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Report

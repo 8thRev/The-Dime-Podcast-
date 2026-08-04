@@ -86,6 +86,15 @@ jobs:
       # upstream RSS blip would silently cancel the only production check that
       # night. These two legs answer different questions and neither should
       # gate the other.
+      #
+      # --expect-commit (check 16) only on main. github.sha is the branch head,
+      # and production only ever serves main — asserting it from a feature
+      # branch or a manual dispatch elsewhere would be a guaranteed false red.
       - name: Verify production (full)
         if: always() && github.event_name != 'pull_request'
-        run: npm run verify -- --mode=full --base=https://www.dimepodcast.com
+        run: |
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            npm run verify -- --mode=full --base=https://www.dimepodcast.com --expect-commit=${{ github.sha }}
+          else
+            npm run verify -- --mode=full --base=https://www.dimepodcast.com
+          fi

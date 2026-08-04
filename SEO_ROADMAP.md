@@ -86,7 +86,9 @@ New pages: add them to this list, don't hand-roll `<head>` tags, and this stays 
 
 ### The verification suite
 
-15 checks: build-asset integrity and build-ID coherence; sitemap 200s, duplicate `<loc>`s and the 9 `STATIC_PAGES`; the full retired-slug redirect table (49 rows) including that each destination itself returns 200; an internal-link crawl; per-page head invariants (exactly one `<title>`/description/canonical/`og:type`, correct canonical, length caps, a resolving `og:image`); JSON-LD parseability; and `/robots.txt`, `/llms.txt`, `/sitemap.xml`.
+16 checks: build-asset integrity and build-ID coherence; sitemap 200s, duplicate `<loc>`s and the 9 `STATIC_PAGES`; the full retired-slug redirect table (49 rows) including that each destination itself returns 200; an internal-link crawl; per-page head invariants (exactly one `<title>`/description/canonical/`og:type`, correct canonical, length caps, a resolving `og:image`); JSON-LD presence and parseability; `/robots.txt`, `/llms.txt`, `/sitemap.xml`; and that the running site was built from the commit we expect.
+
+That last one (check 16) answers a different question from the other fifteen. They all ask "is this site healthy?"; a Vercel build that fails after a bot commit leaves the *previous* deploy serving, which is perfectly healthy and completely stale — every URL 200s and the nightly goes green while `main` is not live. `scripts/write-build-info.mjs` writes `public/build-info.json` during `npm run build`, and the nightly production leg passes `--expect-commit=$GITHUB_SHA` (only on `main` — asserting it from a feature branch would be a guaranteed false red). A mismatch waits 90s before failing, so a deploy still in flight doesn't redden the run.
 
 `npm run verify -- --mode=full --base=https://www.dimepodcast.com` points it at production. CI runs `--mode=sample` on PRs and the full sweep nightly at 16:00 UTC against both a fresh build and production — the nightly production leg exists because `video-catalog`, `transcript-pipeline` and `video-episode-map` commit straight to `main` and never pass through the PR gate.
 
