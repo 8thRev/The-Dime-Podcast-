@@ -11,11 +11,13 @@ name: Site Checks
 # rests on "no workflow in this repo triggers on push" — adding one would
 # invalidate that reasoning for every job that commits to main. pull_request +
 # schedule covers the same ground without touching that invariant.
+#
+# No `paths:` filter on purpose. The job is ~95s, and a filtered workflow
+# never reports a status on PRs it skips — so as a *required* status check it
+# would leave any PR that doesn't touch app/ waiting forever on a check that
+# is never going to run. Running it always is the cheaper half of that trade.
 on:
   pull_request:
-    paths:
-      - 'app/**'
-      - '.github/workflows/site-checks.yml'
   schedule:
     # 16:00 UTC — after video-catalog (08:00) and transcript-pipeline (13:00)
     # have pushed to main and Vercel has redeployed, so the production leg
@@ -77,6 +79,13 @@ jobs:
       # The scheduled jobs (video-catalog, transcript-pipeline, video-episode-map)
       # commit straight to main and bypass the PR gate entirely, so production is
       # checked directly rather than inferred from a green build.
+      #
+      # `always() &&` is load-bearing. A custom `if:` still carries an implicit
+      # success(), so without it a failure in the step above skips this one —
+      # and the step above builds against the live Simplecast feed, so an
+      # upstream RSS blip would silently cancel the only production check that
+      # night. These two legs answer different questions and neither should
+      # gate the other.
       - name: Verify production (full)
-        if: github.event_name != 'pull_request'
+        if: always() && github.event_name != 'pull_request'
         run: npm run verify -- --mode=full --base=https://www.dimepodcast.com

@@ -40,6 +40,17 @@ const flag = (name, fallback) => {
   return hit ? hit.slice(name.length + 3) : fallback;
 };
 
+// Reject anything not in `--name=value` form. `--base https://…` would
+// otherwise be ignored silently and the run would check localhost while
+// reporting a URL the operator believes was production — a green run about
+// the wrong site is worse than a crash.
+const BAD_ARGS = argv.filter((a) => !/^--(base|mode)=/.test(a));
+if (BAD_ARGS.length) {
+  console.error(`Unrecognised argument(s): ${BAD_ARGS.join(' ')}`);
+  console.error('Use --name=value form, e.g. --mode=full --base=https://www.dimepodcast.com');
+  process.exit(2);
+}
+
 const BASE = flag('base', 'http://localhost:3000').replace(/\/$/, '');
 const MODE = flag('mode', 'sample');
 if (!['sample', 'full'].includes(MODE)) {
@@ -186,12 +197,24 @@ const localBuildId =
     ? readFileSync(join(process.cwd(), '.next', 'BUILD_ID'), 'utf8').trim()
     : null;
 
+// In full mode this is every URL in the sitemap, not just the sample. Checks
+// 1/2 and 9-13 all read these bodies, so scoping it to the 15-URL sample in
+// both modes — as this originally did — meant the nightly production run, the
+// only coverage for the three bots that commit straight to main, inspected 15
+// pages out of 899. Widening it costs ~1.5s.
+const pagesToScan = MODE === 'full' ? [...new Set([...htmlSample, ...sitemapPaths])] : htmlSample;
+
 async function checkAssets() {
-  const pages = await mapLimit(htmlSample, 6, async (path) => ({ path, ...(await getPage(path)) }));
+  const pages = await mapLimit(pagesToScan, 10, async (path) => ({ path, ...(await getPage(path)) }));
   const buildIds = new Set(pages.map((p) => buildIdOf(p.body)).filter(Boolean));
 
   // Check 2: every page must reference the same build, and locally it must be
   // the build we just made — catches a page hardcoding an asset path.
+  // The `=== 0` arm matters: with no build ID found at all, a "same build ID
+  // everywhere" test is vacuously true and a site emitting no JS passes.
+  if (buildIds.size === 0) {
+    fail('2 build-id', `no /_next/static/<id>/ build reference found on any of ${pages.length} pages`);
+  }
   if (buildIds.size > 1) {
     fail('2 build-id', `pages reference ${buildIds.size} different build IDs: ${[...buildIds].join(', ')}`);
   }
@@ -200,11 +223,15 @@ async function checkAssets() {
   }
 
   const assets = [...new Set(pages.flatMap((p) => assetUrls(p.body)))];
+  // Lower bound. Every count-based check here needs one: "0 assets, 0 broken"
+  // is the same green as "26 assets, 0 broken", and a build that emits no
+  // JavaScript is precisely the failure this suite exists to catch.
+  if (assets.length === 0) fail('1 assets', `no /_next/static JS referenced by any of ${pages.length} pages`);
   const broken = (await mapLimit(assets, 8, async (a) => ({ a, s: (await status(a)).status }))).filter((r) => r.s !== 200);
   return { pages, assets, broken, buildId: [...buildIds][0] ?? null };
 }
 
-let { pages: sampledPages, assets, broken: brokenAssets, buildId } = await checkAssets();
+let { pages: scannedPages, assets, broken: brokenAssets, buildId } = await checkAssets();
 
 // Check 3: skew-tolerant retry. A production deploy landing mid-run replaces
 // every changed chunk, and the assets we just enumerated 404 through no fault
@@ -215,7 +242,7 @@ if (brokenAssets.length > 0 && !IS_LOCAL) {
   const nowBuildId = buildIdOf((await getPage('/')).body);
   if (nowBuildId && nowBuildId !== buildId) {
     log(`[3] build changed mid-run (${buildId} -> ${nowBuildId}) — deploy skew, re-checking`);
-    ({ pages: sampledPages, assets, broken: brokenAssets } = await checkAssets());
+    ({ pages: scannedPages, assets, broken: brokenAssets, buildId } = await checkAssets());
   }
 }
 
@@ -224,14 +251,25 @@ if (brokenAssets.length > 0 && !IS_LOCAL) {
 // under build A and fetches assets under build B will always see 404s. Do not
 // weaken this check to make an external crawler's report go to zero.
 for (const { a, s } of brokenAssets) fail('1 assets', `${s || 'ERR'} ${a}`);
-log(`[1] assets: ${assets.length} unique JS assets across ${sampledPages.length} pages, ${brokenAssets.length} broken`);
+log(`[1] assets: ${assets.length} unique JS assets across ${scannedPages.length} pages, ${brokenAssets.length} broken`);
 log(`[2] build id: ${buildId ?? 'none found'}${localBuildId ? ` (.next/BUILD_ID: ${localBuildId})` : ''}`);
 
 // --- Checks 4/5/6: sitemap ---------------------------------------------------
 
+// Lower bound on the sitemap itself. build-video-catalog.mjs only hard-fails
+// when the YouTube pull returns *zero* videos — a partial pull warns and still
+// commits, so the sitemap can quietly shed hundreds of URLs and every
+// remaining one still returns 200. "613 of 613 checked, 0 non-200" is a green
+// run over a site that just lost 286 pages.
+const MIN_SITEMAP_URLS = 800;
+if (sitemapPaths.length < MIN_SITEMAP_URLS) {
+  fail('4 sitemap-200', `sitemap has only ${sitemapPaths.length} URLs, expected at least ${MIN_SITEMAP_URLS} — raise this floor deliberately if the site genuinely shrank`);
+}
+
 const dupes = sitemapPaths.filter((p, i) => sitemapPaths.indexOf(p) !== i);
 for (const d of [...new Set(dupes)]) fail('5 sitemap-dupes', `${d} appears ${sitemapPaths.filter((p) => p === d).length}x`);
 
+if (STATIC_PAGE_PATHS.length === 0) fail('6 static-pages', 'STATIC_PAGE_PATHS is empty — next-sitemap.config.js no longer exports it');
 for (const staticPath of STATIC_PAGE_PATHS) {
   const count = sitemapPaths.filter((p) => p === normalise(staticPath)).length;
   if (count !== 1) fail('6 static-pages', `${staticPath} appears ${count}x in the sitemap, expected exactly 1`);
@@ -253,6 +291,18 @@ const redirects = [
   ...Object.entries(RETIRED_GUEST_SLUGS).map(([slug, dest]) => [`/guests/${slug}`, dest]),
   ...Object.entries(RETIRED_VIDEO_SLUGS).map(([slug, dest]) => [`/videos/${slug}`, dest]),
 ];
+
+// This check has a structural blind spot worth understanding before touching
+// it. next.config.js and this script deliberately share one table, so deleting
+// a row removes it from the expectation *and* the site at the same time — the
+// loop below would then iterate 0 rows and pass. Someone "tidying up stale
+// entries" would 404 46 indexed URLs and get a green run. The floor is the
+// only thing standing in the way; raise it when you add rows, and lower it
+// only on purpose.
+const MIN_REDIRECTS = 49;
+if (redirects.length < MIN_REDIRECTS) {
+  fail('7 redirects', `only ${redirects.length} retired slugs configured, expected at least ${MIN_REDIRECTS} — rows were deleted from lib/retiredSlugs.cjs, which silently un-redirects live indexed URLs`);
+}
 
 await mapLimit(redirects, 6, async ([source, dest]) => {
   const res = await status(source);
@@ -298,6 +348,12 @@ while (queue.length && crawled.size < CRAWL_CAP) {
     })
   );
 }
+// Lower bound: with every internal link stripped the crawl reaches only the 6
+// seeds and reports "0 broken", which is the same green as a healthy run.
+const MIN_CRAWLED = MODE === 'full' ? 500 : 60;
+if (crawled.size < MIN_CRAWLED) {
+  fail('8 crawl', `crawl reached only ${crawled.size} pages, expected at least ${MIN_CRAWLED} — internal linking collapsed, or the seeds stopped rendering links`);
+}
 for (const [path, s] of crawled) {
   if (s !== 200) fail('8 crawl', `${s} ${path}  <- linked from ${[...(linkedFrom.get(path) || ['(seed)'])].slice(0, 3).join(', ')}`);
 }
@@ -322,12 +378,26 @@ const decode = (s) =>
 
 const ogImages = new Set();
 
-for (const { path, status: s, body } of sampledPages) {
+// Pages that legitimately carry no structured data today. Everything else must
+// have at least one block — without this, check 13 validates the parseability
+// of zero blocks and reports green on a site whose schema markup vanished
+// entirely, which for a site whose SEO thesis rests on lib/schema.ts is the
+// louder regression of the two.
+const NO_JSON_LD = new Set(['/privacy', '/terms', '/guests', '/llms.txt']);
+
+for (const { path, status: s, body } of scannedPages) {
   if (s !== 200) {
     fail('9 head', `${path} returned ${s} — cannot check head invariants`);
     continue;
   }
-  const head = body.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] ?? body;
+  // Falling back to the whole document on a missing </head> would silently
+  // switch the counts below to scanning the entire page, so say so instead.
+  const headMatch = body.match(/<head[^>]*>([\s\S]*?)<\/head>/i);
+  if (!headMatch) {
+    fail('9 head', `${path}: no <head>…</head> found — cannot check head invariants`);
+    continue;
+  }
+  const head = headMatch[1];
   const label = path;
 
   // Check 9: exactly one of each. The duplicate og:type shipped sitewide once
@@ -345,9 +415,16 @@ for (const { path, status: s, body } of sampledPages) {
   }
 
   // Check 10: canonical points at the production URL for this exact path.
-  const canonical = attr(head, /<link[^>]+rel="canonical"[^>]+href="([^"]+)"/);
+  // Both attribute orders. Check 9 counts canonicals with an order-independent
+  // regex, so a page that renders href-before-rel passes check 9 while this
+  // one's match returns null — and guarding on `canonical &&` then skipped the
+  // comparison entirely. Every canonical on the site could point at another
+  // domain and the run stayed green. Absence is now a failure, not a skip.
+  const canonical =
+    attr(head, /<link[^>]+rel="canonical"[^>]+href="([^"]+)"/) ?? attr(head, /<link[^>]+href="([^"]+)"[^>]+rel="canonical"/);
   const expected = SITE_URL + (path === '/' ? '/' : path);
-  if (canonical && normalise(canonical) !== normalise(expected)) {
+  if (!canonical) fail('10 canonical', `${label}: no canonical href found`);
+  else if (normalise(canonical) !== normalise(expected)) {
     fail('10 canonical', `${label}: canonical is ${canonical}, expected ${expected}`);
   }
 
@@ -364,13 +441,21 @@ for (const { path, status: s, body } of sampledPages) {
 
   // Check 12: og:image. DEFAULT_OG_IMAGE in SeoHead.js is a documented stopgap
   // pointing at Simplecast's CDN — it breaks the day the cover art is
-  // re-uploaded there, silently blanking share cards on ~586 pages.
-  const ogImage = attr(head, /<meta[^>]+property="og:image"[^>]+content="([^"]+)"/);
+  // re-uploaded there, silently blanking share cards on the 612 pages that use
+  // it (the other 287 point at i.ytimg.com). Both attribute orders, since a
+  // missed match here is a false green exactly like the canonical one was.
+  const ogImage =
+    attr(head, /<meta[^>]+property="og:image"[^>]+content="([^"]+)"/) ??
+    attr(head, /<meta[^>]+content="([^"]+)"[^>]+property="og:image"/);
   if (!ogImage) fail('12 og-image', `${label}: no og:image`);
   else ogImages.add(ogImage);
 
-  // Check 13: structured data must parse.
-  for (const m of body.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
+  // Check 13: structured data must be present and must parse.
+  const ldBlocks = [...body.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)];
+  if (ldBlocks.length === 0 && !NO_JSON_LD.has(path)) {
+    fail('13 json-ld', `${label}: no JSON-LD block — structured data disappeared from this page`);
+  }
+  for (const m of ldBlocks) {
     let parsed;
     try {
       parsed = JSON.parse(m[1]);
@@ -384,9 +469,18 @@ for (const { path, status: s, body } of sampledPages) {
   }
 }
 
-const badImages = (await mapLimit([...ogImages], 4, async (i) => ({ i, s: (await status(i, 'follow')).status }))).filter((r) => r.s !== 200);
+// Full mode resolves all ~288 unique og:image URLs, which puts Simplecast's and
+// YouTube's CDNs on the critical path. One retry before failing, so a single
+// blip doesn't redden the nightly — a genuinely dead image fails both attempts.
+const badImages = (
+  await mapLimit([...ogImages], 4, async (i) => {
+    let s = (await status(i, 'follow')).status;
+    if (s !== 200) s = (await status(i, 'follow')).status;
+    return { i, s };
+  })
+).filter((r) => r.s !== 200);
 for (const { i, s } of badImages) fail('12 og-image', `${s || 'ERR'} ${i}`);
-log(`[9-13] head invariants: ${sampledPages.length} pages, ${ogImages.size} unique og:image (${badImages.length} broken)`);
+log(`[9-13] head invariants: ${scannedPages.length} pages, ${ogImages.size} unique og:image (${badImages.length} broken)`);
 
 // --- Check 14: endpoints -----------------------------------------------------
 
