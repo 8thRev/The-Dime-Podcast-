@@ -4,7 +4,7 @@ metaTitle: "Federal Hemp Ban vs. Therapeutic CBD"
 slug: the-cannabis-industry-fought-for-medical-access-why-is-it-silent-now
 date: 2026-08-04
 description: "The federal hemp ban arrives in November. It was aimed at intoxicating products, but the language is broad enough to take therapeutic CBD with it."
-episodeSlug:
+episodeSlug: paige-figi-the-cannabis-industry-is-cheering-a-ban-on-medicine
 guest: "Paige Figi"
 topics: ["Medical & Research", "Rescheduling & Federal Policy", "Regulatory & Compliance"]
 ---
