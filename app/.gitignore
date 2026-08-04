@@ -21,6 +21,11 @@
 /public/sitemap.xml
 /public/sitemap-*.xml
 
+# Commit marker written by scripts/write-build-info.mjs at build time. Same
+# reasoning: a tracked copy would be a stale commit SHA claiming to be the
+# deployed one, which is worse than no marker at all.
+/public/build-info.json
+
 # misc
 .DS_Store
 *.pem

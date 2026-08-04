@@ -80,8 +80,43 @@ Every page renders `<SeoHead>` (`app/src/components/SeoHead.js`) instead of a ha
 
 - **Lint**: `app/.eslintrc.json` restricts importing `next/head` outside `SeoHead.js` itself.
 - **Build tripwire**: `npm run checkseo` (wired into `npm run build` via `app/package.json`) statically scans every page file and fails the build if anything imports `next/head` directly or renders a raw `<title>`/`<meta name="description">` tag. See `app/scripts/check-seo.mjs`.
+- **Rendered-output suite**: `npm run verify` (`app/scripts/verify-site.mjs`), run in CI by [.github/workflows/site-checks.yml](.github/workflows/site-checks.yml). The two layers above read page *source*; this one reads *rendered HTML* from a built, running site, which is the only place a whole class of bug is visible at all — the duplicate `og:type` that shipped sitewide was invisible to a static scan because `_document.js` and `SeoHead.js` each emitted a legitimate-looking one.
 
 New pages: add them to this list, don't hand-roll `<head>` tags, and this stays true without anyone having to remember to re-audit.
+
+### The verification suite
+
+16 checks: build-asset integrity and build-ID coherence; sitemap 200s, duplicate `<loc>`s and the 9 `STATIC_PAGES`; the full retired-slug redirect table (49 rows) including that each destination itself returns 200; an internal-link crawl; per-page head invariants (exactly one `<title>`/description/canonical/`og:type`, correct canonical, length caps, a resolving `og:image`); JSON-LD presence and parseability; `/robots.txt`, `/llms.txt`, `/sitemap.xml`; and that the running site was built from the commit we expect.
+
+That last one (check 16) answers a different question from the other fifteen. They all ask "is this site healthy?"; a Vercel build that fails after a bot commit leaves the *previous* deploy serving, which is perfectly healthy and completely stale — every URL 200s and the nightly goes green while `main` is not live. `scripts/write-build-info.mjs` writes `public/build-info.json` during `npm run build`, and the nightly production leg passes `--expect-commit=$GITHUB_SHA` (only on `main` — asserting it from a feature branch would be a guaranteed false red). A mismatch waits 90s before failing, so a deploy still in flight doesn't redden the run.
+
+`npm run verify -- --mode=full --base=https://www.dimepodcast.com` points it at production. CI runs `--mode=sample` on PRs and the full sweep nightly at 16:00 UTC against both a fresh build and production — the nightly production leg exists because `video-catalog`, `transcript-pipeline` and `video-episode-map` commit straight to `main` and never pass through the PR gate.
+
+Sample mode reads one URL per page type (15 pages); **full mode reads every URL in the sitemap** — all 899 — for the head, JSON-LD, asset and og:image checks too, not just for the sitemap 200s. Full mode takes ~16s locally. An early version scoped those checks to the 15-page sample in *both* modes, which meant the nightly production run — the only coverage for the three bots — inspected 15 pages out of 899, and 884 pages could have had a wrecked canonical with the run still green.
+
+**Required status check.** This only functions as a gate if `Site Checks / verify` is a required status check on `main` in the repo's branch-protection settings. Without that it is a report that turns red and blocks nothing. (Relatedly, the workflow deliberately has no `paths:` filter — a filtered workflow never reports a status on PRs it skips, so as a required check it would hang every PR that doesn't touch `app/`.)
+
+Three things worth knowing before changing it:
+
+- **Every count-based check needs a lower bound.** `0 assets, 0 broken` prints the same green as `26 assets, 0 broken`. Each of these was demonstrated to pass while badly broken before floors were added: a build emitting no JavaScript, a sitemap that lost 286 URLs to a partial YouTube pull, a site with every internal link stripped, and every page's structured data deleted. `MIN_SITEMAP_URLS`, `MIN_CRAWLED`, `MIN_REDIRECTS` and the `assets.length === 0` / `buildIds.size === 0` arms exist for that reason — raise them when the site grows, lower them only deliberately. The redirect floor is load-bearing in a subtler way: `next.config.js` and the verifier share one table, so deleting rows removes them from the expectation *and* the site simultaneously, and only the floor notices.
+- **A regex that misses must fail, not skip.** Check 10 originally read `if (canonical && …)`, so when its `rel`-before-`href` pattern didn't match it silently checked nothing — every canonical on the site could point at another domain and the run stayed green. Absence is now a failure, and both attribute orders are matched.
+
+- **Check 15 is what keeps the suite honest.** It walks `src/pages/` and fails if any route has no sample URL covering it, so adding `src/pages/companies/[slug].js` without adding a sample URL fails the build rather than silently going unchecked. This is the mechanism; the list below is only the judgement it can't automate.
+- **Check 1 cannot detect deploy skew, by construction.** Ahrefs reported 823 "links to broken JavaScript" in Aug 2026. Every one was a chunk from a *previous* build: the crawler read HTML under build A and fetched assets after build B replaced them, which is guaranteed to happen when two scheduled jobs redeploy production daily. The site was fine — all 899 URLs and every asset on the live build returned 200. **Do not weaken check 1 to make an external crawler's number go to zero**; nothing inside a single run can distinguish a genuinely broken build from a crawl that straddled a deploy, which is precisely why check 3 re-reads the build ID before believing a production failure.
+
+### The bar for adding a check
+
+The failure mode of a suite like this is bloat — it grows to 60 checks, takes 20 minutes, someone marks it non-blocking, and it stops mattering. A new check goes in only if **all three** hold:
+
+1. **It's a sitewide invariant** — one rule covering every page, not an assertion about one page's content. "Every page has exactly one canonical" qualifies; "the about page mentions Newton" does not.
+2. **It has already broken in production once, or it guards a dependency we don't control.** Every current check meets this: the duplicate `og:type` shipped sitewide, the sitemap really did emit 9 duplicate URLs (852 → 843), and `DEFAULT_OG_IMAGE` really is a Simplecast CDN URL that breaks the day the cover art is re-uploaded. No speculative checks.
+3. **It's cheap** — HTTP-level, no new npm dependency, no headless browser.
+
+**Deliberately not covered**: content correctness (that's the transcript pipeline's job), visual/CSS regressions, per-page copy, anything needing a browser, and anything that only reproduces on Vercel rather than `next start`.
+
+**Budget**: sample mode stays under 6 minutes and the suite stays under ~20 checks. Breach either and something existing gets retired to make room, or the check doesn't go in. Without a number, "don't go overboard" is unenforceable.
+
+One trap, learned the hard way: **measure lengths on decoded text**. An apostrophe serialises as `&#x27;` — 6 characters of markup for 1 of text — so a correctly-truncated 155-character description reads as 165 raw. The first run of check 11 failed on a page that was perfectly correct. And the cap is 70, not the commonly-cited 60: `buildPageTitle()` budgets 70 on purpose, because Google indexes the whole title and only truncates it for display (see the comment at `app/lib/schema.ts:35`).
 
 **Publish written analysis here first, LinkedIn second.** The 31 backfilled editions inherit a duplicate-origin problem that can't be undone — LinkedIn's copy is older and on a stronger domain. Every edition from now on should go live at `/newsletter/<slug>` before or on the same day it posts to LinkedIn, with the LinkedIn version linking back to it. That makes this domain the demonstrable original and stops the problem recurring 31 more times.
 

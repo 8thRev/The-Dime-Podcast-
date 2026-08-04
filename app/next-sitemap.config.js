@@ -94,6 +94,10 @@ function getNewsletterLastmodBySlug() {
 }
 
 module.exports = {
+  // Not read by next-sitemap — exported purely so scripts/verify-site.mjs can
+  // assert these exact paths appear in the generated sitemap exactly once,
+  // without re-declaring the list and letting the two copies drift.
+  STATIC_PAGE_PATHS: [...STATIC_PAGE_PATHS],
   siteUrl,
   changefreq: 'weekly',
   priority: 0.7,
