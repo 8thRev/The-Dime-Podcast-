@@ -80,8 +80,34 @@ Every page renders `<SeoHead>` (`app/src/components/SeoHead.js`) instead of a ha
 
 - **Lint**: `app/.eslintrc.json` restricts importing `next/head` outside `SeoHead.js` itself.
 - **Build tripwire**: `npm run checkseo` (wired into `npm run build` via `app/package.json`) statically scans every page file and fails the build if anything imports `next/head` directly or renders a raw `<title>`/`<meta name="description">` tag. See `app/scripts/check-seo.mjs`.
+- **Rendered-output suite**: `npm run verify` (`app/scripts/verify-site.mjs`), run in CI by [.github/workflows/site-checks.yml](.github/workflows/site-checks.yml). The two layers above read page *source*; this one reads *rendered HTML* from a built, running site, which is the only place a whole class of bug is visible at all — the duplicate `og:type` that shipped sitewide was invisible to a static scan because `_document.js` and `SeoHead.js` each emitted a legitimate-looking one.
 
 New pages: add them to this list, don't hand-roll `<head>` tags, and this stays true without anyone having to remember to re-audit.
+
+### The verification suite
+
+15 checks: build-asset integrity and build-ID coherence; sitemap 200s, duplicate `<loc>`s and the 9 `STATIC_PAGES`; the full retired-slug redirect table (49 rows) including that each destination itself returns 200; an internal-link crawl; per-page head invariants (exactly one `<title>`/description/canonical/`og:type`, correct canonical, length caps, a resolving `og:image`); JSON-LD parseability; and `/robots.txt`, `/llms.txt`, `/sitemap.xml`.
+
+`npm run verify -- --mode=full --base=https://www.dimepodcast.com` points it at production. CI runs `--mode=sample` on PRs and the full sweep nightly at 16:00 UTC against both a fresh build and production — the nightly production leg exists because `video-catalog`, `transcript-pipeline` and `video-episode-map` commit straight to `main` and never pass through the PR gate.
+
+Two things worth knowing before changing it:
+
+- **Check 15 is what keeps the suite honest.** It walks `src/pages/` and fails if any route has no sample URL covering it, so adding `src/pages/companies/[slug].js` without adding a sample URL fails the build rather than silently going unchecked. This is the mechanism; the list below is only the judgement it can't automate.
+- **Check 1 cannot detect deploy skew, by construction.** Ahrefs reported 823 "links to broken JavaScript" in Aug 2026. Every one was a chunk from a *previous* build: the crawler read HTML under build A and fetched assets after build B replaced them, which is guaranteed to happen when two scheduled jobs redeploy production daily. The site was fine — all 899 URLs and every asset on the live build returned 200. **Do not weaken check 1 to make an external crawler's number go to zero**; nothing inside a single run can distinguish a genuinely broken build from a crawl that straddled a deploy, which is precisely why check 3 re-reads the build ID before believing a production failure.
+
+### The bar for adding a check
+
+The failure mode of a suite like this is bloat — it grows to 60 checks, takes 20 minutes, someone marks it non-blocking, and it stops mattering. A new check goes in only if **all three** hold:
+
+1. **It's a sitewide invariant** — one rule covering every page, not an assertion about one page's content. "Every page has exactly one canonical" qualifies; "the about page mentions Newton" does not.
+2. **It has already broken in production once, or it guards a dependency we don't control.** Every current check meets this: the duplicate `og:type` shipped sitewide, the sitemap really did emit 9 duplicate URLs (852 → 843), and `DEFAULT_OG_IMAGE` really is a Simplecast CDN URL that breaks the day the cover art is re-uploaded. No speculative checks.
+3. **It's cheap** — HTTP-level, no new npm dependency, no headless browser.
+
+**Deliberately not covered**: content correctness (that's the transcript pipeline's job), visual/CSS regressions, per-page copy, anything needing a browser, and anything that only reproduces on Vercel rather than `next start`.
+
+**Budget**: sample mode stays under 6 minutes and the suite stays under ~20 checks. Breach either and something existing gets retired to make room, or the check doesn't go in. Without a number, "don't go overboard" is unenforceable.
+
+One trap, learned the hard way: **measure lengths on decoded text**. An apostrophe serialises as `&#x27;` — 6 characters of markup for 1 of text — so a correctly-truncated 155-character description reads as 165 raw. The first run of check 11 failed on a page that was perfectly correct. And the cap is 70, not the commonly-cited 60: `buildPageTitle()` budgets 70 on purpose, because Google indexes the whole title and only truncates it for display (see the comment at `app/lib/schema.ts:35`).
 
 **Publish written analysis here first, LinkedIn second.** The 31 backfilled editions inherit a duplicate-origin problem that can't be undone — LinkedIn's copy is older and on a stronger domain. Every edition from now on should go live at `/newsletter/<slug>` before or on the same day it posts to LinkedIn, with the LinkedIn version linking back to it. That makes this domain the demonstrable original and stops the problem recurring 31 more times.
 

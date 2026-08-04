@@ -19,3 +19,19 @@ This repo has two parts:
 See [SEO_ROADMAP.md](SEO_ROADMAP.md) for what's shipped and what's planned
 (topic hub pages, guest entity pages, llms.txt, etc.). Keep that file
 updated as items ship rather than scattering roadmap notes in code comments.
+
+## Site verification
+
+`npm run verify` in `app/` runs `scripts/verify-site.mjs` against a built,
+running site (`npm run build && npx next start`); CI runs it on every PR via
+[.github/workflows/site-checks.yml](.github/workflows/site-checks.yml).
+
+**Adding a new page type?** Add a sample URL to `STATIC_SAMPLE` or
+`DYNAMIC_PREFIXES` in that script — check 15 fails the run if a route in
+`src/pages/` has none, which is intentional.
+
+**Adding a new kind of check?** There's a deliberate bar for that in the
+"Guardrails" section of [SEO_ROADMAP.md](SEO_ROADMAP.md) — read it first. The
+suite is capped on purpose, and check 1 specifically must not be weakened to
+chase an external crawler's "broken JavaScript" count (that report is deploy
+skew, not a defect; the reasoning is written up there).

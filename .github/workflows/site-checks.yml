@@ -1,0 +1,82 @@
+name: Site Checks
+
+# Builds the Next.js site and runs scripts/verify-site.mjs against it.
+#
+# Before this existed, nothing in CI built the site at all — Vercel's preview
+# deploy was the only signal and nothing blocked on it. A PR could ship a
+# broken redirect, a duplicate canonical or a dead og:image and the first
+# anyone heard of it was an Ahrefs crawl three weeks later.
+#
+# Deliberately NOT triggered on push. video-catalog.yml's loop-safety argument
+# rests on "no workflow in this repo triggers on push" — adding one would
+# invalidate that reasoning for every job that commits to main. pull_request +
+# schedule covers the same ground without touching that invariant.
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/site-checks.yml'
+  schedule:
+    # 16:00 UTC — after video-catalog (08:00) and transcript-pipeline (13:00)
+    # have pushed to main and Vercel has redeployed, so the production leg
+    # tests the settled state rather than racing a deploy.
+    - cron: '0 16 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: app
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    # A full build plus an uncapped crawl of ~900 pages; the PR path is much
+    # quicker but the nightly needs the headroom.
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      # No secrets needed: lib/rss.ts hardcodes the Simplecast feed URL and the
+      # site reads content/videos.json rather than calling the YouTube API. The
+      # build does need outbound network to feeds.simplecast.com.
+      - name: Build
+        run: npm run build
+
+      # Plain curl poll rather than `npx wait-on` — that would pull an extra
+      # package at CI time for something a five-line loop already does.
+      - name: Start server
+        run: |
+          npx next start -p 3000 &
+          for i in $(seq 1 45); do
+            curl -sf http://localhost:3000/ >/dev/null && echo "up after ${i}s" && exit 0
+            sleep 1
+          done
+          echo "server did not come up within 45s" >&2
+          exit 1
+
+      # PRs get the fast path: one URL per page type, every redirect, the full
+      # sitemap structure checks and an 80-page crawl.
+      - name: Verify build (sample)
+        if: github.event_name == 'pull_request'
+        run: npm run verify -- --mode=sample
+
+      - name: Verify build (full)
+        if: github.event_name != 'pull_request'
+        run: npm run verify -- --mode=full
+
+      # The scheduled jobs (video-catalog, transcript-pipeline, video-episode-map)
+      # commit straight to main and bypass the PR gate entirely, so production is
+      # checked directly rather than inferred from a green build.
+      - name: Verify production (full)
+        if: github.event_name != 'pull_request'
+        run: npm run verify -- --mode=full --base=https://www.dimepodcast.com
