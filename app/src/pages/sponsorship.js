@@ -113,7 +113,7 @@ export default function Sponsorship() {
       ].join('\n')
     );
     setSubmitted(true);
-    window.location.href = `mailto:sponsorship@thedime.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:sponsorship@dimepodcast.com?subject=${subject}&body=${body}`;
   }
 
   return (
@@ -446,8 +446,8 @@ export default function Sponsorship() {
                 <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '.1em', textTransform: 'uppercase', marginBottom: 6 }}>
                   Prefer email?
                 </div>
-                <a href="mailto:sponsorship@thedime.com" className="mono" style={{ fontSize: '13px', color: 'var(--text-accent)' }}>
-                  sponsorship@thedime.com
+                <a href="mailto:sponsorship@dimepodcast.com" className="mono" style={{ fontSize: '13px', color: 'var(--text-accent)' }}>
+                  sponsorship@dimepodcast.com
                 </a>
               </div>
             </div>
