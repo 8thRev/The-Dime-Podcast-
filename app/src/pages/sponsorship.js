@@ -4,6 +4,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { createBreadcrumbSchema } from '@/lib/schema';
+import { trackSponsorCtaClick, trackSponsorFormStart, trackSponsorInquirySubmit } from '@/lib/sponsorFunnel';
 import testimonials from '@/content/testimonials.json';
 
 const STATS = [
@@ -95,6 +96,12 @@ export default function Sponsorship() {
 
   function handleSubmit(e) {
     e.preventDefault();
+    // Every field carries `required`, so the browser has already validated by the
+    // time this runs — this is the submit-success moment, not a click. Fired
+    // before the mailto handoff, which can take the page's attention away.
+    // Only whether a company was named goes out, never the string, and neither
+    // free-text field: see lib/sponsorFunnel.ts.
+    trackSponsorInquirySubmit(Boolean(form.company));
     const subject = encodeURIComponent(`Sponsorship Inquiry: ${form.company || form.name}`);
     const body = encodeURIComponent(
       [
@@ -224,8 +231,8 @@ export default function Sponsorship() {
             Connect with cannabis operators, founders, executives, investors, and service providers through podcast, email, YouTube, and social distribution.
           </p>
           <div className="fade-in" style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginBottom: 56 }}>
-            <a href="#sponsor-inquiry" className="btn-teal syne" style={{ textDecoration: 'none', display: 'inline-block' }}>Request a Sponsorship</a>
-            <a href="#pricing" className="btn-outline syne" style={{ textDecoration: 'none', display: 'inline-block', background: 'transparent', borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}>View Pricing ↓</a>
+            <a href="#sponsor-inquiry" onClick={() => trackSponsorCtaClick('request_a_sponsorship', 'hero')} className="btn-teal syne" style={{ textDecoration: 'none', display: 'inline-block' }}>Request a Sponsorship</a>
+            <a href="#pricing" onClick={() => trackSponsorCtaClick('view_pricing', 'hero')} className="btn-outline syne" style={{ textDecoration: 'none', display: 'inline-block', background: 'transparent', borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}>View Pricing ↓</a>
           </div>
 
           <div className="sponsor-hero-stats fade-in" style={{ paddingTop: 32, paddingBottom: 40, borderTop: '1px solid var(--border-subtle)' }}>
@@ -396,7 +403,7 @@ export default function Sponsorship() {
           Request a Sponsorship
         </h2>
         <div className="sponsor-form-layout">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} onFocus={trackSponsorFormStart}>
             <div className="sponsor-form-grid" style={{ marginBottom: 28 }}>
               {FORM_FIELDS.map((field) => (
                 <label

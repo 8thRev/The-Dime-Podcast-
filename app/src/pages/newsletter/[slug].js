@@ -180,7 +180,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
           <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: '20px' }}>
             One structural insight per episode. No recaps, no noise.
           </p>
-          <ConvertKitEmbed />
+          <ConvertKitEmbed location="newsletter_page" />
         </section>
 
         {edition.linkedinUrl && (

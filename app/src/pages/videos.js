@@ -6,6 +6,7 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { getAllVideos } from '@/lib/youtube';
 import { createCollectionPageSchema } from '@/lib/schema';
+import { trackPlatformClick } from '@/lib/platformClicks';
 
 export default function Videos({ allVideos }) {
   const [query, setQuery] = useState('');
@@ -60,6 +61,7 @@ export default function Videos({ allVideos }) {
           </span>
           <a
             href="https://www.youtube.com/@theDime_Cannabis?sub_confirmation=1"
+            onClick={(e) => trackPlatformClick(e.currentTarget.href, 'video_library')}
             target="_blank"
             rel="noopener noreferrer"
             className="btn-teal"
