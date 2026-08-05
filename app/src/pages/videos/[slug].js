@@ -2,6 +2,7 @@
 // Dynamic video detail page
 
 import Link from 'next/link';
+import Script from 'next/script';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
@@ -66,8 +67,27 @@ export async function getStaticProps({ params }) {
   };
 }
 
+// YouTube validates the target of the player's postMessages against ?origin=,
+// so it has to match the host actually serving the page: with the canonical
+// value hardcoded, the iframe API is silent on localhost and on every Vercel
+// preview host, which is where this gets QA'd. Production needs no config —
+// the fallback is the canonical origin.
+const EMBED_ORIGIN = process.env.NEXT_PUBLIC_SITE_ORIGIN || 'https://www.dimepodcast.com';
+
 export default function VideoPage({ video, relatedVideos, linkedEpisode = null }) {
   const schema = createVideoObjectSchema(video);
+
+  // enablejsapi=1 is what GA4's video enhanced measurement needs to see: it
+  // hooks the iframe through the YouTube API and then emits video_start,
+  // video_progress and video_complete on its own, with no event code here
+  // (docs/analytics-spec.md Part 2.3). Built from video.id rather than reusing
+  // video.embedUrl, whose query string is baked into content/videos.json at
+  // catalogue-build time and would only pick this up on a full rebuild.
+  // autoplay and color are carried over from that URL so the player behaves
+  // exactly as before.
+  const embedSrc =
+    `https://www.youtube.com/embed/${video.id}` +
+    `?enablejsapi=1&origin=${encodeURIComponent(EMBED_ORIGIN)}&rel=0&autoplay=1&color=white`;
 
   return (
     <>
@@ -132,12 +152,18 @@ export default function VideoPage({ video, relatedVideos, linkedEpisode = null }
               aspectRatio: '16/9',
               border: 'none',
             }}
-            src={video.embedUrl}
+            src={embedSrc}
             title={video.title}
             allow="autoplay; fullscreen"
             allowFullScreen
           />
         </section>
+
+        {/* The API that turns the iframe above into something GA4 can observe.
+            Loaded here rather than site-wide as the spec has it, because only
+            this route embeds a player — 288 video pages out of ~900. Any other
+            page that adds an enablejsapi embed needs this alongside it. */}
+        <Script src="https://www.youtube.com/iframe_api" strategy="afterInteractive" />
 
         {linkedEpisode && (
           <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '20px', borderRadius: '4px' }}>
