@@ -8,6 +8,7 @@ import SeoHead from '@/src/components/SeoHead';
 import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { createCollectionPageSchema } from '@/lib/schema';
+import { useSearchTracking, trackSearchResultClick } from '@/lib/useSearchTracking';
 
 export default function Episodes({ allEpisodes }) {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function Episodes({ allEpisodes }) {
   const filtered = q
     ? allEpisodes.filter((ep) => ep.searchText.includes(q))
     : allEpisodes;
+
+  // One search event per pause in typing (docs/analytics-spec.md Part 2.4).
+  useSearchTracking(query, filtered.length);
 
   const collectionSchema = createCollectionPageSchema(
     {
@@ -90,6 +94,7 @@ export default function Episodes({ allEpisodes }) {
             }}
             onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+            onClick={() => trackSearchResultClick(query, i, ep.slug)}
           >
             <div>
               <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
