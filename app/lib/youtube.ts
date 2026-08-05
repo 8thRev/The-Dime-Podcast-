@@ -36,6 +36,10 @@ export type YTVideo = {
   duration: string;
   durationISO: string;
   viewCount: string;
+  // Optional because content/videos.json predates this field: entries written
+  // by an earlier catalogue run have only the formatted `viewCount`. Populated
+  // from the next scheduled run of scripts/build-video-catalog.mjs onward.
+  viewCountRaw?: number;
   embedUrl: string;
   watchUrl: string;
   tags: string[];

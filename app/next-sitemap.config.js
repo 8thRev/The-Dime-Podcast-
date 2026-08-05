@@ -32,7 +32,41 @@ const STATIC_PAGE_PATHS = new Set(STATIC_PAGES.map((p) => p.path));
 // Named AI/LLM crawlers get an explicit allow rule rather than relying on
 // the wildcard fallthrough — makes this site's LLM-discoverability intent
 // auditable instead of incidental.
-const AI_CRAWLERS = ['GPTBot', 'ChatGPT-User', 'ClaudeBot', 'anthropic-ai', 'PerplexityBot', 'Google-Extended', 'CCBot'];
+//
+// Split into two groups because the distinction decides whether we show up
+// in an answer with a citation or only in a future model's weights:
+//
+//   - RETRIEVAL agents fetch a page while answering a live user question and
+//     are what produce the linked citation. OAI-SearchBot in particular backs
+//     ChatGPT *search* and is a different agent from GPTBot — allowing GPTBot
+//     alone (the previous state) opted us into training and out of the thing
+//     that actually sends traffic.
+//   - TRAINING/corpus crawlers build datasets. Allowing them is a long-horizon
+//     bet on being *known*, not on referrals. Applebot-Extended and
+//     Google-Extended are pure opt-in signals: they are not crawlers at all,
+//     just flags read off robots.txt that govern whether content already
+//     fetched by Applebot/Googlebot may be used for AI training.
+const AI_RETRIEVAL_CRAWLERS = [
+  'OAI-SearchBot',
+  'ChatGPT-User',
+  'PerplexityBot',
+  'Perplexity-User',
+  'DuckAssistBot',
+  'ClaudeBot',
+  'Claude-User',
+  'Claude-SearchBot',
+];
+const AI_TRAINING_CRAWLERS = [
+  'GPTBot',
+  'anthropic-ai',
+  'Google-Extended',
+  'Applebot-Extended',
+  'Meta-ExternalAgent',
+  'Amazonbot',
+  'cohere-ai',
+  'CCBot',
+];
+const AI_CRAWLERS = [...AI_RETRIEVAL_CRAWLERS, ...AI_TRAINING_CRAWLERS];
 
 // Mirrors slugify() in app/lib/rss.ts. Duplicated (rather than imported)
 // because next-sitemap runs as a separate plain-Node script after the
@@ -93,6 +127,77 @@ function getNewsletterLastmodBySlug() {
   return newsletterLastmodCache;
 }
 
+// The video catalogue, keyed by slug. Committed to the repo by
+// scripts/build-video-catalog.mjs, so reading it here costs no YouTube quota
+// and cannot fail the build on an API hiccup — the same reasoning that put
+// lib/youtube.ts on the file rather than the API.
+let videoCache = null;
+function getVideosBySlug() {
+  if (videoCache) return videoCache;
+  videoCache = {};
+  try {
+    const file = path.join(__dirname, 'content', 'videos.json');
+    if (!fs.existsSync(file)) return videoCache;
+    const parsed = JSON.parse(fs.readFileSync(file, 'utf-8'));
+    if (!Array.isArray(parsed)) return videoCache;
+    for (const video of parsed) {
+      if (video?.slug) videoCache[video.slug] = video;
+    }
+  } catch (error) {
+    console.error('next-sitemap: could not read videos.json:', error.message);
+  }
+  return videoCache;
+}
+
+function isoDurationToSeconds(iso) {
+  const match = (iso || '').match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
+  if (!match) return 0;
+  return Number(match[1] || 0) * 3600 + Number(match[2] || 0) * 60 + Number(match[3] || 0);
+}
+
+// <video:description> is capped at 2048 characters and <video:title> at 100.
+// 235 of 287 catalogue descriptions are longer than that (max 4,993) because
+// they carry the full YouTube description including the chapter list and
+// link block. Google rejects the whole <video:video> entry when a field is
+// over length, so cut at the last whole word rather than shipping 235
+// silently-dropped videos. Titles already fit, but are cut for the same
+// reason should a longer one ever be published.
+function truncate(text, maxLength) {
+  const trimmed = (text || '').trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  const cut = trimmed.slice(0, maxLength - 1);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + '…';
+}
+
+// A <video:video> entry for a /videos/<slug> URL. next-sitemap serializes
+// these into the video: namespace it already declares on every urlset.
+//
+// player_loc rather than content_loc: content_loc must be a raw media file,
+// and we have an embed, not an MP4. Duration is capped at the 28800s (8h)
+// the spec allows and omitted when the catalogue has no parseable one, since
+// an out-of-range value invalidates the whole entry rather than that field.
+function videoSitemapEntry(video) {
+  const duration = isoDurationToSeconds(video.durationISO);
+  return {
+    title: truncate(video.title, 100),
+    thumbnailLoc: new URL(video.thumbnail),
+    // description is a required field; fall back to the title so a video with
+    // an empty YouTube description still produces a valid entry.
+    description: truncate(video.description, 2048) || truncate(video.title, 100),
+    playerLoc: new URL(`https://www.youtube.com/embed/${video.id}`),
+    ...(duration > 0 && duration <= 28800 ? { duration } : {}),
+    ...(typeof video.viewCountRaw === 'number' && video.viewCountRaw > 0
+      ? { viewCount: video.viewCountRaw }
+      : {}),
+    publicationDate: video.publishedAt,
+    familyFriendly: true,
+    requiresSubscription: false,
+    live: false,
+    uploader: { name: 'The Dime Podcast', info: new URL(siteUrl) },
+  };
+}
+
 module.exports = {
   // Not read by next-sitemap — exported purely so scripts/verify-site.mjs can
   // assert these exact paths appear in the generated sitemap exactly once,
@@ -102,7 +207,9 @@ module.exports = {
   changefreq: 'weekly',
   priority: 0.7,
   generateRobotsTxt: true,
-  exclude: ['/llms.txt'],
+  // Plain-text/XML endpoints, not indexable HTML pages. /rss.xml is
+  // advertised through <link rel="alternate"> in _document.js instead.
+  exclude: ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newsletter/rss.xml'],
   robotsTxtOptions: {
     sitemaps: [
       `${siteUrl}/sitemap.xml`,
@@ -115,6 +222,15 @@ module.exports = {
       },
       ...AI_CRAWLERS.map((userAgent) => ({ userAgent, allow: '/' })),
     ],
+    // Points LLM crawlers at the curated index they cannot otherwise
+    // discover: nothing links to /llms.txt, and it is excluded from the
+    // sitemap above (it is not an indexable HTML page), so robots.txt is
+    // the only machine-readable place left to announce it. The convention
+    // has no dedicated directive, hence a comment.
+    transformRobotsTxt: async (_config, robotsTxt) =>
+      `${robotsTxt}# LLM-readable index of this site:\n` +
+      `# ${siteUrl}/llms.txt (curated: topic hubs + recent episodes)\n` +
+      `# ${siteUrl}/llms-full.txt (full catalogue with summaries, takeaways and FAQ)\n`,
   },
   // Real per-episode lastmod (from the RSS pubDate) instead of the
   // build-timestamp default — Google discounts lastmod that doesn't
@@ -137,6 +253,24 @@ module.exports = {
           changefreq: config.changefreq,
           priority: config.priority,
           lastmod,
+        };
+      }
+    }
+
+    // Video URLs get a <video:video> extension AND a real lastmod. Both come
+    // from the committed catalogue, so this closes the "video lastmod is the
+    // build timestamp" item in SEO_ROADMAP.md without the YouTube Data API
+    // call that item assumed it would need.
+    const videoMatch = path.match(/^\/videos\/(.+)$/);
+    if (videoMatch) {
+      const video = getVideosBySlug()[videoMatch[1]];
+      if (video) {
+        return {
+          loc: path,
+          changefreq: 'monthly',
+          priority: config.priority,
+          lastmod: new Date(video.publishedAt).toISOString(),
+          videos: [videoSitemapEntry(video)],
         };
       }
     }

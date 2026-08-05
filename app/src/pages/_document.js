@@ -37,7 +37,15 @@ export default function Document() {
 
         {/* Podcast-specific */}
         <meta name="application-name" content="The Dime Podcast" />
+        {/* Three feeds, listed most-specific-first. The Simplecast one is the
+            podcast: it carries the audio enclosures and is what podcast apps
+            should subscribe to, so it keeps the unqualified "RSS" title. The
+            two site feeds link to pages on this domain and carry no audio —
+            titled so a reader picking from this list can tell which is which
+            (see lib/feed.js). */}
         <link rel="alternate" type="application/rss+xml" title="The Dime Podcast RSS" href="https://feeds.simplecast.com/Vnrz0StH" />
+        <link rel="alternate" type="application/rss+xml" title="The Dime Podcast — new episodes on the site" href="https://www.dimepodcast.com/rss.xml" />
+        <link rel="alternate" type="application/rss+xml" title="First Principles — written analysis" href="https://www.dimepodcast.com/newsletter/rss.xml" />
 
         {/* GA4 bootstrap: a raw inline script so window.gtag exists at
             HTML-parse time, independent of React. It only queues into

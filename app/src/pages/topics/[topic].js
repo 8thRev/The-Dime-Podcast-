@@ -5,7 +5,9 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import { getAllTopics, getEpisodesByTopicSlug } from '@/lib/topics';
 import { getEditionsForTopic, toCard } from '@/lib/newsletter';
-import { createBreadcrumbSchema } from '@/lib/schema';
+import { createBreadcrumbSchema, createCollectionPageSchema } from '@/lib/schema';
+
+const SITE_URL = 'https://www.dimepodcast.com';
 
 export async function getStaticPaths() {
   const topics = await getAllTopics();
@@ -34,10 +36,33 @@ export async function getStaticProps({ params }) {
 
 export default function TopicPage({ topic, episodes, topicSlug, editions = [] }) {
   const breadcrumbSchema = createBreadcrumbSchema([
-    { name: 'Home', url: 'https://www.dimepodcast.com' },
-    { name: 'Topics', url: 'https://www.dimepodcast.com/topics' },
-    { name: topic, url: `https://www.dimepodcast.com/topics/${topicSlug}` },
+    { name: 'Home', url: SITE_URL },
+    { name: 'Topics', url: `${SITE_URL}/topics` },
+    { name: topic, url: `${SITE_URL}/topics/${topicSlug}` },
   ]);
+
+  // These hubs are the site's longest pages (~24k words) and until now carried
+  // only a BreadcrumbList — structurally indistinguishable from a wall of text.
+  // CollectionPage + ItemList states what the page actually is: the curated
+  // index of this subject, with the episodes it indexes named in order.
+  //
+  // Episodes only, not the First Principles editions rendered further down.
+  // ItemList is an ordering claim over one kind of thing, and the two lists
+  // have different types (PodcastEpisode vs Article) and different orderings
+  // (this list is the topic's episodes as getEpisodesByTopicSlug returns them).
+  // The editions reach crawlers through their own Article schema on
+  // /newsletter/[slug], which is the page that owns them.
+  const collectionSchema = createCollectionPageSchema(
+    {
+      name: topic,
+      description: `Every episode of The Dime Podcast covering ${topic}.`,
+      url: `${SITE_URL}/topics/${topicSlug}`,
+    },
+    episodes.map((ep) => ({
+      name: ep.title,
+      url: `${SITE_URL}/episodes/${ep.slug}`,
+    }))
+  );
 
   return (
     <>
@@ -48,6 +73,7 @@ export default function TopicPage({ topic, episodes, topicSlug, editions = [] })
       />
 
       <Schema schema={breadcrumbSchema} />
+      <Schema schema={collectionSchema} />
 
       <Header />
 

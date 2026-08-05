@@ -163,10 +163,14 @@ const STATIC_SAMPLE = ['/', '/episodes', '/guests', '/topics', '/videos', '/news
 const DYNAMIC_PREFIXES = ['/episodes/', '/guests/', '/topics/', '/videos/', '/newsletter/'];
 const dynamicSample = DYNAMIC_PREFIXES.map((prefix) => sitemapPaths.find((p) => p.startsWith(prefix))).filter(Boolean);
 
-// /llms.txt is excluded from the sitemap by next-sitemap.config.js, so it has
-// to be named explicitly or nothing would ever exercise it.
+// The plain-text and feed endpoints are excluded from the sitemap by
+// next-sitemap.config.js (they are not indexable HTML pages), so they have to
+// be named explicitly or nothing would ever exercise them. Kept out of
+// htmlSample deliberately — checks 9-13 assert head invariants and would fail
+// on a document with no <head>.
+const NON_HTML_ENDPOINTS = ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newsletter/rss.xml'];
 const htmlSample = [...STATIC_SAMPLE, ...dynamicSample];
-const sampleUrls = [...htmlSample, '/llms.txt'];
+const sampleUrls = [...htmlSample, ...NON_HTML_ENDPOINTS];
 
 // --- Check 15: route coverage (runs first — it gates the value of everything
 // below it, and a new uncovered route should fail loudly, not silently pass) --
@@ -490,14 +494,55 @@ log(`[9-13] head invariants: ${scannedPages.length} pages, ${ogImages.size} uniq
 const endpoints = [
   ['/robots.txt', 'text/plain'],
   ['/llms.txt', 'text/plain'],
+  ['/llms-full.txt', 'text/plain'],
   ['/sitemap.xml', 'xml'],
   ['/sitemap-0.xml', 'xml'],
+  ['/rss.xml', 'application/rss+xml'],
+  ['/newsletter/rss.xml', 'application/rss+xml'],
 ];
 for (const [path, type] of endpoints) {
   const res = await getPage(path);
   if (res.status !== 200) fail('14 endpoints', `${path} returned ${res.status || res.error}`);
   else if (!(res.headers.get('content-type') || '').includes(type)) {
     fail('14 endpoints', `${path} content-type is ${res.headers.get('content-type')}, expected ${type}`);
+  }
+}
+
+// The whole point of splitting llms.txt (see lib/llms.js) is that the index
+// stays inside the convention's size band. Nothing else notices when it
+// doesn't: the file still serves 200, still parses, and a consumer that
+// truncates it says nothing. The First Principles section grows by one essay
+// per episode forever, so this is the check that catches the drift.
+const LLMS_INDEX_MAX_BYTES = 20 * 1024;
+const llmsIndex = await getPage('/llms.txt');
+if (llmsIndex.status === 200) {
+  const bytes = Buffer.byteLength(llmsIndex.body, 'utf8');
+  if (bytes > LLMS_INDEX_MAX_BYTES) {
+    fail(
+      '14 endpoints',
+      `/llms.txt is ${(bytes / 1024).toFixed(1)}KB, over the ${LLMS_INDEX_MAX_BYTES / 1024}KB llms.txt convention — trim a section or lower RECENT_EPISODE_COUNT in lib/llms.js (the full catalogue lives at /llms-full.txt)`
+    );
+  } else {
+    log(`[14] /llms.txt size: ${(bytes / 1024).toFixed(1)}KB of ${LLMS_INDEX_MAX_BYTES / 1024}KB budget`);
+  }
+  // A truncating consumer must still learn where the depth is, so the
+  // pointer has to survive independently of the size check above.
+  if (!llmsIndex.body.includes('/llms-full.txt')) {
+    fail('14 endpoints', '/llms.txt does not reference /llms-full.txt — the full catalogue becomes undiscoverable');
+  }
+}
+
+// The site feeds must not be mistaken for the podcast feed. An <enclosure>
+// here is what would make an aggregator treat these as the audio feed and
+// start republishing the show from the wrong URL.
+for (const feedPath of ['/rss.xml', '/newsletter/rss.xml']) {
+  const feed = await getPage(feedPath);
+  if (feed.status !== 200) continue;
+  if (feed.body.includes('<enclosure')) {
+    fail('14 endpoints', `${feedPath} carries an <enclosure> — site feeds must not masquerade as the podcast audio feed (lib/feed.js)`);
+  }
+  if (!feed.body.includes('<item>')) {
+    fail('14 endpoints', `${feedPath} has no <item> elements`);
   }
 }
 const robots = (await getPage('/robots.txt')).body;
