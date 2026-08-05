@@ -26,6 +26,15 @@ for that part; the departures are summarised here.
 | 2.8 Read depth | Shipped | `app/lib/useReadTracking.ts` | None. |
 | Change D (admin) | **Outstanding** | GA4 admin | Must be turned off at deploy time. See 2.1. |
 
+Three events named in Part 3 have no Part 2 section and no code: `topic_filter`
+(no topic filter control exists), `episode_share` (Part 3 says "add if absent" —
+still absent) and `guest_inquiry_submit` (blocked on the form in Part 5.3). Two
+gaps of the same kind are known and deliberately left: outbound clicks to
+individual YouTube videos (roughly 8 homepage cards plus one link per video page)
+are not tracked, because folding content clicks into `platform_subscribe_click`
+would make that key event mean "clicked a thumbnail"; and the video library's own
+search box is untracked, which `search_location` exists to distinguish.
+
 Everything in Parts 5 and 6 remains outstanding.
 
 ---
