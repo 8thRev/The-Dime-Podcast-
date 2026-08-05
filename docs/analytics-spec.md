@@ -593,12 +593,28 @@ query: nothing. Type an email address: nothing.
 
 Run all of these in GA4 DebugView before calling any phase done.
 
+**Status as of Aug 5, 2026.** Checks 3, 4, 5 and 6 were run against a dev server
+with a placeholder measurement ID, reading `window.dataLayer` — all four pass;
+evidence is under each item. Checks 1, 2, 7 and 8 need production data and are
+still open. Check 1 additionally cannot be trusted until the cached `gtag/js`
+config carrying the old enhanced-measurement setting expires (see 2.1).
+
+> **Do not read a doubled `page_view` in local dev as a failure of check 1.**
+> `next.config.js` sets `reactStrictMode: true`, so React double-invokes the
+> mount-only pageview effect in `_app.js` in development and every local page
+> load books two. StrictMode does not double-invoke in a production build. Check
+> 1 is only meaningful against production.
+
 1. **No double counting.** After 2.1 ships and the enhanced measurement toggle is off, a four page click through produces exactly four `page_view` events. Not eight.
 2. **No stale paths.** Every `page_view` has `page_location` matching the address bar. No `dp` parameter present.
 3. **Milestone idempotency.** Play an episode to 60%, rewind to 0, play again. `audio_progress` at 10/25/50 fires once each total, not twice.
+   **PASS.** Real playback (volume 0, not muted — Chrome pauses muted background media). Ep. 304, 4422s. Crossed 10/25/50, rewound to `currentTime` 0, played forward past 55% again: milestones stayed `[10, 25, 50]`, one each. `audio_play` fired once.
 4. **Milestone reset across routes.** Navigate to a second episode client side and play it. Milestones fire again for the new slug. This tests that `resetMilestones()` is wired.
+   **PASS.** Clicked a related-episode `<Link>` (same document confirmed, one `page_view` for the new route), played the second episode: `10/25/50` fired again under the new `episode_slug`, with the first episode's own three unchanged.
 5. **Search debounce.** Typing a 12 character query produces one `search` event, not 12.
+   **PASS.** "rescheduling" typed one character at a time at 60ms intervals on `/episodes` — 12 keystrokes, exactly 1 `search`, `search_results_count: 48`. The shallow `?q=` rewrite booked no extra `page_view`, confirming the shallow guard in `_app.js`.
 6. **No PII.** Submit both forms with a real email. Inspect every parameter in DebugView. Zero email addresses, zero personal names, zero free text.
+   **PASS.** Sponsorship form submitted with a real name, company, email and prose in both textareas: `sponsor_inquiry_submit` carried only `company_provided: true` and `form_location`. Newsletter verified by dispatching the real `ckjs:submission:complete` with an email in `detail` (rather than subscribing an address to the live list): `newsletter_signup` carried only `signup_location` and `form_id`. An automated sweep of every parameter value for email shapes, phone shapes and the submitted strings returned nothing — the sole hit was `form_id: 2466258`, Kit's 7-digit form ID tripping the phone regex.
 7. **Dimension population.** 24 hours after deploy, GA4 → Explore → free form → add Episode Slug and Guest Name as dimensions. Both must return values, not `(not set)`. If they show `(not set)`, the parameter string does not match Part 1.
 8. **Cross check.** Compare GA4 sessions to Vercel Web Analytics for the same window. Divergence beyond roughly 15% means something is double firing or being blocked.
 
