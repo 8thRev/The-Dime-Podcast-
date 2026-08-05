@@ -24,16 +24,14 @@ for that part; the departures are summarised here.
 | 2.6 Newsletter | Shipped | `app/lib/newsletterSignup.ts` | Listens only for `ckjs:submission:complete`, the event `ck.6.js` actually dispatches; `convertkit:form-success` does not exist in it. No native `submit` listener — Kit submits over AJAX, so `submit` fires on failures too. |
 | 2.7 Sponsor funnel | Shipped | `app/lib/sponsorFunnel.ts` | `campaign_goal` and `target_customer` **not sent** — both fields are textareas, so free text. The form has no server submit; it hands off to `mailto:`, so `sponsor_inquiry_submit` means "validated and handed to the mail client" and overcounts against inquiries received. |
 | 2.8 Read depth | Shipped | `app/lib/useReadTracking.ts` | None. |
-| Change D (admin) | **Outstanding** | GA4 admin | Must be turned off at deploy time. See 2.1. |
+| 2.9 Video outbound clicks | Shipped | `app/lib/videoClicks.ts` | Added after Part 2. Reuses `link_location` rather than adding a location parameter. Non-key event by design. |
+| 2.10 Video library search | Shipped | `app/src/pages/videos.js` | Added after Part 2. Call site for the 2.4 hook. No `?q=` sync on `/videos`, deliberately. `search_result_click` gained `search_location` and a `video_slug` variant. |
+| Change D (admin) | Done Aug 5, 2026 | GA4 admin | "Page changes based on browser history events" turned off after Part 2 reached production. "Page loads" left on (GA4 locks it). See 2.1. |
+| Dimension registration | Done Aug 5, 2026 | GA4 admin | `video_id`, `video_slug`, `search_location` registered, event scoped. 15 of 15. See Part 1. |
 
 Three events named in Part 3 have no Part 2 section and no code: `topic_filter`
 (no topic filter control exists), `episode_share` (Part 3 says "add if absent" —
-still absent) and `guest_inquiry_submit` (blocked on the form in Part 5.3). Two
-gaps of the same kind are known and deliberately left: outbound clicks to
-individual YouTube videos (roughly 8 homepage cards plus one link per video page)
-are not tracked, because folding content clicks into `platform_subscribe_click`
-would make that key event mean "clicked a thumbnail"; and the video library's own
-search box is untracked, which `search_location` exists to distinguish.
+still absent) and `guest_inquiry_submit` (blocked on the form in Part 5.3).
 
 Everything in Parts 5 and 6 remains outstanding.
 
@@ -70,7 +68,11 @@ Two known non actions:
 
 ## Part 1: The parameter contract
 
-**These names are fixed.** They are already registered as GA4 custom dimensions. Do not rename, do not camelCase, do not abbreviate. If a refactor makes one of these names awkward, change the variable name in the code, not the string passed to `gtag`.
+**These names are fixed.** Do not rename, do not camelCase, do not abbreviate. If a refactor makes one of these names awkward, change the variable name in the code, not the string passed to `gtag`.
+
+All fifteen rows are registered as GA4 custom dimensions, event scoped: the first twelve in Part 0, and `video_id`, `video_slug` and `search_location` on Aug 5, 2026 alongside 2.9 and 2.10. `search_location` was the one that had slipped — it shipped with Part 2.4 and was never added to this table or to the property, so archive searches had been landing in an unregistered parameter since Part 2.
+
+Registration is not retroactive: only events received *after* it takes effect populate the dimension. Register before relying on a report, not after noticing it is empty.
 
 | GA4 dimension | Parameter string | Type | Example values |
 |---|---|---|---|
@@ -82,7 +84,10 @@ Two known non actions:
 | Percent Played | `percent_played` | number | `10` `25` `50` `75` `90` |
 | Percent Read | `percent_read` | number | `25` `50` `75` `100` |
 | Platform | `platform` | string | `apple_podcasts` `spotify` `youtube` |
-| Link Location | `link_location` | string | `hero` `footer` `episode_page` `video_library` |
+| Link Location | `link_location` | string | `hero` `footer` `episode_page` `video_library` `home_video_shelf` `video_page` |
+| Video ID | `video_id` | string | `dQw4w9WgXcQ` |
+| Video Slug | `video_slug` | string | `hirsh-jain-on-rescheduling` |
+| Search Location | `search_location` | string | `episodes_archive` `video_library` |
 | Signup Location | `signup_location` | string | `newsletter_page` `footer` `episode_inline` `home_hero` |
 | Search Term | `search_term` | string | lowercased, trimmed |
 | CTA Location | `cta_location` | string | `hero` `pricing` `inline` `footer` |
@@ -189,7 +194,19 @@ useEffect(() => {
 
 > **Sequencing is critical.** Turning D off before A/B/C ship means SPA navigations produce no pageview at all, which is worse than the current stale path. Shipping A/B/C without turning D off means every route change is counted twice. They go together.
 
+**Both halves are now done.** A/B/C reached production (verified: the live HTML
+serves `gtag('config',"G-LQZKLCKWSV",{send_page_view:false})`), and D was turned
+off on Aug 5, 2026 once that was confirmed. Between the merge and that change
+there is a window where client-side navigations were counted twice — expect a
+short spike in `page_view` against sessions, and do not read it as a traffic
+change.
+
 **Acceptance:** navigate `/` → `/episodes` → an episode → `/sponsorship`. In DebugView, exactly one `page_view` per step, `page_location` matching the URL every time, no `dp` parameter present at all.
+
+Do not run that acceptance check immediately after flipping D. The enhanced
+measurement setting is baked into the cached `gtag/js` config a browser already
+holds, so a test in the first hour can still show the old double-count and prove
+nothing.
 
 ---
 
@@ -444,6 +461,95 @@ Also add `transcript_open` when the Full Transcript section enters the viewport.
 
 ---
 
+### 2.9 Outbound clicks to individual videos
+
+Added after Part 2, to close a gap that part left open.
+
+Two surfaces link straight out to `youtube.com/watch?v=...`: the ~8 cards on the
+homepage's "Watch on YouTube" shelf (`src/pages/index.js`) and the "Watch on
+YouTube" button on each of the 288 video pages (`src/pages/videos/[slug].js`).
+These are the highest-intent moments on the site — someone choosing a specific
+conversation to go watch — and every one of those clicks landed in GA4's
+undifferentiated `click` bucket, which cannot say which video or from where.
+
+New file `lib/videoClicks.ts`, one event:
+
+```ts
+track('video_outbound_click', {
+  video_id: video.id,      // joins to YouTube Studio
+  video_slug: video.slug,  // readable in a report
+  link_location: location, // 'home_video_shelf' | 'video_page'
+});
+```
+
+**Do not route these through `platform_subscribe_click`.** That is a key event
+meaning "subscribed to us on a platform" and it feeds the Committed Audience
+audience; a thumbnail click is not a subscription, and folding one into the
+other silently redefines the audience as "clicked a thumbnail" and inflates the
+conversion count with the site's most common outbound action. For the same
+reason `video_outbound_click` **must not be marked as a key event** in GA4
+admin. It is a volume metric, not a commitment.
+
+`link_location` is reused rather than a fourth location parameter invented: it
+already means "where on the site was this link", the dimension is registered,
+and its values never collide because reports read it per event name. The union
+type is kept separate from `platformClicks.LinkLocation` all the same, so a
+platform-click call site cannot reach `home_video_shelf`.
+
+**Registration:** `video_id` and `video_slug` were registered as event-scoped
+custom dimensions on Aug 5, 2026. See Part 1.
+
+**Acceptance:** on the homepage, click a video card; in `window.dataLayer`, one
+`video_outbound_click` with `link_location: 'home_video_shelf'` and a
+`video_id` matching the `?v=` in the href. Same on a video page with
+`'video_page'`. No `platform_subscribe_click` on either.
+
+---
+
+### 2.10 Video library search
+
+Added after Part 2, alongside 2.9.
+
+`/videos` filters 288 videos client side through its own search box and was
+never instrumented, while `/episodes` has been since 2.4. `search_location`
+exists precisely to tell the two apart, so this is a call site, not a new
+mechanism:
+
+```js
+useSearchTracking(query, filtered.length, 'video_library');
+```
+
+Three things carried over from 2.4 apply unchanged and are worth restating,
+because each is a way this could have been got wrong:
+
+- **`?q=` is not synced on `/videos`,** unlike `episodes.js`. This is left
+  alone. The `?q=` URLs exist on `/episodes` to make the `SearchAction` JSON-LD
+  resolve to a crawlable result page, and that JSON-LD targets `/episodes`
+  only; giving `/videos` a crawlable query surface is a product decision, not
+  an analytics one. The only effect on tracking is that the hook's
+  seeded-query guard never suppresses anything here — correct, since with no
+  `?q=` to arrive in, every query on this page really was typed by a person.
+- **Queries shaped like an email address or phone number are dropped,** not
+  redacted downstream. Same rule, same reason (Part 1's PII prohibition).
+- **Result clicks are tracked here too** — `trackSearchResultClick(query, i,
+  v.slug, 'video_library')`. Not for the click count: it is what flushes the
+  pending debounced `search`. A card click is a client-side navigation that
+  unmounts the page, and the hook's cleanup deliberately does not flush, so
+  without this the queries that converted fastest would be exactly the ones
+  lost.
+
+`search_result_click` gained `search_location`, and sends the clicked slug as
+`video_slug` when it comes from the library. `episode_slug` must never hold a
+video slug — it is the join key across the audio, read-depth and platform
+events, and one wrong value type in it corrupts all of them.
+
+**Acceptance:** type `cannabis` into the `/videos` box, wait a second; one
+`search` in `window.dataLayer` with `search_location: 'video_library'` and a
+`search_results_count` matching the cards on screen. Type a two-character
+query: nothing. Type an email address: nothing.
+
+---
+
 ## Part 3: Full event schema
 
 ### Consume
@@ -456,6 +562,7 @@ Also add `transcript_open` when the Full Transcript section enters the viewport.
 | `video_start` | GA4 automatic | GA4 supplied | |
 | `video_progress` | GA4 automatic | GA4 supplied | at 50% |
 | `video_complete` | GA4 automatic | GA4 supplied | yes |
+| `video_outbound_click` | click through to a video on youtube.com | `video_id` `video_slug` `link_location` | no — deliberately, see 2.9 |
 | `read_depth` | 25/50/75/100% of article | `percent_read` `episode_slug` `content_type` | |
 | `transcript_open` | transcript in viewport | `episode_slug` `guest_name` | |
 | `engaged_visit` | 45s active | `content_type` `episode_slug` `active_seconds` | |
@@ -466,7 +573,7 @@ Also add `transcript_open` when the Full Transcript section enters the viewport.
 | `newsletter_signup` | Kit submit success | `signup_location` `episode_slug` `form_id` | yes |
 | `platform_subscribe_click` | Apple/Spotify/YouTube click | `platform` `link_location` `episode_slug` `is_sub_confirmation` | yes |
 | `search` | 800ms debounce, min 3 chars | `search_term` `search_results_count` `search_location` `zero_results` | |
-| `search_result_click` | result click with active query | `search_term` `result_position` `episode_slug` | |
+| `search_result_click` | result click with active query | `search_term` `result_position` `search_location` `episode_slug` or `video_slug` | |
 | `topic_filter` | topic selected | `episode_topic` `results_count` | |
 | `episode_share` | share control (add if absent) | `share_method` `episode_slug` | |
 
