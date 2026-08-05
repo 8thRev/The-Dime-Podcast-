@@ -1,6 +1,7 @@
 // src/pages/episodes/[slug].js
 // Dynamic episode detail page
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
@@ -17,6 +18,7 @@ import { guestToSlug } from '@/lib/guests';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllVideos } from '@/lib/youtube';
 import { getEditionForEpisode } from '@/lib/newsletter';
+import { useAudioTracking } from '@/lib/useAudioTracking';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -145,6 +147,23 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
     { name: episode.title, url: `https://www.dimepodcast.com/episodes/${episode.slug}` },
   ]);
 
+  // Listen tracking for the player below (docs/analytics-spec.md Part 2.2).
+  // episode_topic carries the primary fixed-taxonomy topic in its hub-slug form,
+  // matching the values Part 1 enumerates. Episodes without transcript coverage
+  // fall back to freeform RSS keywords for display, and those are deliberately
+  // not sent: free text fragments the dimension and makes it useless.
+  // episode.num is a string off the RSS feed (lib/rss.ts), but Part 1 types
+  // episode_number as a number — send it as one, or the dimension fills with
+  // text values that no numeric audience condition can compare against.
+  const episodeNumber = parseInt(episode.num, 10);
+  const audioRef = useRef(null);
+  useAudioTracking(audioRef, {
+    slug: episode.slug,
+    number: Number.isFinite(episodeNumber) ? episodeNumber : undefined,
+    guest: episode.guest,
+    topic: hasTopics ? topicToSlug(episodeTopics[0]) : undefined,
+  });
+
   return (
     <>
       <SeoHead
@@ -246,6 +265,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             Listen Now
           </div>
           <audio
+            ref={audioRef}
             controls
             style={{
               width: '100%',

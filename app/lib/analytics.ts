@@ -50,9 +50,16 @@ export function track(event: string, params: Params = {}): void {
   const gtag = getGtag();
   if (!gtag) return;
   // Undefined and empty values are dropped rather than sent; GA4 would
-  // otherwise store them as present-but-blank dimension values.
+  // otherwise store them as present-but-blank dimension values. NaN and
+  // Infinity are dropped for the same reason: media duration is NaN before
+  // metadata loads and can be Infinity for a stream with no length, and either
+  // one reaches GA4 as a garbage value in a dimension meant to hold seconds.
   const clean: Params = {};
-  for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') clean[k] = v;
+  for (const [k, v] of Object.entries(params)) {
+    if (v === undefined || v === '') continue;
+    if (typeof v === 'number' && !Number.isFinite(v)) continue;
+    clean[k] = v;
+  }
   gtag('event', event, clean);
   if (!isProd) console.log('[ga4]', event, clean);
 }
