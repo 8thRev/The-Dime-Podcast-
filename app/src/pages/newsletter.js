@@ -29,7 +29,7 @@ export default function Newsletter() {
           550-650 WORDS · ONE IDEA · NO NOISE · FREE
         </p>
 
-        <ConvertKitEmbed />
+        <ConvertKitEmbed location="newsletter_page" />
 
         <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 16 }}>
           Operator intelligence only. Unsubscribe anytime.

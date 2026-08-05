@@ -2,6 +2,7 @@
 // Dynamic video detail page
 
 import Link from 'next/link';
+import Script from 'next/script';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
@@ -10,6 +11,8 @@ import { getAllVideos, getVideoBySlug } from '@/lib/youtube';
 import { createVideoObjectSchema } from '@/lib/schema';
 import { getEpisodeSlugForVideo } from '@/lib/videoEpisodeMap';
 import { getEpisodeBySlug } from '@/lib/rss';
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export async function getStaticPaths() {
   const videos = await getAllVideos();
@@ -68,6 +71,33 @@ export async function getStaticProps({ params }) {
 
 export default function VideoPage({ video, relatedVideos, linkedEpisode = null }) {
   const schema = createVideoObjectSchema(video);
+
+  // enablejsapi=1 is what GA4's video enhanced measurement needs to see: it
+  // hooks the iframe through the YouTube API and then emits video_start,
+  // video_progress and video_complete on its own, with no event code here
+  // (docs/analytics-spec.md Part 2.3). Built from video.id rather than reusing
+  // video.embedUrl, whose query string is baked into content/videos.json at
+  // catalogue-build time and would only pick this up on a full rebuild.
+  //
+  // No ?origin=, despite the spec including it. YouTube validates the target of
+  // the player's postMessages against that value, and any value we can put here
+  // is fixed at build time while these pages are served from several hosts —
+  // the canonical domain, every Vercel preview URL, each branch alias, and
+  // localhost. A mismatch does not error; the API just goes quiet and the video
+  // events silently stop, which is the failure mode least likely to be noticed.
+  // YouTube documents origin as an extra security measure, recommended rather
+  // than required, so the parameter is dropped rather than shipped wrong.
+  //
+  // No ?autoplay=1 either, which the catalogue URL carried. It was harmless
+  // while nothing observed the player; with the API attached, every autoplay
+  // that succeeds books video_start and feeds video_progress at 50%, a key
+  // event, for a visitor who did nothing. Chrome allows it only for some
+  // visitors based on media engagement, so the effect would be uneven and the
+  // resulting numbers uninterpretable rather than merely inflated. Playback now
+  // starts on a click, which is what video_start should mean.
+  const embedSrc =
+    `https://www.youtube.com/embed/${video.id}` +
+    `?enablejsapi=1&rel=0&color=white`;
 
   return (
     <>
@@ -132,12 +162,20 @@ export default function VideoPage({ video, relatedVideos, linkedEpisode = null }
               aspectRatio: '16/9',
               border: 'none',
             }}
-            src={video.embedUrl}
+            src={embedSrc}
             title={video.title}
             allow="autoplay; fullscreen"
             allowFullScreen
           />
         </section>
+
+        {/* The API that turns the iframe above into something GA4 can observe.
+            Loaded here rather than site-wide as the spec has it, because only
+            this route embeds a player — 288 video pages out of ~900. Any other
+            page that adds an enablejsapi embed needs this alongside it. Gated on
+            the measurement ID like every other analytics script here, so a
+            deployment with no GA4 does not fetch it for nothing. */}
+        {GA_ID && <Script src="https://www.youtube.com/iframe_api" strategy="afterInteractive" />}
 
         {linkedEpisode && (
           <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '20px', borderRadius: '4px' }}>

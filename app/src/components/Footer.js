@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { PODCAST_RATING } from '@/lib/ratings';
+import { trackPlatformClick } from '@/lib/platformClicks';
 
 const footerLinkStyle = {
   background: 'none',
@@ -112,7 +113,14 @@ export default function Footer() {
               Listen
             </div>
             {LISTEN_LINKS.map((p) => (
-              <a key={p.label} href={p.href} target="_blank" rel="noopener noreferrer" style={footerLinkStyle}>
+              <a
+                key={p.label}
+                href={p.href}
+                onClick={() => trackPlatformClick(p.href, 'footer')}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={footerLinkStyle}
+              >
                 {p.label}
               </a>
             ))}
