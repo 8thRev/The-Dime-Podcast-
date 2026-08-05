@@ -8,6 +8,28 @@
 
 ---
 
+## Implementation status
+
+All of Part 2 is implemented on branch `analytics-pageview-fix`. Where the code
+departs from what this document specifies, the reason is in the commit message
+for that part; the departures are summarised here.
+
+| Part | State | Where it lives | Departure from this doc |
+|---|---|---|---|
+| 2.1 Pageview fix | Shipped | `app/lib/analytics.ts`, `_document.js`, `_app.js` | gtag bootstrap inline in `<head>`, not a `next/script`. `config` omits `page_location`/`page_title` — in a config call they become sticky defaults for every later event. Route-change pageview waits for the head mutation that applies the new title, not `setTimeout(0)`, which read the previous page's title. Shallow route changes ignored. |
+| 2.2 Audio | Shipped | `app/lib/useAudioTracking.ts` | `episode_number` parsed to a number. Freeform RSS keywords never sent as `episode_topic`. Milestones require playback to have started. `audio_complete` deduped. `audio_seek` debounces on the trailing edge. |
+| 2.3 YouTube | Shipped | `app/src/pages/videos/[slug].js` | No `origin` — a build-time value cannot match every host these pages are served from, and a mismatch silently kills the events. No `autoplay=1` — it would make `video_start` count page loads. API loaded on the video route, not site wide. |
+| 2.4 Search | Shipped | `app/lib/useSearchTracking.ts` | Event only; the page already syncs `?q=` and rehydrates from it. `search_term` dropped when it looks like an email address. |
+| 2.5 Platform clicks | Shipped | `app/lib/platformClicks.ts` | `link_location` is a union type. No call site for `episode_page` — there are no platform links on episode pages. |
+| 2.6 Newsletter | Shipped | `app/lib/newsletterSignup.ts` | Listens only for `ckjs:submission:complete`, the event `ck.6.js` actually dispatches; `convertkit:form-success` does not exist in it. No native `submit` listener — Kit submits over AJAX, so `submit` fires on failures too. |
+| 2.7 Sponsor funnel | Shipped | `app/lib/sponsorFunnel.ts` | `campaign_goal` and `target_customer` **not sent** — both fields are textareas, so free text. The form has no server submit; it hands off to `mailto:`, so `sponsor_inquiry_submit` means "validated and handed to the mail client" and overcounts against inquiries received. |
+| 2.8 Read depth | Shipped | `app/lib/useReadTracking.ts` | None. |
+| Change D (admin) | **Outstanding** | GA4 admin | Must be turned off at deploy time. See 2.1. |
+
+Everything in Parts 5 and 6 remains outstanding.
+
+---
+
 ## How to use this document
 
 Parts 1 through 4 are the implementation contract. Work them in order. Part 1 is non negotiable naming; if you rename a parameter the corresponding GA4 custom dimension silently goes empty and nothing throws an error.
