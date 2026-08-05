@@ -19,6 +19,7 @@ import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllVideos } from '@/lib/youtube';
 import { getEditionForEpisode } from '@/lib/newsletter';
 import { useAudioTracking } from '@/lib/useAudioTracking';
+import { useReadTracking } from '@/lib/useReadTracking';
 
 export async function getStaticPaths() {
   const episodes = await getAllEpisodes();
@@ -164,6 +165,15 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
     topic: hasTopics ? topicToSlug(episodeTopics[0]) : undefined,
   });
 
+  // Read depth, engaged time and transcript_open (Part 2.8).
+  const articleRef = useRef(null);
+  const transcriptRef = useRef(null);
+  useReadTracking(articleRef, transcriptRef, {
+    slug: episode.slug,
+    guest: episode.guest,
+    contentType: 'episode_audio',
+  });
+
   return (
     <>
       <SeoHead
@@ -179,7 +189,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
 
       <Header />
 
-      <article style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
+      <article ref={articleRef} style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
         <Link href="/episodes" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
           ← All Episodes
         </Link>
@@ -427,7 +437,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         )}
 
         {transcript && transcript.cleaned_transcript && (
-          <section style={{ marginBottom: '80px' }}>
+          <section ref={transcriptRef} style={{ marginBottom: '80px' }}>
             <AIDisclosure />
             <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
               Full Transcript
