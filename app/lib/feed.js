@@ -22,6 +22,13 @@ export const SITE_URL = 'https://www.dimepodcast.com';
 // makes the whole document unparseable rather than degrading a field.
 function escapeXml(value) {
   return String(value ?? '')
+    // Control characters are not legal in XML 1.0 at all — not raw, and not
+    // as numeric references either, so escaping cannot save them and one of
+    // them makes the whole feed unparseable. Dropped before anything else.
+    // Same "when, not if" reasoning as the entity escaping below: these
+    // strings come from an external RSS feed and hand-edited frontmatter.
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')

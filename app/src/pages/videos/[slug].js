@@ -1,6 +1,8 @@
 // src/pages/videos/[slug].js
 // Dynamic video detail page
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Script from 'next/script';
 import Header from '@/src/components/Header';
@@ -167,9 +169,27 @@ export default function VideoPage({
   // visitors based on media engagement, so the effect would be uneven and the
   // resulting numbers uninterpretable rather than merely inflated. Playback now
   // starts on a click, which is what video_start should mean.
+  // ?t=<seconds> starts the embed at that offset. This is what makes the Clip
+  // key-moment URLs in the JSON-LD real: they have to point at this page (a
+  // cross-origin clip URL is ineligible), so this page has to honour them.
+  //
+  // Read in an effect rather than straight from router.query because these
+  // pages are statically generated — the server renders no query string, so
+  // using it during render would produce a hydration mismatch. Keyed on the
+  // value so an in-page chapter click, which is a shallow client-side
+  // navigation with no remount, still moves the player.
+  const router = useRouter();
+  const [startAt, setStartAt] = useState(0);
+  useEffect(() => {
+    if (!router.isReady) return;
+    const seconds = Number.parseInt(router.query.t, 10);
+    setStartAt(Number.isFinite(seconds) && seconds > 0 ? seconds : 0);
+  }, [router.isReady, router.query.t]);
+
   const embedSrc =
     `https://www.youtube.com/embed/${video.id}` +
-    `?enablejsapi=1&rel=0&color=white`;
+    `?enablejsapi=1&rel=0&color=white` +
+    (startAt > 0 ? `&start=${startAt}` : '');
 
   return (
     <>
@@ -301,10 +321,10 @@ export default function VideoPage({
         {/* Chapters, rendered because the hasPart/Clip nodes in this page's
             JSON-LD assert they exist. Structured data is meant to describe
             what is on the page; a key-moments list that appears only in the
-            markup is the mismatch Google's own guidance calls out. Each entry
-            deep-links into the YouTube player at its offset — the embed above
-            has no seek handling, so linking locally would land every chapter
-            at 0:00. */}
+            markup is the mismatch Google's own guidance calls out.
+            Each entry links to this page with ?t=, the same URL the Clip
+            nodes carry, which the effect above turns into a player start
+            offset. Shallow so the transcript below does not re-render. */}
         {chapters.length > 0 && (
           <section style={{ marginBottom: '80px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
@@ -314,10 +334,9 @@ export default function VideoPage({
               {chapters.map((chapter) => (
                 <li key={chapter.startOffset} style={{ marginBottom: '10px', display: 'flex', gap: '16px', alignItems: 'baseline' }}>
                   <Link
-                    href={`${video.watchUrl}&t=${chapter.startOffset}`}
-                    onClick={() => trackVideoOutboundClick(video, 'video_page')}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`/videos/${video.slug}?t=${chapter.startOffset}`}
+                    scroll={false}
+                    shallow
                     className="mono"
                     style={{ fontSize: '12px', color: 'var(--text-accent)', textDecoration: 'none', flexShrink: 0, minWidth: '56px' }}
                   >

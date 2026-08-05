@@ -26,10 +26,13 @@
 
 export const SITE_URL = 'https://www.dimepodcast.com';
 
-// Everything the curated index emits is capped, because every list it draws
-// from grows: episodes weekly, essays one per episode, forever. An index with
-// one uncapped section is an index that silently leaves the band again in six
-// months. scripts/verify-site.mjs check 14 asserts the resulting size.
+// Both unbounded lists the index draws from are capped: episodes arrive
+// weekly and essays one per episode, forever, and an index with one uncapped
+// growing section is an index that silently leaves the size band again in six
+// months. Topics are deliberately NOT capped — that is a fixed taxonomy of 20
+// (~1.6KB), so it is bounded by the content model rather than by a constant
+// here, and truncating it would make the hub list wrong rather than shorter.
+// scripts/verify-site.mjs check 14 asserts the resulting size either way.
 //
 // 25 recent episodes is what the spec asks for (docs/analytics-spec.md Gap 1).
 // The 12-edition cap is a departure from it: that spec predates the First

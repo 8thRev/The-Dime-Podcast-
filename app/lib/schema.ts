@@ -289,16 +289,18 @@ export function createVideoObjectSchema(
     },
   };
 
-  // Key moments. Each Clip needs its own resolvable URL, and the watch URL
-  // with ?t= is the one that actually seeks — the /videos/<slug> page has no
-  // deep-link handling, so pointing there would land every clip at 0:00.
+  // Key moments. Google requires each Clip's url to be the video's own URL
+  // plus a time parameter — a cross-origin link (the youtube.com watch URL,
+  // which is the obvious choice since it seeks natively) makes the whole
+  // hasPart array ineligible. So these point back at this page, and
+  // videos/[slug].js reads ?t= and starts the embed there.
   if (options.chapters?.length) {
     schema.hasPart = options.chapters.map((chapter) => ({
       "@type": "Clip",
       name: chapter.name,
       startOffset: chapter.startOffset,
       endOffset: chapter.endOffset,
-      url: `https://www.youtube.com/watch?v=${video.id}&t=${chapter.startOffset}`,
+      url: `${url}?t=${chapter.startOffset}`,
     }));
   }
 

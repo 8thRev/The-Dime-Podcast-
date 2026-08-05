@@ -25,9 +25,42 @@ export type Chapter = {
 // mentioned mid-sentence ("around 12:30 he explains…") cannot match.
 const CHAPTER_LINE = /^[^\S\n]*[([]?(\d{1,2}:\d{2}(?::\d{2})?)[)\]]?[^\S\n]*[-–—:|)]?[^\S\n]*(\S.*?)[^\S\n]*$/;
 
+// 61 of 287 descriptions write ranges — "00:00 - 03:04 Introduction to …" —
+// rather than a single start time. The line regex above captures only the
+// first timestamp, so without this the *end* timestamp is left glued to the
+// front of the title and every one of those chapters gets a name beginning
+// with a second, contradicting time. The offsets were always right; the
+// labels were not.
+const RANGE_END = /^\d{1,2}:\d{2}(?::\d{2})?[^\S\n]*[-–—:|]?[^\S\n]*/;
+
+// Some descriptions put a whole summary sentence after the section title,
+// separated by a dash: "Hemp Market Exploration - Colin discusses Kiva's
+// entry into …". `Clip.name` is a title, not a paragraph, so keep the part
+// before the dash when the tail is prose. Only applied over the length
+// threshold, so ordinary hyphenated titles ("Q&A - Part 2") are untouched.
+const TITLE_TAIL = /\s[-–—]\s/;
+const NAME_MAX = 110;
+
 // Google wants a meaningful list, not two sections. This also guards against
 // a stray pair of timestamp-looking lines being read as a chapter list.
 const MIN_CHAPTERS = 3;
+
+function cleanName(raw: string): string {
+  let name = raw.replace(RANGE_END, '').trim();
+
+  if (name.length > NAME_MAX && TITLE_TAIL.test(name)) {
+    const head = name.split(TITLE_TAIL)[0].trim();
+    if (head) name = head;
+  }
+
+  if (name.length > NAME_MAX) {
+    const cut = name.slice(0, NAME_MAX);
+    const lastSpace = cut.lastIndexOf(' ');
+    name = (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + '…';
+  }
+
+  return name;
+}
 
 export function parseDurationSeconds(iso: string | undefined): number {
   const match = (iso || "").match(/^PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?$/);
@@ -56,7 +89,12 @@ export function parseChapters(description: string, durationISO: string | undefin
   const marks: { start: number; name: string }[] = [];
   for (const line of (description || "").split(/\r?\n/)) {
     const match = line.match(CHAPTER_LINE);
-    if (match) marks.push({ start: timestampToSeconds(match[1]), name: match[2].trim() });
+    if (match) {
+      const name = cleanName(match[2]);
+      // A line that was nothing but a timestamp range has no title left once
+      // cleaned, and a Clip needs a name.
+      if (name) marks.push({ start: timestampToSeconds(match[1]), name });
+    }
   }
 
   if (marks.length < MIN_CHAPTERS) return [];

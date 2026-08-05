@@ -220,7 +220,17 @@ module.exports = {
         allow: '/',
         disallow: ['/admin', '/api'],
       },
-      ...AI_CRAWLERS.map((userAgent) => ({ userAgent, allow: '/' })),
+      // The disallows are repeated per agent, not inherited. A robots.txt
+      // parser applies only the most specific matching group, so a named
+      // agent with `Allow: /` and nothing else is NOT bound by the wildcard
+      // group's `Disallow` lines — naming these crawlers to grant access
+      // would quietly have granted them /admin and /api too. Moot today
+      // (neither route exists) and a live hole the day one does.
+      ...AI_CRAWLERS.map((userAgent) => ({
+        userAgent,
+        allow: '/',
+        disallow: ['/admin', '/api'],
+      })),
     ],
     // Points LLM crawlers at the curated index they cannot otherwise
     // discover: nothing links to /llms.txt, and it is excluded from the
