@@ -41,14 +41,26 @@ export function useAudioTracking(ref: RefObject<HTMLAudioElement | null>, meta: 
       content_type: 'episode_audio' as ContentType,
     };
 
+    // Nothing is measured until playback actually starts. Every guard below
+    // hangs off this rather than off el.paused alone, because el.ended is a
+    // derived state, not a record of a transition: the HTML definition of ended
+    // playback is only "position is at the end, direction forward, not looping"
+    // and never requires that playback occurred. Dragging the scrubber fully to
+    // the right without pressing play therefore satisfies both paused and ended,
+    // and a guard written against those two states books all five milestones —
+    // the worst possible values, since they clear the >= 50 sponsor threshold.
+    let hasPlayed = false;
+
     // The player has no preload attribute, so duration is often still NaN when
     // play fires. Math.round(NaN) is NaN, which || turns into undefined, and
     // track() drops undefined values rather than sending a blank dimension —
     // audio_progress carries the duration once metadata has loaded.
-    const onPlay = () =>
+    const onPlay = () => {
+      hasPlayed = true;
       once(`audio_play:${meta.slug}`, () =>
         track('audio_play', { ...ctx, audio_duration: Math.round(el.duration) || undefined })
       );
+    };
 
     const onTimeUpdate = () => {
       // timeupdate also fires when the scrubber is dragged with the player
@@ -59,11 +71,12 @@ export function useAudioTracking(ref: RefObject<HTMLAudioElement | null>, meta: 
       // timeupdate once playback resumes, since the loop re-tests every
       // milestone on each tick.
       //
-      // Reaching the end counts: browsers set paused on the ended transition,
-      // and the final timeupdate must still be allowed through or a visitor who
-      // seeks past 90% and plays out books audio_complete with no 90% milestone
-      // behind it — a funnel showing more completes than 90s reads as broken
-      // instrumentation.
+      // The ended exemption is what lets the final tick through: browsers set
+      // paused on the ended transition, and dropping that tick would let
+      // audio_complete arrive with no 90% milestone behind it — a funnel with
+      // more completes than 90s reads as broken instrumentation. It is safe only
+      // in combination with hasPlayed.
+      if (!hasPlayed) return;
       if (el.paused && !el.ended) return;
       if (!el.duration || !isFinite(el.duration)) return;
       const pct = (el.currentTime / el.duration) * 100;
@@ -83,10 +96,15 @@ export function useAudioTracking(ref: RefObject<HTMLAudioElement | null>, meta: 
     // Deduped, unlike the spec's version: audio_complete is a key event, and
     // replaying an episode to the end within one page view would otherwise
     // count the same listener finishing it twice.
-    const onEnded = () =>
+    const onEnded = () => {
+      if (!hasPlayed) return;
+      // Settle the milestones first, so 90 can never be missing behind a
+      // complete even on a browser that skips the last timeupdate.
+      onTimeUpdate();
       once(`audio_complete:${meta.slug}`, () =>
         track('audio_complete', { ...ctx, seconds_played: Math.round(el.duration) })
       );
+    };
 
     // Trailing edge, so seek_to is where the drag landed. The spec's version
     // compared performance.now() against a ref seeded at 0, which fires on the
@@ -94,24 +112,37 @@ export function useAudioTracking(ref: RefObject<HTMLAudioElement | null>, meta: 
     // several, it records where the drag started, and because performance.now()
     // is milliseconds since navigation start, any seek in the first 500ms of a
     // page view was dropped entirely.
+    const sendSeek = () => {
+      seekTimer.current = null;
+      track('audio_seek', { ...ctx, seek_to: Math.round(el.currentTime) });
+    };
+
     const onSeeked = () => {
       if (seekTimer.current) clearTimeout(seekTimer.current);
-      seekTimer.current = setTimeout(() => {
-        seekTimer.current = null;
-        track('audio_seek', { ...ctx, seek_to: Math.round(el.currentTime) });
-      }, 500);
+      seekTimer.current = setTimeout(sendSeek, 500);
+    };
+
+    // A seek in the last half second before the visitor leaves would otherwise
+    // sit in the timer and die with the page.
+    const flushSeek = () => {
+      if (!seekTimer.current) return;
+      clearTimeout(seekTimer.current);
+      sendSeek();
     };
 
     el.addEventListener('play', onPlay);
     el.addEventListener('timeupdate', onTimeUpdate);
     el.addEventListener('ended', onEnded);
     el.addEventListener('seeked', onSeeked);
+    window.addEventListener('pagehide', flushSeek);
     return () => {
       el.removeEventListener('play', onPlay);
       el.removeEventListener('timeupdate', onTimeUpdate);
       el.removeEventListener('ended', onEnded);
       el.removeEventListener('seeked', onSeeked);
-      if (seekTimer.current) clearTimeout(seekTimer.current);
+      window.removeEventListener('pagehide', flushSeek);
+      // Navigating away mid-debounce: send it rather than drop it.
+      flushSeek();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, meta.slug]);
