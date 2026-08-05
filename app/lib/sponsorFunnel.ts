@@ -30,7 +30,11 @@ import { track, once } from './analytics';
 // Part 1 enumerates these four.
 export type CtaLocation = 'hero' | 'pricing' | 'inline' | 'footer';
 
-export function trackSponsorCtaClick(ctaLabel: string, location: CtaLocation): void {
+// Typed like the locations rather than left as a free string, so labels cannot
+// drift into three spellings of the same button across call sites.
+export type CtaLabel = 'request_a_sponsorship' | 'view_pricing';
+
+export function trackSponsorCtaClick(ctaLabel: CtaLabel, location: CtaLocation): void {
   track('sponsor_cta_click', { cta_label: ctaLabel, cta_location: location });
 }
 

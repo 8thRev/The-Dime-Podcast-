@@ -29,8 +29,6 @@ export function useReadTracking(
   transcriptRef: RefObject<HTMLElement | null>,
   meta: ReadMeta
 ): void {
-  const rafQueued = useRef(false);
-
   useEffect(() => {
     const el = articleRef.current;
     if (!el) return;
@@ -56,11 +54,18 @@ export function useReadTracking(
 
     // Coalesce to one measurement per frame: scroll fires far more often than
     // layout changes, and getBoundingClientRect forces a reflow each time.
+    //
+    // The frame id is kept so cleanup can cancel it. React reuses the same
+    // <article> node between two episode pages, so a frame still queued when a
+    // client-side navigation happens would run after cleanup and measure the new
+    // page's layout while closed over the old page's slug — and _app has just
+    // called resetMilestones(), so the stale key would be re-armed rather than
+    // deduped. That is a read_depth event attributed to the wrong episode.
+    let frame: number | null = null;
     const onScroll = () => {
-      if (rafQueued.current) return;
-      rafQueued.current = true;
-      requestAnimationFrame(() => {
-        rafQueued.current = false;
+      if (frame !== null) return;
+      frame = requestAnimationFrame(() => {
+        frame = null;
         measure();
       });
     };
@@ -104,6 +109,7 @@ export function useReadTracking(
     return () => {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
+      if (frame !== null) cancelAnimationFrame(frame);
       clearInterval(tick);
       observer?.disconnect();
     };
