@@ -11,6 +11,7 @@ import { getAllEpisodes, getEpisodesByTag, getLatestEpisodeNumber } from '@/lib/
 import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema, createWebsiteSchema } from '@/lib/schema';
 import { trackPlatformClick } from '@/lib/platformClicks';
+import { trackVideoOutboundClick } from '@/lib/videoClicks';
 import testimonials from '@/content/testimonials.json';
 import { PODCAST_RATING } from '@/lib/ratings';
 
@@ -256,6 +257,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
               <a
                 key={video.id}
                 href={video.watchUrl}
+                onClick={() => trackVideoOutboundClick(video, 'home_video_shelf')}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ flexShrink: 0, width: 280, textDecoration: 'none', color: 'inherit', display: 'block' }}

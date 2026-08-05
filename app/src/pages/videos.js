@@ -7,6 +7,7 @@ import SeoHead from '@/src/components/SeoHead';
 import { getAllVideos } from '@/lib/youtube';
 import { createCollectionPageSchema } from '@/lib/schema';
 import { trackPlatformClick } from '@/lib/platformClicks';
+import { useSearchTracking, trackSearchResultClick } from '@/lib/useSearchTracking';
 
 export default function Videos({ allVideos }) {
   const [query, setQuery] = useState('');
@@ -16,6 +17,11 @@ export default function Videos({ allVideos }) {
     v.description.toLowerCase().includes(query.toLowerCase()) ||
     v.tags.some((t) => t.toLowerCase().includes(query.toLowerCase()))
   );
+
+  // One search event per pause in typing (docs/analytics-spec.md Part 2.10).
+  // 'video_library' is what separates these from the episode archive's searches
+  // in the search_location dimension.
+  useSearchTracking(query, filtered.length, 'video_library');
 
   const collectionSchema = createCollectionPageSchema(
     {
@@ -73,10 +79,11 @@ export default function Videos({ allVideos }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24, marginBottom: 60 }}>
-          {filtered.map((v) => (
+          {filtered.map((v, i) => (
             <Link
               key={v.slug}
               href={`/videos/${v.slug}`}
+              onClick={() => trackSearchResultClick(query, i, v.slug, 'video_library')}
               style={{ textDecoration: 'none', color: 'inherit', transition: 'transform .15s', cursor: 'pointer', display: 'block' }}
               onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}

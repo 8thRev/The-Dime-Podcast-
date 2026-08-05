@@ -11,6 +11,7 @@ import { getAllVideos, getVideoBySlug } from '@/lib/youtube';
 import { createVideoObjectSchema } from '@/lib/schema';
 import { getEpisodeSlugForVideo } from '@/lib/videoEpisodeMap';
 import { getEpisodeBySlug } from '@/lib/rss';
+import { trackVideoOutboundClick } from '@/lib/videoClicks';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
@@ -218,6 +219,7 @@ export default function VideoPage({ video, relatedVideos, linkedEpisode = null }
 
           <Link
             href={video.watchUrl}
+            onClick={() => trackVideoOutboundClick(video, 'video_page')}
             target="_blank"
             rel="noopener noreferrer"
             style={{

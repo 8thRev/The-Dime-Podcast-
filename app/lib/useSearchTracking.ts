@@ -1,7 +1,9 @@
 // lib/useSearchTracking.ts
-// Archive search tracking. /episodes filters all 306 episodes client side, and
-// GA4's built-in site search only reads URL query parameters on a pageview, so
-// view_search_results has never fired for it. See docs/analytics-spec.md 2.4.
+// Client-side search tracking, shared by both search boxes on the site.
+// /episodes filters all 306 episodes and /videos all 288 videos in the browser,
+// and GA4's built-in site search only reads URL query parameters on a pageview,
+// so view_search_results has never fired for either. See docs/analytics-spec.md
+// 2.4 and 2.10.
 //
 // Unlike the spec's version this does not also rewrite the URL: episodes.js
 // already syncs ?q= on every keystroke through a shallow router.replace, which
@@ -11,11 +13,23 @@
 // stale ?q= behind when the box is cleared. Reading ?q= back on mount is also
 // already handled there.
 //
+// /videos does neither — it has no ?q= sync and does not rehydrate from one.
+// That is left alone rather than made to match: the ?q= URLs exist on /episodes
+// to satisfy the SearchAction JSON-LD (lib/schema.ts), which targets /episodes
+// only, and adding a crawlable query surface to /videos is a product decision,
+// not an analytics one. The consequence here is simply that the seeded-query
+// guard below never fires on /videos, which is correct — every query on that
+// page really was typed by someone.
+//
 // The parameter strings here are registered GA4 custom dimensions and are a
 // fixed contract; renaming one empties the dimension silently (Part 1).
 
 import { useEffect, useRef } from 'react';
 import { track } from './analytics';
+
+// The dimension exists precisely to tell the two placements apart, so it is a
+// union like the other location parameters rather than a free string.
+export type SearchLocation = 'episodes_archive' | 'video_library';
 
 const MIN_LENGTH = 3;
 const DEBOUNCE_MS = 800;
@@ -46,7 +60,7 @@ let flushPendingSearch: (() => void) | null = null;
 export function useSearchTracking(
   term: string,
   resultsCount: number,
-  location = 'episodes_archive'
+  location: SearchLocation = 'episodes_archive'
 ): void {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // The query the page was loaded with, read here rather than from props because
@@ -106,9 +120,19 @@ export function useSearchTracking(
   }, [term, resultsCount, location]);
 }
 
-/** Fired when a result is clicked while a query is active, so the archive's
- *  useful queries can be told apart from the ones that go nowhere. */
-export function trackSearchResultClick(term: string, index: number, episodeSlug: string): void {
+/** Fired when a result is clicked while a query is active, so a placement's
+ *  useful queries can be told apart from the ones that go nowhere.
+ *
+ *  Both placements need this, not just for the click count: settling the
+ *  pending search is what stops a converting query from being lost. Clicking a
+ *  result inside the 800ms window navigates client side and unmounts the page,
+ *  and the hook's cleanup deliberately does not flush. */
+export function trackSearchResultClick(
+  term: string,
+  index: number,
+  slug: string,
+  location: SearchLocation = 'episodes_archive'
+): void {
   // Settle the debounced search first, so the click cannot arrive without the
   // query that produced it when someone clicks inside the debounce window.
   flushPendingSearch?.();
@@ -117,6 +141,12 @@ export function trackSearchResultClick(term: string, index: number, episodeSlug:
   track('search_result_click', {
     search_term: q,
     result_position: index + 1,
-    episode_slug: episodeSlug,
+    search_location: location,
+    // The slug goes to the dimension matching what was actually clicked.
+    // episode_slug must never hold a video slug: it is the join key between
+    // audio, read-depth and platform events, and a video slug in it would
+    // silently corrupt every one of those reports.
+    episode_slug: location === 'episodes_archive' ? slug : undefined,
+    video_slug: location === 'video_library' ? slug : undefined,
   });
 }
