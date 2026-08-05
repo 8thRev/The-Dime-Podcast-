@@ -296,7 +296,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos, guest
             550-650 WORDS. ONE IDEA. NO FLUFF. FREE.<br />
             NO SPONSORSHIP CONTENT. NO PARTNER PROMOTIONS.
           </p>
-          <ConvertKitEmbed />
+          <ConvertKitEmbed location="home_hero" />
           <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 14 }}>
             Operator intelligence only. Unsubscribe anytime.
           </p>

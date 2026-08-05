@@ -1,4 +1,5 @@
 import Script from 'next/script';
+import { useNewsletterSignupTracking } from '@/lib/newsletterSignup';
 
 // Official Kit (ConvertKit) "First Principles" inline form embed.
 // Copied verbatim from Settings > Landing Pages & Forms > Embed on kit.com
@@ -57,7 +58,11 @@ const FORM_STYLE = `
   [data-uid="101112441d"] .formkit-alert-error { color: var(--text-secondary); background: var(--navy2); border-color: var(--border); }
 `;
 
-export default function ConvertKitEmbed() {
+// `location` names the placement for GA4's signup_location dimension and must be
+// one of the four values Part 1 enumerates (see lib/newsletterSignup.ts).
+export default function ConvertKitEmbed({ location = 'newsletter_page', episodeSlug }) {
+  useNewsletterSignupTracking(location, episodeSlug);
+
   return (
     <>
       <Script id="convertkit-loader" src="https://f.convertkit.com/ckjs/ck.6.js" strategy="afterInteractive" />
