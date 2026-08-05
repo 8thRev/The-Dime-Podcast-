@@ -525,7 +525,7 @@ Key events cannot be starred until the event has fired at least once. Roughly 24
 
 Audiences worth building:
 
-- **Deep Listeners:** `audio_progress` where `percent_played >= 50`, last 30 days. This is the number you quote to sponsors.
+- **Deep Listeners:** `audio_progress` where `percent_played >= 50`, last 30 days. This is the number you quote to sponsors. Note what it means as implemented: `percent_played` is *position reached while playing*, not time listened — same semantics as GA4's own `video_progress`. Someone who presses play and scrubs to 60% books the 50% milestone. Pure scrub-browsing with the player paused books nothing, but "reached halfway" is the honest phrasing, not "listened to half."
 - **Sponsor Intent:** viewed `/sponsorship` or fired `sponsor_cta_click`, last 90 days, excluding submitters.
 - **Committed Audience:** fired `newsletter_signup` or `platform_subscribe_click`.
 - **Researchers:** 3+ `search` events or 3+ episode views in a session.
