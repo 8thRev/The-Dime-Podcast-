@@ -482,12 +482,3 @@ export async function getEpisodeBySlug(slug: string): Promise<Episode | null> {
   const episodes = await getAllEpisodes();
   return episodes.find((ep) => ep.slug === slug || ep.legacySlug === slug) || null;
 }
-
-export async function getEpisodesByTag(tag: string): Promise<Episode[]> {
-  const episodes = await getAllEpisodes();
-  return episodes.filter((ep) =>
-    ep.tags.some((t) => t.toLowerCase().includes(tag.toLowerCase())) ||
-    ep.title.toLowerCase().includes(tag.toLowerCase()) ||
-    ep.showNotes.toLowerCase().includes(tag.toLowerCase())
-  );
-}
