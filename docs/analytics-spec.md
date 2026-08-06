@@ -33,7 +33,25 @@ Three events named in Part 3 have no Part 2 section and no code: `topic_filter`
 (no topic filter control exists), `episode_share` (Part 3 says "add if absent" —
 still absent) and `guest_inquiry_submit` (blocked on the form in Part 5.3).
 
-Everything in Parts 5 and 6 remains outstanding.
+Part 5 remains outstanding — it is owner action, not repo work.
+
+All eight gaps in Part 6.2 are implemented on branch `seo-geo-part6`.
+
+| Gap | State | Where it lives | Departure from this doc |
+|---|---|---|---|
+| 1 llms.txt split | Shipped | `app/lib/llms.js`, `src/pages/llms.txt.js`, `llms-full.txt.js` | Index carries the **12** most recent essays, not all 32 — this doc predates the First Principles archive, and all 32 cost 13.7KB of a 20KB budget. Descriptions capped at 200 chars: the AI summaries average 773, which is a paragraph, not the one-line description the convention asks for. Result: 17.9KB index, 699KB full. |
+| 2 llms.txt staleness | Not a real gap | — | The "304 vs 306" was a stale CDN copy (`s-maxage=3600`), not a build artifact. It has always regenerated per request from live RSS. **Moving generation into the build, as this doc instructs, would make it staler** — it would then only update on deploy. Left server-rendered; the count now reads `episodes.length`, which matches the list below it. |
+| 3 robots.txt crawlers | Shipped | `app/next-sitemap.config.js` | All 7 added, plus `Claude-User` and `Claude-SearchBot`. Split into retrieval vs training groups in the source — the distinction decides whether we earn a citation or only training weight. `llms.txt`/`llms-full.txt` referenced in a trailing comment. |
+| 4 Video transcripts | Shipped | `app/src/pages/videos/[slug].js` | Renders the transcript (the doc's first option). FAQPage schema stays exclusive to the episode page — two URLs claiming the same Q&A is the duplication Google actually collapses. **"You already have every transcript" is false**: 112 of 287 video pages get one, capped by transcript coverage (116 of 304 episodes), not by this work. |
+| 5 VideoObject schema | Shipped | `app/lib/schema.ts`, `app/lib/chapters.ts` | `hasPart`/`Clip` parsed from the description chapter lists (263 of 287 have one), not from `raw_captions_srt` — captions have timings but no section names. Chapters also render visibly, since schema must describe what is on the page. `Clip.url` must share the video page's own path — a youtube.com watch URL, which is the obvious choice since it seeks natively, makes the whole `hasPart` array ineligible — so the clips point at `/videos/<slug>?t=N` and the page reads `?t=` to start the embed there. `interactionStatistic` is wired but **inert until the next catalogue run** — `videos.json` stores `"1.2K views"`, and a real number (`viewCountRaw`) only lands from the next `video-catalog.yml` run. |
+| 6 Video sitemap | Shipped | `app/next-sitemap.config.js` | 287 `<video:video>` entries. `player_loc`, not `content_loc` — we have an embed, not an MP4. Descriptions truncated to the 2048-char limit; 235 of 287 exceeded it and would have been rejected whole. Also gives video URLs a real `lastmod`, closing that `SEO_ROADMAP.md` item with no API call. |
+| 7 Topic hub CollectionPage | Shipped | `app/src/pages/topics/[topic].js` | Episodes only in the `ItemList`, not the essays also rendered on the page — one ItemList, one type, one ordering. |
+| 8 On-site RSS | Shipped | `app/lib/feed.js`, `src/pages/rss.xml.js`, `newsletter/rss.xml.js` | Two feeds, not one: `/rss.xml` (50 newest episodes) and `/newsletter/rss.xml` (all 32 essays). `/feed` and `/feed.xml` 301 to `/rss.xml` rather than serving copies. No `<enclosure>` anywhere — these link to pages and must never be mistaken for the Simplecast audio feed. `verify-site.mjs` asserts that. |
+
+Part 6.3's autopilot table was already satisfied except for the rows above:
+`Article` schema on the essays, and the episode ↔ video ↔ guest ↔ topic link
+graph, both shipped earlier (see `SEO_ROADMAP.md`). 6.4 is GA4 admin — owner
+action, same category as Part 5.
 
 ---
 

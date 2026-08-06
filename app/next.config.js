@@ -68,7 +68,17 @@ const nextConfig = {
       })),
     ];
 
-    return [...hostRedirects, ...slugRedirects];
+    // The two other paths readers and aggregators habitually try for a feed.
+    // Redirecting rather than serving copies keeps one canonical feed URL:
+    // three URLs serving byte-identical RSS means three stored subscriptions
+    // to the same content and a self-competing <atom:link rel="self">.
+    const feedAliases = ['/feed', '/feed.xml'].map((source) => ({
+      source,
+      destination: '/rss.xml',
+      statusCode: 301,
+    }));
+
+    return [...hostRedirects, ...slugRedirects, ...feedAliases];
   },
 
   async headers() {

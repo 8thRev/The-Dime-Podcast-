@@ -260,21 +260,72 @@ export function createVideoObjectSchema(
     publishedAt: string;
     duration: string;
     durationISO?: string;
+    viewCountRaw?: number;
     id: string;
   },
-  siteUrl: string = "https://www.dimepodcast.com"
+  siteUrl: string = "https://www.dimepodcast.com",
+  options: {
+    /** Chapter markers from the video description — see lib/chapters.ts. */
+    chapters?: { name: string; startOffset: number; endOffset: number }[];
+    /** Full transcript text for this conversation, when one exists. */
+    transcript?: string;
+  } = {}
 ): SchemaMarkup {
-  return {
+  const url = `${siteUrl}/videos/${video.slug}`;
+  const schema: SchemaMarkup = {
     "@context": "https://schema.org",
     "@type": "VideoObject",
     name: video.title,
     description: video.description,
-    url: `${siteUrl}/videos/${video.slug}`,
+    url,
     thumbnailUrl: video.thumbnail,
     uploadDate: video.publishedAt,
     duration: video.durationISO || video.duration,
     embedUrl: `https://www.youtube.com/embed/${video.id}`,
+    publisher: {
+      "@type": "Organization",
+      name: "The Dime Podcast",
+      url: siteUrl,
+    },
   };
+
+  // Key moments. Google requires each Clip's url to be the video's own URL
+  // plus a time parameter — a cross-origin link (the youtube.com watch URL,
+  // which is the obvious choice since it seeks natively) makes the whole
+  // hasPart array ineligible. So these point back at this page, and
+  // videos/[slug].js reads ?t= and starts the embed there.
+  if (options.chapters?.length) {
+    schema.hasPart = options.chapters.map((chapter) => ({
+      "@type": "Clip",
+      name: chapter.name,
+      startOffset: chapter.startOffset,
+      endOffset: chapter.endOffset,
+      url: `${url}?t=${chapter.startOffset}`,
+    }));
+  }
+
+  // The transcript property, not `text`: `text` is the page's own body copy,
+  // while `transcript` states specifically that this is a transcription of
+  // the video's audio. Only set when the page actually renders it — claiming
+  // a transcript in JSON-LD that no visitor can see is cloaking.
+  if (options.transcript) {
+    schema.transcript = options.transcript;
+  }
+
+  // Guarded on a real number rather than the "51 views" / "1.2K views" display
+  // string the catalogue also carries: parsing that back would turn 1,249 into
+  // a confidently wrong 1,200. `viewCountRaw` is populated by
+  // lib/videoCatalog.mjs; videos catalogued before that field existed simply
+  // omit this node until the next scheduled catalogue refresh.
+  if (typeof video.viewCountRaw === "number" && video.viewCountRaw > 0) {
+    schema.interactionStatistic = {
+      "@type": "InteractionCounter",
+      interactionType: { "@type": "WatchAction" },
+      userInteractionCount: video.viewCountRaw,
+    };
+  }
+
+  return schema;
 }
 
 export function createPodcastSchema(

@@ -166,6 +166,13 @@ async function fetchVideoDetails(auth, ids) {
           duration: formatDuration(item.contentDetails.duration),
           durationISO: item.contentDetails.duration,
           viewCount: formatViews(item.statistics?.viewCount || "0"),
+          // The unrounded count, kept alongside the display string because
+          // VideoObject's interactionStatistic needs a real number and
+          // formatViews() is lossy above 1,000 ("1.2K views"). Creators can
+          // hide view counts, in which case statistics.viewCount is absent
+          // and this is 0 — the schema builder omits the node rather than
+          // publishing a zero-view claim.
+          viewCountRaw: parseInt(item.statistics?.viewCount || "0", 10) || 0,
           embedUrl: `https://www.youtube.com/embed/${item.id}?autoplay=1&rel=0&color=white`,
           watchUrl: `https://www.youtube.com/watch?v=${item.id}`,
           tags: item.snippet.tags?.slice(0, 6) || [],

@@ -1,19 +1,33 @@
 // src/pages/videos/[slug].js
 // Dynamic video detail page
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Script from 'next/script';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
+import AIDisclosure from '@/src/components/AIDisclosure';
 import { getAllVideos, getVideoBySlug } from '@/lib/youtube';
 import { createVideoObjectSchema } from '@/lib/schema';
 import { getEpisodeSlugForVideo } from '@/lib/videoEpisodeMap';
 import { getEpisodeBySlug } from '@/lib/rss';
+import { getTranscriptBySlug } from '@/lib/transcripts';
+import { parseChapters } from '@/lib/chapters';
 import { trackVideoOutboundClick } from '@/lib/videoClicks';
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
+
+// Seconds -> the h:mm:ss / m:ss form YouTube itself uses for chapter labels.
+function formatOffset(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
+}
 
 export async function getStaticPaths() {
   const videos = await getAllVideos();
@@ -70,25 +84,67 @@ export async function getStaticProps({ params }) {
   // yet or this upload has no confident episode match.
   const episodeSlug = getEpisodeSlugForVideo(video.id);
   let linkedEpisode = null;
+  let transcript = null;
   if (episodeSlug) {
     const ep = await getEpisodeBySlug(episodeSlug);
     if (ep) {
       linkedEpisode = { slug: ep.slug, title: ep.title, num: ep.num };
     }
+
+    // The same conversation's transcript, rendered here as well as on the
+    // episode page. These pages were ~3,500 words against the episode page's
+    // ~15,800 — the thin half of a pair where the video page is the one that
+    // ranks for watch intent.
+    //
+    // Two URLs carrying the same transcript is deliberate, not an oversight.
+    // They are not competing duplicates: each is self-canonical, they link to
+    // each other in server HTML, and they answer different intents (watch vs
+    // read/listen). What is NOT duplicated is the FAQ — its FAQPage schema
+    // stays exclusive to the episode page, because two URLs claiming the same
+    // Q&A pairs is the case Google actually collapses.
+    //
+    // Only the fields this page renders: `cleaned_transcript` alone is ~90KB
+    // per episode, and passing the whole record would ship takeaways, quotes,
+    // entities and raw_captions_srt into __NEXT_DATA__ unrendered — the
+    // payload trap documented in SEO_ROADMAP.md.
+    const full = getTranscriptBySlug(episodeSlug);
+    if (full?.cleaned_transcript) {
+      transcript = {
+        summary: full.summary || '',
+        cleaned_transcript: full.cleaned_transcript,
+      };
+    }
   }
+
+  // Key moments for the VideoObject schema, read from the chapter list in the
+  // upload's own description (263 of 287 have one).
+  const chapters = parseChapters(video.description, video.durationISO);
 
   return {
     props: {
       video,
       relatedVideos,
       linkedEpisode,
+      transcript,
+      chapters,
     },
     revalidate: 3600,
   };
 }
 
-export default function VideoPage({ video, relatedVideos, linkedEpisode = null }) {
-  const schema = createVideoObjectSchema(video);
+export default function VideoPage({
+  video,
+  relatedVideos,
+  linkedEpisode = null,
+  transcript = null,
+  chapters = [],
+}) {
+  const schema = createVideoObjectSchema(video, undefined, {
+    chapters,
+    // Passed only when the page renders it below, so the JSON-LD never claims
+    // a transcript a visitor cannot see.
+    transcript: transcript?.cleaned_transcript,
+  });
 
   // enablejsapi=1 is what GA4's video enhanced measurement needs to see: it
   // hooks the iframe through the YouTube API and then emits video_start,
@@ -113,9 +169,27 @@ export default function VideoPage({ video, relatedVideos, linkedEpisode = null }
   // visitors based on media engagement, so the effect would be uneven and the
   // resulting numbers uninterpretable rather than merely inflated. Playback now
   // starts on a click, which is what video_start should mean.
+  // ?t=<seconds> starts the embed at that offset. This is what makes the Clip
+  // key-moment URLs in the JSON-LD real: they have to point at this page (a
+  // cross-origin clip URL is ineligible), so this page has to honour them.
+  //
+  // Read in an effect rather than straight from router.query because these
+  // pages are statically generated — the server renders no query string, so
+  // using it during render would produce a hydration mismatch. Keyed on the
+  // value so an in-page chapter click, which is a shallow client-side
+  // navigation with no remount, still moves the player.
+  const router = useRouter();
+  const [startAt, setStartAt] = useState(0);
+  useEffect(() => {
+    if (!router.isReady) return;
+    const seconds = Number.parseInt(router.query.t, 10);
+    setStartAt(Number.isFinite(seconds) && seconds > 0 ? seconds : 0);
+  }, [router.isReady, router.query.t]);
+
   const embedSrc =
     `https://www.youtube.com/embed/${video.id}` +
-    `?enablejsapi=1&rel=0&color=white`;
+    `?enablejsapi=1&rel=0&color=white` +
+    (startAt > 0 ? `&start=${startAt}` : '');
 
   return (
     <>
@@ -243,6 +317,70 @@ export default function VideoPage({ video, relatedVideos, linkedEpisode = null }
             Watch on YouTube
           </Link>
         </section>
+
+        {/* Chapters, rendered because the hasPart/Clip nodes in this page's
+            JSON-LD assert they exist. Structured data is meant to describe
+            what is on the page; a key-moments list that appears only in the
+            markup is the mismatch Google's own guidance calls out.
+            Each entry links to this page with ?t=, the same URL the Clip
+            nodes carry, which the effect above turns into a player start
+            offset. Shallow so the transcript below does not re-render. */}
+        {chapters.length > 0 && (
+          <section style={{ marginBottom: '80px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Chapters
+            </h2>
+            <ol style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {chapters.map((chapter) => (
+                <li key={chapter.startOffset} style={{ marginBottom: '10px', display: 'flex', gap: '16px', alignItems: 'baseline' }}>
+                  <Link
+                    href={`/videos/${video.slug}?t=${chapter.startOffset}`}
+                    scroll={false}
+                    shallow
+                    className="mono"
+                    style={{ fontSize: '12px', color: 'var(--text-accent)', textDecoration: 'none', flexShrink: 0, minWidth: '56px' }}
+                  >
+                    {formatOffset(chapter.startOffset)}
+                  </Link>
+                  <span style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--text-secondary)' }}>
+                    {chapter.name}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
+        {transcript?.summary && (
+          <section style={{ marginBottom: '56px' }}>
+            <AIDisclosure />
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Summary
+            </h2>
+            <p style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-secondary)' }}>
+              {transcript.summary}
+            </p>
+          </section>
+        )}
+
+        {transcript?.cleaned_transcript && (
+          <section style={{ marginBottom: '80px' }}>
+            <AIDisclosure />
+            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
+              Full Transcript
+            </h2>
+            <div
+              style={{
+                fontSize: '14px',
+                lineHeight: '1.8',
+                color: 'var(--text-secondary)',
+                whiteSpace: 'pre-wrap',
+              }}
+            >
+              {transcript.cleaned_transcript}
+            </div>
+          </section>
+        )}
 
         {relatedVideos.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
