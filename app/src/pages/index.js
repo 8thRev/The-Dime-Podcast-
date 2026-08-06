@@ -7,7 +7,7 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import Testimonials from '@/src/components/Testimonials';
-import { getAllEpisodes, getEpisodesByTag, getLatestEpisodeNumber } from '@/lib/rss';
+import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
 import { createPodcastSchema, createWebsiteSchema } from '@/lib/schema';
 import { trackPlatformClick } from '@/lib/platformClicks';
