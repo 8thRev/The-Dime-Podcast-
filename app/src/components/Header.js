@@ -8,6 +8,10 @@ const NAV = [
   { label: 'Newsletter', href: '/newsletter' },
   { label: 'Guests', href: '/guests' },
   { label: 'About', href: '/about' },
+  // The site's only commercial page. It lived in the footer alone, which meant
+  // the highest-intent page was reachable only by scrolling to the bottom of
+  // something else.
+  { label: 'Sponsor', href: '/sponsorship' },
 ];
 
 export default function Header() {

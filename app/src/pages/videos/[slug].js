@@ -206,19 +206,19 @@ export default function VideoPage({
       <Header />
 
       <article style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
-        <Link href="/videos" style={{ color: 'var(--mid)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
+        <Link href="/videos" style={{ color: 'var(--text-secondary)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
           ← All Videos
         </Link>
 
         <header style={{ marginBottom: '48px' }}>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.date}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.duration}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
               {video.viewCount}
             </span>
           </div>
@@ -235,8 +235,8 @@ export default function VideoPage({
                   className="mono"
                   style={{
                     fontSize: '10px',
-                    color: 'var(--teal)',
-                    border: '1px solid var(--teal)',
+                    color: 'var(--text-accent)',
+                    border: '1px solid var(--text-accent)',
                     padding: '4px 12px',
                   }}
                 >
@@ -271,23 +271,23 @@ export default function VideoPage({
 
         {linkedEpisode && (
           <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '20px', borderRadius: '4px' }}>
-            <div className="mono" style={{ marginBottom: '8px', fontSize: '10px', fontWeight: '700', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--muted)' }}>
+            <div className="mono" style={{ marginBottom: '8px', fontSize: '10px', fontWeight: '700', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
               Episode {linkedEpisode.num}
             </div>
             <Link
               href={`/episodes/${linkedEpisode.slug}`}
-              style={{ color: 'var(--teal)', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}
+              style={{ color: 'var(--text-accent)', textDecoration: 'none', fontWeight: 600, fontSize: '16px' }}
             >
               Full episode, transcript &amp; show notes →
             </Link>
-            <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--mid)', fontFamily: 'Georgia, serif' }}>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontFamily: 'Georgia, serif' }}>
               {linkedEpisode.title}
             </div>
           </section>
         )}
 
         <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--mid)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
             {video.description}
           </p>
 
@@ -300,8 +300,8 @@ export default function VideoPage({
               display: 'inline-block',
               marginTop: '24px',
               padding: '12px 32px',
-              background: 'var(--teal)',
-              color: 'var(--navy)',
+              background: 'var(--btn-primary-bg)',
+              color: 'var(--btn-primary-text)',
               textDecoration: 'none',
               fontFamily: "'Syne', sans-serif",
               fontSize: '11px',
@@ -384,7 +384,7 @@ export default function VideoPage({
 
         {relatedVideos.length > 0 && (
           <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border)' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--muted)' }}>
+            <h2 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
               More Videos
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '24px' }}>
@@ -411,7 +411,7 @@ export default function VideoPage({
                   <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', fontFamily: 'Georgia, serif', lineHeight: 1.3 }}>
                     {v.title}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--muted)', fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: "'Syne', sans-serif" }}>
                     {v.date}
                   </div>
                 </Link>

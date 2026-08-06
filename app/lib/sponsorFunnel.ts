@@ -13,13 +13,17 @@
 //    to selects is a product decision, not an analytics one. Only
 //    company_provided goes out — a boolean, never the company string.
 //
-// 2. There is no server submit to succeed or fail. The spec expects a same-origin
-//    POST to /sponsorship; the page actually builds a mailto: URL and hands off
-//    to the visitor's mail client. So "submit success" can only mean "the form
-//    validated and the mail client was handed the draft". Whether the visitor
-//    then presses send is unobservable from here, so this event necessarily
-//    overcounts against inquiries actually received. Worth knowing before it is
-//    quoted as a conversion rate: reconcile it against the inbox.
+// 2. There IS a server submit now, and this event only fires when it succeeds.
+//    The form POSTs to /api/sponsor-inquiry and trackSponsorInquirySubmit is
+//    called on a 2xx, so the count is inquiries actually delivered rather than
+//    mail drafts handed off. It no longer needs reconciling against the inbox.
+//
+//    Two cases deliberately do NOT fire it: a honeypot hit (the API answers
+//    200 with `filtered: true` so bots are not counted as leads), and the
+//    mailto fallback taken when the transport fails — that path fires
+//    sponsor_form_fallback instead, because whether the visitor then presses
+//    send is unobservable. If fallback volume is material, RESEND_API_KEY is
+//    probably unset in the deployment environment.
 //
 // Firing still happens after validation, not on click — the fields carry
 // `required`, so the browser blocks submit and the handler never runs until the
