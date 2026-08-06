@@ -10,6 +10,8 @@
 // above; the block collapses to a labelled credit line so the page doesn't
 // repeat the same pitch twice.
 
+import Link from 'next/link';
+
 import { SPONSOR_NAME, SPONSOR_CTA_URL, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
 
 const linkStyle = {
@@ -24,6 +26,16 @@ const eyebrowStyle = {
   letterSpacing: '.2em',
   textTransform: 'uppercase',
   color: 'var(--text-muted)',
+};
+
+// Episode pages are the highest-intent surface on the site for selling a
+// sponsorship — a reader here is already consuming the product. The slot
+// advertised the current sponsor and gave no one a way to buy the next one.
+const availabilityStyle = {
+  fontSize: '12px',
+  color: 'var(--text-muted)',
+  textDecoration: 'none',
+  borderBottom: '1px dotted var(--border-strong)',
 };
 
 export default function SponsorSlot({ slug, compact = false }) {
@@ -48,6 +60,12 @@ export default function SponsorSlot({ slug, compact = false }) {
         <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '14px' }}>
           {anchor} →
         </a>
+        {/* Not "this slot is available" in compact mode — this variant renders
+            on the same line as the current sponsor credit, so it would read as
+            a contradiction. */}
+        <Link href="/sponsorship" className="mono" style={availabilityStyle}>
+          Sponsor a future episode →
+        </Link>
       </aside>
     );
   }
@@ -71,6 +89,11 @@ export default function SponsorSlot({ slug, compact = false }) {
       <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '15px' }}>
         {anchor} →
       </a>
+      <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
+        <Link href="/sponsorship" className="mono" style={availabilityStyle}>
+          This slot is available on upcoming episodes →
+        </Link>
+      </div>
     </aside>
   );
 }
