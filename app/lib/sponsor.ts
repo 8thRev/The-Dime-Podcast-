@@ -30,10 +30,14 @@
 //      the product; a demo form is a high-commitment ask for someone who just
 //      heard the company's name for the first time.
 
+import { UTM, withUtm } from "./utm";
+
 export const SPONSOR_NAME = "Newton Insights";
 
 // Canonical org URL. Matches the @id the Newton site emits for its own
-// Organization node, so the two sites' JSON-LD graphs join up.
+// Organization node, so the two sites' JSON-LD graphs join up. Both of these
+// stay untagged deliberately — they feed JSON-LD (lib/schema.ts), where a
+// tracking param would break entity reconciliation against Newton's own graph.
 export const SPONSOR_URL = "https://www.newton-insights.com/";
 export const SPONSOR_ORG_ID = "https://www.newton-insights.com/#organization";
 
@@ -46,10 +50,14 @@ export const SPONSOR_ORG_ID = "https://www.newton-insights.com/#organization";
 // show-notes links already use, so GA4 reporting stays continuous; the distinct
 // medium and campaign separate this templated slot from those hand-written reads.
 //
-// No SEO cost: Newton's homepage serves a self-referencing canonical, so the
-// parameterized URL consolidates into the clean one.
-export const SPONSOR_CTA_URL =
-  "https://www.newton-insights.com/?utm_source=Thedime&utm_medium=referral&utm_campaign=episode_sponsor";
+// utm_content carries the episode slug, so Newton can tell which episodes
+// actually drive traffic instead of seeing one undifferentiated
+// "episode_sponsor" bucket. No SEO cost from the one-parameterized-URL-per-
+// episode this produces: Newton's homepage serves a self-referencing canonical,
+// so they all consolidate into the clean one.
+export function sponsorCtaUrl(slug: string): string {
+  return withUtm(SPONSOR_URL, { ...UTM.sponsorSlot, content: slug });
+}
 
 // Brand-led anchors. Now that this points at the homepage, the mix is deliberately
 // weighted toward the company name rather than commercial keywords — that is both

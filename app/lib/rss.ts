@@ -2,6 +2,7 @@
 // Fetches and parses The Dime RSS feed from Simplecast at build time.
 
 import Parser from "rss-parser";
+import { UTM, tagHtmlLinks, withUtm } from "./utm";
 
 const FEED_URL = "https://feeds.simplecast.com/Vnrz0StH";
 
@@ -410,6 +411,67 @@ function normalizeCohostName(html: string): string {
     .replace(/\bKellan Finn\b(?![ey])/g, "Kellan Finney");
 }
 
+// Paths on the Eighth Revolution domains that 404 at the origin. Verified
+// 2026-08-06: eighthrevolution.com and 8threv.com resolve to an AWS load
+// balancer (`Server: awselb/2.0`), not this deployment. That origin 301s its
+// own root to dimepodcast.com but 404s every deeper path, so the host rules in
+// next.config.js never fire and cannot repair these — see the note there.
+//
+// The damage was sitewide: /the-dime/ is in the show-notes boilerplate of all
+// 304 episodes, and the two /monthly-report/ links are on ~216 each. Every
+// episode page was rendering at least one dead outbound link, most three.
+//
+// The two cases are handled differently, because the copy around them differs.
+//
+// UNLINK — "At Eighth Revolution (8th Rev), we provide services from capital to
+// cannabinoid…" is descriptive credit copy. It reads perfectly as prose with no
+// link, so the anchor is stripped and the sentence kept. The bare domain root is
+// deliberately absent from this list — it still resolves (301 → dimepodcast.com).
+const DEAD_UNLINK_PATTERNS = [/(?:www\.)?eighthrevolution\.com\/the-dime(?:-podcast)?\b/i];
+
+// RETARGET — "Sign up for our playbook here:" is a call to action. Unlinking it
+// leaves a sentence promising a link that isn't there, on ~216 pages. The 8th Rev
+// monthly report was superseded by the First Principles newsletter, so these point
+// at its signup instead: the CTA works again and lands somewhere that actually
+// captures the email.
+//
+// Deliberately a site-relative path, not an absolute dimepodcast.com URL. It
+// makes this a true internal link — no cross-origin hop, no redirect — and it
+// keeps working on preview deployments. It also means withUtm leaves it alone
+// (unparseable as an absolute URL, and dimepodcast.com is a never-tag host
+// anyway): tagging an internal link would start a fresh GA4 session and
+// overwrite the visitor's real acquisition source.
+const DEAD_RETARGET = [
+  { pattern: /(?:www\.)?(?:eighthrevolution|8threv)\.com\/monthly-report\b/i, destination: "/newsletter" },
+];
+
+// Rewrites or strips the anchor, keeping its contents either way, so inline
+// markup inside the link text (the boilerplate wraps it in <strong>) survives.
+//
+// Ordering: this must run *after* extractCompanyFromShowNotes, which uses the
+// eighthrevolution.com href as the end-boundary of the "Guest Links" section
+// (see the comment there). Removing these anchors first would strip that
+// boundary and break guest-company detection across a large share of episodes.
+function repairDeadLinks(html: string): string {
+  return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (match, attrs: string, inner: string) => {
+    const href = attrs.match(/href\s*=\s*["']([^"']*)["']/i)?.[1];
+    if (!href) return match;
+
+    const retarget = DEAD_RETARGET.find((r) => r.pattern.test(href));
+    if (retarget) {
+      // Function replacement: a destination containing "$&" would otherwise be
+      // read as a replacement pattern.
+      const rewritten = attrs.replace(
+        /href\s*=\s*["'][^"']*["']/i,
+        () => `href="${retarget.destination}"`
+      );
+      return `<a${rewritten}>${inner}</a>`;
+    }
+
+    return DEAD_UNLINK_PATTERNS.some((re) => re.test(href)) ? inner : match;
+  });
+}
+
 let cachedEpisodes: Episode[] | null = null;
 
 export async function getAllEpisodes(): Promise<Episode[]> {
@@ -426,15 +488,40 @@ export async function getAllEpisodes(): Promise<Episode[]> {
       const companyOverride = GUEST_COMPANY_MAP[guest];
       const autoDetected = companyOverride ? { company: "", companyUrl: "" } : extractCompanyFromShowNotes(showNotesRaw);
       const company = companyOverride?.company || autoDetected.company || extractedCompany;
-      const companyUrl = companyOverride?.companyUrl || autoDetected.companyUrl || "";
       const id = extractSimplecastId(item.guid || "", item.link || "");
       const epNum = item.itunes?.episode || String(feed.items.length - index);
       const tags = item.itunes?.keywords?.split(",").map((k) => k.trim()).filter(Boolean) || [];
-      const showNotes = showNotesRaw;
-      const description = showNotes.replace(/<[^>]+>/g, "").slice(0, 220) + "...";
 
       const fullSlug = slugify(item.title || "");
       const truncatedSlug = fullSlug.slice(0, 80).replace(/-+$/, "");
+
+      // Attribution for the links inside the show notes, applied at build time.
+      // The episode page renders this HTML verbatim, so tagging here covers
+      // every hand-written sponsor read and guest link on the website without
+      // editing every back-catalog episode in Simplecast. Links that already carry utm_
+      // params are left alone by withUtm, so tagging an episode in Simplecast
+      // later takes precedence instead of being double-tagged.
+      //
+      // Ordering matters twice over. extractCompanyFromShowNotes must see the
+      // untagged HTML (it matches boundary hrefs and returns a URL that would
+      // otherwise arrive pre-tagged with the wrong medium), and `description`
+      // is derived from the untagged copy so it is structurally impossible for
+      // a param to reach a meta description — tagHtmlLinks only touches
+      // attribute values, but deriving from showNotesRaw makes that a
+      // guarantee rather than a coincidence.
+      const showNotes = tagHtmlLinks(
+        repairDeadLinks(showNotesRaw),
+        { ...UTM.showNotes, content: fullSlug }
+      );
+      const description = showNotesRaw.replace(/<[^>]+>/g, "").slice(0, 220) + "...";
+
+      // The company link is rendered by the episode and guest pages as their
+      // own element rather than as part of the notes, so it gets the guest_link
+      // campaign to keep it separable from the in-notes links above.
+      const companyUrl = withUtm(
+        companyOverride?.companyUrl || autoDetected.companyUrl || "",
+        { ...UTM.guestLink, content: fullSlug }
+      );
 
       return {
         id,

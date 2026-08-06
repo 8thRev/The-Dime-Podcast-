@@ -10,7 +10,7 @@
 // above; the block collapses to a labelled credit line so the page doesn't
 // repeat the same pitch twice.
 
-import { SPONSOR_NAME, SPONSOR_CTA_URL, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
+import { SPONSOR_NAME, sponsorCtaUrl, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
 
 const linkStyle = {
   color: 'var(--text-accent)',
@@ -28,6 +28,7 @@ const eyebrowStyle = {
 
 export default function SponsorSlot({ slug, compact = false }) {
   const anchor = sponsorAnchorText(slug);
+  const href = sponsorCtaUrl(slug);
 
   if (compact) {
     return (
@@ -45,7 +46,7 @@ export default function SponsorSlot({ slug, compact = false }) {
         <span className="mono" style={eyebrowStyle}>
           Episode Sponsor · {SPONSOR_NAME}
         </span>
-        <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '14px' }}>
+        <a href={href} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '14px' }}>
           {anchor} →
         </a>
       </aside>
@@ -68,7 +69,7 @@ export default function SponsorSlot({ slug, compact = false }) {
       <p style={{ fontSize: '15px', lineHeight: 1.8, color: 'var(--text-secondary)', margin: '0 0 14px' }}>
         {sponsorLeadText(slug)}
       </p>
-      <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '15px' }}>
+      <a href={href} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '15px' }}>
         {anchor} →
       </a>
     </aside>

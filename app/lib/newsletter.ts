@@ -21,6 +21,7 @@ import { remark } from "remark";
 import html from "remark-html";
 import { guestToSlug } from "./guests";
 import { topicToSlug } from "./topicSlug";
+import { UTM, tagHtmlLinks } from "./utm";
 
 export type NewsletterEdition = {
   slug: string;
@@ -218,8 +219,19 @@ export function getEditionsForTopic(topicSlug: string): NewsletterEdition[] {
 
 // Markdown -> HTML. Synchronous because getStaticProps callers already
 // await, and remark's processSync is fine for 600-word documents.
-export function renderMarkdown(body: string): string {
-  return String(remark().use(html, { sanitize: false }).processSync(body));
+//
+// The rendered HTML is passed through tagHtmlLinks so the in-body outbound
+// links carry attribution. These are the highest-intent links on the site —
+// seven of them point at Newton's /benchmark conversion page — and before this
+// they arrived as Direct traffic with no campaign and no rel attribute at all,
+// since remark-html emits a bare <a href>. The markdown files stay clean; the
+// params exist only in the rendered output.
+//
+// `slug` is optional so a caller that renders a fragment without an edition
+// context still gets valid HTML; it only controls utm_content.
+export function renderMarkdown(body: string, slug?: string): string {
+  const rendered = String(remark().use(html, { sanitize: false }).processSync(body));
+  return tagHtmlLinks(rendered, { ...UTM.newsletter, content: slug });
 }
 
 // Projections for list/cross-link contexts. These are allow-lists, not
