@@ -12,7 +12,7 @@
 
 import Link from 'next/link';
 
-import { SPONSOR_NAME, SPONSOR_CTA_URL, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
+import { SPONSOR_NAME, sponsorCtaUrl, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
 
 const linkStyle = {
   color: 'var(--text-accent)',
