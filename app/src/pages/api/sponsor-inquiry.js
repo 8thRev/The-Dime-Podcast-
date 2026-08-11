@@ -9,15 +9,20 @@
 // existed. Every failed submission was an invisible lost sale.
 //
 // The client still falls back to mailto when this route returns non-2xx, so
-// the form is never *worse* than it was: a missing RESEND_API_KEY degrades to
+// the form is never *worse* than it was: an unconfigured transport degrades to
 // exactly the old behaviour rather than swallowing the lead.
 //
-// Deliberately dependency-free — Resend's REST API over fetch, no SDK.
+// Transport moved to lib/sendMail.js, shared with api/guest-inquiry.js. This
+// route shipped Resend-only and RESEND_API_KEY was never set in production, so
+// every sponsorship inquiry since it deployed has been going out as a mailto
+// draft — working, but dependent on the prospect having a mail client. SMTP
+// through Google Workspace is now tried first because dimepodcast.com's MX
+// already points there, so it needs no new vendor and no new DNS.
 
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+import { sendMail } from '@/lib/sendMail';
 
-// Set these in the deployment environment. FROM_ADDRESS must be on a domain
-// verified in Resend or the send is rejected.
+// Set these in the deployment environment. FROM_ADDRESS must be an address the
+// configured transport is allowed to send as.
 const FROM_ADDRESS = process.env.SPONSOR_FROM_ADDRESS || 'The Dime Site <inquiries@dimepodcast.com>';
 const TO_ADDRESS = process.env.SPONSOR_TO_ADDRESS || 'sponsorship@dimepodcast.com';
 
@@ -57,49 +62,37 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
-  // No key configured — tell the client to fall back to mailto rather than
-  // reporting a success we can't back up.
-  if (!process.env.RESEND_API_KEY) {
+  const result = await sendMail(
+    {
+      from: FROM_ADDRESS,
+      to: TO_ADDRESS,
+      // So hitting Reply in the inbox answers the prospect directly.
+      replyTo: email,
+      subject: `Sponsorship inquiry: ${company}`,
+      text: [
+        `Name:    ${name}`,
+        `Company: ${company}`,
+        `Email:   ${email}`,
+        '',
+        'Who are they trying to reach?',
+        targetCustomer || '(not provided)',
+        '',
+        'What should listeners do?',
+        campaignGoal || '(not provided)',
+      ].join('\n'),
+    },
+    'sponsor-inquiry'
+  );
+
+  // No transport configured — tell the client to fall back to mailto rather
+  // than reporting a success we can't back up. sendMail logs the reason on a
+  // real failure; the client only needs to know it should fall back.
+  if (!result.configured) {
     return res.status(503).json({ error: 'Mail transport not configured' });
   }
-
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: FROM_ADDRESS,
-        to: [TO_ADDRESS],
-        // So hitting Reply in the inbox answers the prospect directly.
-        reply_to: email,
-        subject: `Sponsorship inquiry: ${company}`,
-        text: [
-          `Name:    ${name}`,
-          `Company: ${company}`,
-          `Email:   ${email}`,
-          '',
-          'Who are they trying to reach?',
-          targetCustomer || '(not provided)',
-          '',
-          'What should listeners do?',
-          campaignGoal || '(not provided)',
-        ].join('\n'),
-      }),
-    });
-
-    if (!response.ok) {
-      // Surface the reason in the server log; the client only needs to know
-      // it should fall back.
-      console.error('[sponsor-inquiry] Resend rejected the send:', response.status, await response.text());
-      return res.status(502).json({ error: 'Send failed' });
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('[sponsor-inquiry] Send threw:', err);
+  if (!result.ok) {
     return res.status(502).json({ error: 'Send failed' });
   }
+
+  return res.status(200).json({ ok: true });
 }
