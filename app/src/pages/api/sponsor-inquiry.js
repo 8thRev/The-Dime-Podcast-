@@ -23,10 +23,10 @@ import { sendMail } from '@/lib/sendMail';
 
 // FROM_ADDRESS must be an address the configured transport is allowed to send
 // as. Falls back to EMAIL_FROM, the variable bot/config.py already uses with
-// this same account, before the hardcoded address — see api/guest-inquiry.js
-// for why that ordering matters.
+// this same account, before info@ — the domain's generic sender. See
+// api/guest-inquiry.js for why that ordering matters.
 const FROM_ADDRESS =
-  process.env.SPONSOR_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime Site <inquiries@dimepodcast.com>';
+  process.env.SPONSOR_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime <info@dimepodcast.com>';
 const TO_ADDRESS = process.env.SPONSOR_TO_ADDRESS || 'sponsorship@dimepodcast.com';
 
 // Keep in sync with FORM_FIELDS in src/pages/sponsorship.js.
