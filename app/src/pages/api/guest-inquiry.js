@@ -13,16 +13,17 @@
 // error. Every application typed into that page since it shipped was discarded
 // silently, and there is no record anywhere of how many there were.
 //
-// The client falls back to mailto on non-2xx, so a missing RESEND_API_KEY
+// The client falls back to mailto on non-2xx, so an unconfigured mail transport
 // degrades to a prefilled draft rather than swallowing the applicant.
 
-const RESEND_ENDPOINT = 'https://api.resend.com/emails';
+import { sendMail } from '@/lib/sendMail';
 
-// Set these in the deployment environment. FROM_ADDRESS must be on a domain
-// verified in Resend or the send is rejected. GUEST_TO_ADDRESS is separate from
-// the sponsorship inbox on purpose: these are two different queues answered on
-// two different timescales, and the page promises a reply within 5 business
-// days.
+// Set these in the deployment environment. FROM_ADDRESS must be an address the
+// configured transport is allowed to send as: on Google Workspace SMTP that
+// means the authenticated user or one of its aliases, and on Resend it means an
+// address on a verified domain. GUEST_TO_ADDRESS is separate from the
+// sponsorship inbox on purpose: these are two different queues answered on two
+// different timescales, and the page promises a reply within 5 business days.
 const FROM_ADDRESS = process.env.GUEST_FROM_ADDRESS || 'The Dime Site <inquiries@dimepodcast.com>';
 const TO_ADDRESS = process.env.GUEST_TO_ADDRESS || 'guests@dimepodcast.com';
 
@@ -63,47 +64,38 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing or invalid required fields' });
   }
 
-  // No key configured — tell the client to fall back to mailto rather than
-  // reporting a success we can't back up.
-  if (!process.env.RESEND_API_KEY) {
+  const result = await sendMail(
+    {
+      from: FROM_ADDRESS,
+      to: TO_ADDRESS,
+      // So hitting Reply in the inbox answers the applicant directly.
+      replyTo: email,
+      subject: `Guest application: ${name}`,
+      text: [
+        `Name:              ${name}`,
+        `Company and title: ${companyTitle}`,
+        `Email:             ${email}`,
+        '',
+        'What would they say to a room of cannabis operators and executives?',
+        pitch,
+        '',
+        'Links:',
+        links || '(not provided)',
+      ].join('\n'),
+    },
+    'guest-inquiry'
+  );
+
+  // No transport configured — tell the client to fall back to mailto rather
+  // than reporting a success we can't back up. Distinct from a configured
+  // transport that failed, which is a 502: one is a deployment that was never
+  // finished, the other is an outage worth alerting on.
+  if (!result.configured) {
     return res.status(503).json({ error: 'Mail transport not configured' });
   }
-
-  try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: FROM_ADDRESS,
-        to: [TO_ADDRESS],
-        // So hitting Reply in the inbox answers the applicant directly.
-        reply_to: email,
-        subject: `Guest application: ${name}`,
-        text: [
-          `Name:              ${name}`,
-          `Company and title: ${companyTitle}`,
-          `Email:             ${email}`,
-          '',
-          'What would they say to a room of cannabis operators and executives?',
-          pitch,
-          '',
-          'Links:',
-          links || '(not provided)',
-        ].join('\n'),
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('[guest-inquiry] Resend rejected the send:', response.status, await response.text());
-      return res.status(502).json({ error: 'Send failed' });
-    }
-
-    return res.status(200).json({ ok: true });
-  } catch (err) {
-    console.error('[guest-inquiry] Send threw:', err);
+  if (!result.ok) {
     return res.status(502).json({ error: 'Send failed' });
   }
+
+  return res.status(200).json({ ok: true });
 }
