@@ -67,7 +67,7 @@ export async function getStaticProps({ params }) {
   return {
     props: {
       edition: meta,
-      html: renderMarkdown(body),
+      html: renderMarkdown(body, edition.slug),
       episode,
       others,
     },

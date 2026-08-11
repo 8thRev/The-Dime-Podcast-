@@ -12,7 +12,7 @@
 
 import Link from 'next/link';
 
-import { SPONSOR_NAME, SPONSOR_CTA_URL, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
+import { SPONSOR_NAME, sponsorCtaUrl, sponsorAnchorText, sponsorLeadText } from '@/lib/sponsor';
 
 const linkStyle = {
   color: 'var(--text-accent)',
@@ -40,6 +40,7 @@ const availabilityStyle = {
 
 export default function SponsorSlot({ slug, compact = false }) {
   const anchor = sponsorAnchorText(slug);
+  const href = sponsorCtaUrl(slug);
 
   if (compact) {
     return (
@@ -57,7 +58,7 @@ export default function SponsorSlot({ slug, compact = false }) {
         <span className="mono" style={eyebrowStyle}>
           Episode Sponsor · {SPONSOR_NAME}
         </span>
-        <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '14px' }}>
+        <a href={href} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '14px' }}>
           {anchor} →
         </a>
         {/* Not "this slot is available" in compact mode — this variant renders
@@ -86,7 +87,7 @@ export default function SponsorSlot({ slug, compact = false }) {
       <p style={{ fontSize: '15px', lineHeight: 1.8, color: 'var(--text-secondary)', margin: '0 0 14px' }}>
         {sponsorLeadText(slug)}
       </p>
-      <a href={SPONSOR_CTA_URL} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '15px' }}>
+      <a href={href} rel="noopener noreferrer" style={{ ...linkStyle, fontSize: '15px' }}>
         {anchor} →
       </a>
       <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--border-subtle)' }}>
