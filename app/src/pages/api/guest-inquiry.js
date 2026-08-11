@@ -18,13 +18,19 @@
 
 import { sendMail } from '@/lib/sendMail';
 
-// Set these in the deployment environment. FROM_ADDRESS must be an address the
-// configured transport is allowed to send as: on Google Workspace SMTP that
-// means the authenticated user or one of its aliases, and on Resend it means an
-// address on a verified domain. GUEST_TO_ADDRESS is separate from the
-// sponsorship inbox on purpose: these are two different queues answered on two
-// different timescales, and the page promises a reply within 5 business days.
-const FROM_ADDRESS = process.env.GUEST_FROM_ADDRESS || 'The Dime Site <inquiries@dimepodcast.com>';
+// FROM_ADDRESS must be an address the configured transport is allowed to send
+// as: on Google Workspace SMTP that means the authenticated user or one of its
+// aliases, and on Resend an address on a verified domain. Google rejects
+// anything else outright, so the default falls back to EMAIL_FROM — the same
+// variable bot/config.py uses, already proven to work with the same account —
+// before the hardcoded address, which is only correct if inquiries@ happens to
+// be a real alias.
+//
+// GUEST_TO_ADDRESS is separate from the sponsorship inbox on purpose: these are
+// two different queues answered on two different timescales, and the page
+// promises a reply within 5 business days.
+const FROM_ADDRESS =
+  process.env.GUEST_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime Site <inquiries@dimepodcast.com>';
 const TO_ADDRESS = process.env.GUEST_TO_ADDRESS || 'guests@dimepodcast.com';
 
 // Keep in sync with FORM_FIELDS in src/pages/guests.js. Larger than the

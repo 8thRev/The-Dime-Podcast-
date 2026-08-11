@@ -21,9 +21,12 @@
 
 import { sendMail } from '@/lib/sendMail';
 
-// Set these in the deployment environment. FROM_ADDRESS must be an address the
-// configured transport is allowed to send as.
-const FROM_ADDRESS = process.env.SPONSOR_FROM_ADDRESS || 'The Dime Site <inquiries@dimepodcast.com>';
+// FROM_ADDRESS must be an address the configured transport is allowed to send
+// as. Falls back to EMAIL_FROM, the variable bot/config.py already uses with
+// this same account, before the hardcoded address — see api/guest-inquiry.js
+// for why that ordering matters.
+const FROM_ADDRESS =
+  process.env.SPONSOR_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime Site <inquiries@dimepodcast.com>';
 const TO_ADDRESS = process.env.SPONSOR_TO_ADDRESS || 'sponsorship@dimepodcast.com';
 
 // Keep in sync with FORM_FIELDS in src/pages/sponsorship.js.
