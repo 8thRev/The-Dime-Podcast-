@@ -40,10 +40,13 @@ class Config:
     EMAIL_PASSWORD: str = os.getenv("EMAIL_PASSWORD", "")
     EMAIL_FROM: str = os.getenv("EMAIL_FROM", "")
     EMAIL_TO: str = os.getenv("EMAIL_TO", "Bryan.Fields@8threv.com")
+    # CC'd on guest research emails only (not the SEO report). Comma-separated
+    # for more than one address.
+    RESEARCH_EMAIL_CC: str = os.getenv("RESEARCH_EMAIL_CC") or "team@dimepodcast.com"
 
     # General Configuration
     TIMEZONE: str = os.getenv("TIMEZONE", "UTC")
-    DAYS_BEFORE_RECORDING: int = int(os.getenv("DAYS_BEFORE_RECORDING", "3"))
+    DAYS_BEFORE_RECORDING: int = int(os.getenv("DAYS_BEFORE_RECORDING", "7"))
 
     # Manual override: process a specific card by name regardless of its
     # recording date. Used for one-off manual runs (workflow_dispatch).

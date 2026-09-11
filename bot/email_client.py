@@ -20,6 +20,7 @@ class EmailClient:
         self.password = config.EMAIL_PASSWORD
         self.from_email = config.EMAIL_FROM
         self.to_email = config.EMAIL_TO
+        self.research_cc = config.RESEARCH_EMAIL_CC
 
     def send_research_document(
         self, guest_name: str, document_path: str
@@ -35,12 +36,13 @@ class EmailClient:
             True if email sent successfully, False otherwise
         """
         try:
-            print(f"Sending email to {self.to_email}...")
+            print(f"Sending email to {self.to_email} (cc {self.research_cc})...")
 
             # Create message
             msg = MIMEMultipart()
             msg["From"] = self.from_email
             msg["To"] = self.to_email
+            msg["Cc"] = self.research_cc
             msg["Subject"] = f"Guest Research: {guest_name}"
 
             # Email body
@@ -56,7 +58,7 @@ class EmailClient:
                 server.login(self.username, self.password)
                 server.send_message(msg)
 
-            print(f"Email sent successfully to {self.to_email}")
+            print(f"Email sent successfully to {self.to_email} (cc {self.research_cc})")
             return True
 
         except smtplib.SMTPAuthenticationError:
