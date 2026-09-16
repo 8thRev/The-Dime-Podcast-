@@ -461,6 +461,20 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               </div>
             ))}
 
+            {/* A soft signal, deliberately not a requirement or a form field:
+                a guest who already listens tends to fit the room. */}
+            <div style={{ marginBottom: 28, padding: '18px 20px', border: '1px solid var(--border)', borderLeft: '2px solid #00C9A7' }}>
+              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 6 }}>
+                Already a Listener?
+              </div>
+              <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.82, fontWeight: 300 }}>
+                The best guests usually know the show. A rating or review on Apple Podcasts is an easy way to show you&apos;re aligned with the conversation. It&apos;s not required, but we notice.{' '}
+                <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" style={{ color: '#00C9A7' }}>
+                  Rate The Dime →
+                </a>
+              </div>
+            </div>
+
             {/* The address lives here permanently, not only inside the success
                 box. Submitting hands the application to the visitor's mail
                 client, and if that client never opens, the confirmation is the

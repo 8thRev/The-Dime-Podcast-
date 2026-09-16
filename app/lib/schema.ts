@@ -376,6 +376,8 @@ export function createOrganizationSchema(
     // 16-character X handle that cannot exist. These are all verified live.
     sameAs: [
       "https://x.com/TheDime_8th",
+      "https://www.instagram.com/thedime_8th/",
+      "https://www.linkedin.com/company/the-dime-podcast/",
       "https://www.youtube.com/@theDime_Cannabis",
       "https://podcasts.apple.com/us/podcast/the-dime/id1540199573",
       "https://open.spotify.com/show/05y791a4A1vzTZ6DCZQHFz",

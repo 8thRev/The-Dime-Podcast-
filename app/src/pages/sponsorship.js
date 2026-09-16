@@ -117,7 +117,7 @@ const COST_PER_ASSET_MIN = Math.round(EPISODE_PRICE / ASSETS_PER_EPISODE_MAX);
 function heroStats(libraryEpisodes, libraryHours) {
   return [
     { value: `${libraryEpisodes}+`, label: 'Episodes Published' },
-    { value: '6 Yrs', label: 'Publishing Weekly' },
+    { value: '6 Yrs', label: 'On Air Since 2020' },
     { value: `${PODCAST_RATING.value} ★`, label: `${PODCAST_RATING.count} Listener Ratings` },
     { value: `${libraryHours}`, label: 'Hours of Archive' },
   ];
@@ -163,7 +163,7 @@ const ENGINE = [
     asset: 'Newsletter placement',
     channel: 'First Principles',
     detail:
-      'Your message inside the weekly email that operators open on purpose — written by hand, not an automated episode blast.',
+      'Your message inside the email that operators open on purpose — written by hand, not an automated episode blast.',
   },
   {
     n: '05',
@@ -212,7 +212,7 @@ const MANIFEST = [
   { qty: '1', item: 'Full-length video episode', note: 'YouTube, host-read integrated' },
   { qty: '1', item: 'Podcast audio episode', note: 'Every streaming platform' },
   { qty: '3–5', item: 'Short-form cuts', note: 'Captioned, sized per feed' },
-  { qty: '1', item: 'Newsletter placement', note: 'The weekly edition' },
+  { qty: '1', item: 'Newsletter placement', note: 'The next edition' },
   { qty: '1', item: 'Companion article', note: 'Written from the episode' },
   { qty: '1', item: 'Episode page', note: 'Show notes, transcript, and your links' },
 ];
@@ -303,7 +303,7 @@ const FAQ = [
   {
     question: 'How many people will hear my sponsorship?',
     answer:
-      'The Dime is a concentrated cannabis business audience — operators, founders, investors and the service providers selling to them — that shows up weekly for forty-five minutes at a time. Current download, subscriber and follower figures are available on request, with sources.',
+      'The Dime is a concentrated cannabis business audience — operators, founders, investors and the service providers selling to them — that shows up for forty-five minutes at a time. Current download, subscriber and follower figures are available on request, with sources.',
   },
   {
     question: 'What do I actually receive?',
@@ -1110,7 +1110,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', fontWeight: 300, maxWidth: 700, marginBottom: 20 }}>
           Any agency can hand you a file. Getting that file cut to the right
           dimensions for four different feeds, captioned, scheduled, and posted
-          natively — every week, on accounts that already have an audience — is
+          natively, on accounts that already have an audience, is
           the part that needs a team you probably do not want to hire.
         </p>
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-primary)', fontWeight: 400, maxWidth: 700, marginBottom: 44 }}>
