@@ -6,7 +6,10 @@ const NAV = [
   { label: 'Videos', href: '/videos' },
   { label: 'Topics', href: '/topics' },
   { label: 'Newsletter', href: '/newsletter' },
-  { label: 'Guests', href: '/guests' },
+  // "Be a Guest", not "Guests": /guests is the application form, and the
+  // bare label read as a list of past guests — an outside audit concluded
+  // the site had no pitch form at all.
+  { label: 'Be a Guest', href: '/guests' },
   { label: 'About', href: '/about' },
   // The site's only commercial page. It lived in the footer alone, which meant
   // the highest-intent page was reachable only by scrolling to the bottom of
@@ -49,7 +52,9 @@ export default function Header() {
             display: none !important;
           }
         }
-        @media (max-width: 480px) {
+        /* 720, not 480: the seven-link nav needs ~490px plus the logo and
+           padding, so between those widths it ran into the logo. */
+        @media (max-width: 720px) {
           .header-nav-desktop {
             display: none !important;
           }
@@ -57,7 +62,7 @@ export default function Header() {
             display: block !important;
           }
         }
-        @media (min-width: 481px) {
+        @media (min-width: 721px) {
           .header-hamburger {
             display: none !important;
           }

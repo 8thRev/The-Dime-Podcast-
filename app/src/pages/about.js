@@ -27,7 +27,7 @@ export default function About() {
     <>
       <SeoHead
         title="About"
-        description="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields and Kellan Finney. Weekly episodes with founders, executives, investors, and policy architects."
+        description="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields and Kellan Finney. Long-form conversations with founders, executives, investors, and policy architects."
         path="/about"
       />
       <Schema schema={schema} />
@@ -50,7 +50,7 @@ export default function About() {
             The Dime is not a cannabis lifestyle show. It is not a culture podcast. It is a strategy room, open to the public. Nearly 300 episodes in, Bryan Fields and Kellan Finney have built the most operator-focused conversation in cannabis. CEOs, investors, founders, and policy architects. The conversations that don&apos;t happen in earnings calls.
           </p>
           <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.85, color: 'var(--text-secondary)', fontWeight: 300 }}>
-            The listener is making decisions under margin compression, regulatory uncertainty, and capital scarcity. They tune in because The Dime gives them intelligence they cannot get anywhere else, before the market makes it obvious. Rated {PODCAST_RATING.value} stars by {PODCAST_RATING.count} reviewers. Top 5% most shared globally. Updated every week.
+            The listener is making decisions under margin compression, regulatory uncertainty, and capital scarcity. They tune in because The Dime gives them intelligence they cannot get anywhere else, before the market makes it obvious. Rated {PODCAST_RATING.value} stars by {PODCAST_RATING.count} reviewers. Top 5% most shared globally.
           </p>
         </div>
       </section>

@@ -25,6 +25,14 @@ const LISTEN_LINKS = [
   { label: 'YouTube', href: 'https://www.youtube.com/@theDime_Cannabis' },
 ];
 
+// The show's own accounts. Kept in step with createOrganizationSchema()'s
+// sameAs in lib/schema.ts — every URL here was checked live.
+const SOCIAL_LINKS = [
+  { label: 'Instagram', href: 'https://www.instagram.com/thedime_8th/' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/company/the-dime-podcast/' },
+  { label: 'X', href: 'https://x.com/TheDime_8th' },
+];
+
 export default function Footer() {
   return (
     <>
@@ -99,7 +107,7 @@ export default function Footer() {
               { label: 'Topics', href: '/topics' },
               { label: 'About', href: '/about' },
               { label: 'Newsletter', href: '/newsletter' },
-              { label: 'Guests', href: '/guests' },
+              { label: 'Be a Guest', href: '/guests' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
                 {nav.label}
@@ -135,6 +143,11 @@ export default function Footer() {
                 Navigate above, and the same href twice in one footer splits
                 the internal-link signal for no user benefit. */}
             <Link href="/sponsorship" style={footerLinkStyle}>Sponsorship</Link>
+            {SOCIAL_LINKS.map((s) => (
+              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer me" style={footerLinkStyle}>
+                {s.label}
+              </a>
+            ))}
           </div>
         </div>
 

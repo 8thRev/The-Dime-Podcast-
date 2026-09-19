@@ -63,7 +63,7 @@ export default function Videos({ allVideos }) {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', marginBottom: 48, background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px' }}>
           <span className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-            New episode every week — never miss one.
+            Subscribe on YouTube and never miss a new episode.
           </span>
           <a
             href="https://www.youtube.com/@theDime_Cannabis?sub_confirmation=1"
