@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
@@ -7,6 +7,7 @@ import { PODCAST_RATING } from '@/lib/ratings';
 import { getAllGuests, guestToSlug } from '@/lib/guests';
 import { getAllEpisodes } from '@/lib/rss';
 import { trackGuestFormStart, trackGuestInquirySubmit } from '@/lib/guestFunnel';
+import { HONEYPOT_FIELD, HONEYPOT_LABEL, FILL_TIME_FIELD } from '@/lib/formSpam';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -107,9 +108,9 @@ const FORM_FIELDS = [
 
 const GUEST_EMAIL = 'guests@dimepodcast.com';
 
-// `website` is the honeypot, not a field. It seeds here so the value stays
-// controlled like every other input.
-const EMPTY_FORM = FORM_FIELDS.reduce((acc, f) => ({ ...acc, [f.name]: '' }), { website: '' });
+// HONEYPOT_FIELD is the honeypot, not a field. It seeds here so the value
+// stays controlled like every other input. See lib/formSpam.js.
+const EMPTY_FORM = FORM_FIELDS.reduce((acc, f) => ({ ...acc, [f.name]: '' }), { [HONEYPOT_FIELD]: '' });
 
 const FIELD_STYLE = {
   background: 'var(--navy2)',
@@ -169,6 +170,12 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
   // form (src/pages/sponsorship.js), because this posts to the same kind of
   // route and has to fail the same way.
   const [status, setStatus] = useState('idle');
+  // Set on mount, not at module load, so the fill-time check measures from
+  // when the form became usable. See lib/formSpam.js.
+  const mountedAt = useRef(null);
+  useEffect(() => {
+    mountedAt.current = Date.now();
+  }, []);
 
   function handleChange(e) {
     const { name, value } = e.target;
@@ -230,7 +237,10 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
       const res = await fetch('/api/guest-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          [FILL_TIME_FIELD]: mountedAt.current === null ? null : Date.now() - mountedAt.current,
+        }),
       });
       // A 400 means the server rejected the input, not that transport failed.
       // Falling back to mailto here would hand the applicant a prefilled draft
@@ -395,11 +405,13 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             })}
 
             {/* Honeypot: hidden from users, irresistible to bots. Positioned
-                off-screen rather than display:none, which some bots skip. */}
+                off-screen rather than display:none, which some bots skip.
+                Named and labelled so autofill and agents leave it empty —
+                see lib/formSpam.js. */}
             <div aria-hidden="true" style={{ position: 'absolute', left: -9999, width: 1, height: 1, overflow: 'hidden' }}>
               <label>
-                Website
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={handleChange} />
+                {HONEYPOT_LABEL}
+                <input type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" value={form[HONEYPOT_FIELD]} onChange={handleChange} />
               </label>
             </div>
 

@@ -15,6 +15,7 @@ import { PODCAST_RATING } from '@/lib/ratings';
 import { getAllEditions } from '@/lib/newsletter';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllTranscriptSlugs } from '@/lib/transcripts';
+import { HONEYPOT_FIELD, HONEYPOT_LABEL, FILL_TIME_FIELD } from '@/lib/formSpam';
 import testimonials from '@/content/testimonials.json';
 import videos from '@/content/videos.json';
 
@@ -363,7 +364,9 @@ const FORM_FIELDS = [
   },
 ];
 
-const EMPTY_FORM = FORM_FIELDS.reduce((acc, f) => ({ ...acc, [f.name]: '' }), { website: '' });
+// HONEYPOT_FIELD is the honeypot, not a field; it seeds here so the value
+// stays controlled like every other input. See lib/formSpam.js.
+const EMPTY_FORM = FORM_FIELDS.reduce((acc, f) => ({ ...acc, [f.name]: '' }), { [HONEYPOT_FIELD]: '' });
 
 // No turnaround promise here on purpose — see the FAQ scope note. These
 // describe what happens, not how fast.
@@ -528,6 +531,12 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | invalid | fallback
   const [formStarted, setFormStarted] = useState(false);
+  // Set on mount so the fill-time check measures from when the form became
+  // usable. See lib/formSpam.js.
+  const mountedAt = useRef(null);
+  useEffect(() => {
+    mountedAt.current = Date.now();
+  }, []);
 
   const bobart = testimonials.find((t) => t.name === 'Brandon Bobart');
   const brett = testimonials.find((t) => t.name === 'Brett Puffenbarger');
@@ -590,7 +599,10 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       const res = await fetch('/api/sponsor-inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          [FILL_TIME_FIELD]: mountedAt.current === null ? null : Date.now() - mountedAt.current,
+        }),
       });
       // A 400 means the server rejected the input, not that transport failed.
       // Falling back to mailto here would hand the user a prefilled draft
@@ -1616,11 +1628,13 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
               ))}
             </div>
 
-            {/* Honeypot: hidden from users, irresistible to bots. */}
+            {/* Honeypot: hidden from users, irresistible to bots. Named and
+                labelled so autofill and agents leave it empty — see
+                lib/formSpam.js. */}
             <div className="sp-honeypot" aria-hidden="true">
               <label>
-                Website
-                <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={handleChange} />
+                {HONEYPOT_LABEL}
+                <input type="text" name={HONEYPOT_FIELD} tabIndex={-1} autoComplete="off" value={form[HONEYPOT_FIELD]} onChange={handleChange} />
               </label>
             </div>
 
