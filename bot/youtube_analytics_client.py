@@ -9,6 +9,7 @@ scope was added will get a 403 from this API; callers should treat that
 as "not available yet" rather than a hard failure.
 """
 
+import time
 from datetime import date, timedelta
 
 import requests
@@ -18,6 +19,8 @@ from youtube_client import API_BASE as DATA_API_BASE, CHANNEL_ID, raise_for_stat
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://youtubeanalytics.googleapis.com/v2/reports"
+RETRIES = 4
+RETRY_BASE_SECONDS = 2
 
 
 class YouTubeAnalyticsClient:
@@ -48,17 +51,23 @@ class YouTubeAnalyticsClient:
         return {"Authorization": f"Bearer {self._get_access_token()}"}
 
     def _query(self, start: date, end: date, params: dict) -> dict:
-        resp = requests.get(
-            API_BASE,
-            params={
-                "ids": f"channel=={CHANNEL_ID}",
-                "startDate": start.isoformat(),
-                "endDate": end.isoformat(),
-                **params,
-            },
-            headers=self._headers(),
-            timeout=30,
-        )
+        # Google documents 5xx "backendError" as retryable with backoff; it
+        # showed up on two ordinary queries in one afternoon (Sep 2026).
+        for attempt in range(RETRIES):
+            resp = requests.get(
+                API_BASE,
+                params={
+                    "ids": f"channel=={CHANNEL_ID}",
+                    "startDate": start.isoformat(),
+                    "endDate": end.isoformat(),
+                    **params,
+                },
+                headers=self._headers(),
+                timeout=30,
+            )
+            if resp.status_code < 500 or attempt == RETRIES - 1:
+                break
+            time.sleep(RETRY_BASE_SECONDS * 2 ** attempt)
         raise_for_status(resp)
         return resp.json()
 

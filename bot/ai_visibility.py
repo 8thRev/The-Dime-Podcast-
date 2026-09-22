@@ -26,6 +26,7 @@ MAX_SEARCHES_PER_PROMPT = 3
 MAX_TOKENS = 1500
 WORKERS = 5
 REQUEST_TIMEOUT_SECONDS = 180
+MAX_FAILURE_SHARE = 0.2
 SYSTEM = (
     "You are a search assistant. Answer the user's question the way a helpful "
     "AI search product would: search the web, give a concise answer, and cite "
@@ -146,8 +147,14 @@ def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = Non
 
 def summarize(results: list[dict], model: str) -> dict:
     answered = [r for r in results if r["error"] is None]
-    if results and not answered:
-        raise RuntimeError(f"every AI panel question failed, first error: {results[0]['error']}")
+    # A citation rate from a half finished panel is not comparable week to
+    # week (a billing lapse answered 10 of 25 once), so a run that loses
+    # more than MAX_FAILURE_SHARE of its questions is unavailable, not 0%.
+    failed = [r for r in results if r["error"]]
+    if results and len(failed) > MAX_FAILURE_SHARE * len(results):
+        raise RuntimeError(
+            f"only {len(answered)} of {len(results)} questions answered; first error: {failed[0]['error']}"
+        )
 
     def rate(rows, key):
         return round(100 * sum(r[key] for r in rows) / len(rows), 1) if rows else None

@@ -50,3 +50,14 @@ def test_prompts_file_is_well_formed():
     assert len(prompts) >= 20
     assert len({p["id"] for p in prompts}) == len(prompts)
     assert {p["category"] for p in prompts} == {"category", "topic", "guest"}
+
+
+def test_partial_panel_is_unavailable_not_zero_percent():
+    import pytest
+    ok = {"id": "1", "category": "topic", "cited": False, "mentioned": False, "in_search_results": False,
+          "cited_domains": [], "error": None}
+    bad = {**ok, "id": "2", "error": "BadRequestError: credit balance is too low"}
+    with pytest.raises(RuntimeError, match="only 2 of 5"):
+        ai_visibility.summarize([ok, ok, bad, bad, bad], "m")
+    # One failure in five is within tolerance.
+    assert ai_visibility.summarize([ok, ok, ok, ok, bad], "m")["answered"] == 4

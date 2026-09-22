@@ -294,11 +294,19 @@ def collect_youtube(yta, episodes: list[dict], catalog: dict, today: date) -> di
             ep["youtube"] = {"video_id": vid, "published_at": pub.isoformat(), "pending_analytics": True}
             continue
         window_end = min(end, pub + timedelta(days=89))
-        daily = yta.video_daily(vid, pub, window_end)
+        try:
+            daily = yta.video_daily(vid, pub, window_end)
+            search_daily = {d: s.get("YT_SEARCH", 0) for d, s in yta.daily_views_by_source(pub, window_end, vid).items()}
+            curve = yta.video_retention(vid, pub, end)
+        except Exception as e:
+            # One video's queries failing (after retries) must not take the
+            # whole YouTube section down with it.
+            msg = scrub(f"{type(e).__name__}: {e}")[:300]
+            print(f"[youtube] video {vid} unavailable: {msg}")
+            ep["youtube"] = {"video_id": vid, "published_at": pub.isoformat(), "analytics_unavailable": True, "error": msg}
+            continue
         views_daily = {d: r["views"] for d, r in daily.items()}
-        search_daily = {d: s.get("YT_SEARCH", 0) for d, s in yta.daily_views_by_source(pub, window_end, vid).items()}
         duration = _iso_duration_seconds(video.get("durationISO", ""))
-        curve = yta.video_retention(vid, pub, end)
         ep["youtube"] = {
             "video_id": vid,
             "published_at": pub.isoformat(),
@@ -331,8 +339,13 @@ def collect_youtube(yta, episodes: list[dict], catalog: dict, today: date) -> di
             "search_views": search, "search_share": round(search / views, 3) if views else None,
         })
 
-    referrers = yta.external_referrers(start_28, end)
-    ai_referrers = {d: v for d, v in referrers.items() if _is_ai_domain(d)}
+    try:
+        referrers = yta.external_referrers(start_28, end)
+        ai_referrers = {d: v for d, v in referrers.items() if _is_ai_domain(d)}
+        ai_referrer_views = sum(ai_referrers.values())
+    except Exception as e:
+        print(f"[youtube] external referrers unavailable: {scrub(str(e))[:300]}")
+        referrers, ai_referrers, ai_referrer_views = None, None, None
     week = yta.totals(start_7, end)
     month = yta.totals(start_28, end)
     return {
@@ -346,7 +359,7 @@ def collect_youtube(yta, episodes: list[dict], catalog: dict, today: date) -> di
         "search_views_weekly": weekly,
         "top_search_terms_28d": yta.top_search_terms(start_28, end, row_limit=25),
         "external_referrers_28d": referrers,
-        "ai_referrer_views_28d": sum(ai_referrers.values()),
+        "ai_referrer_views_28d": ai_referrer_views,
         "ai_referrers_28d": ai_referrers,
         "reach_report": None,
     }
@@ -364,7 +377,8 @@ def collect_youtube_reach(reporting, episodes: list[dict], youtube_channel: dict
     summary = summarize_reach(rows)
     for ep in episodes:
         yt = ep.get("youtube")
-        stats = summary["per_video"].get(yt.get("video_id")) if yt and not yt.get("pending_analytics") else None
+        usable = yt and not yt.get("pending_analytics") and not yt.get("analytics_unavailable")
+        stats = summary["per_video"].get(yt.get("video_id")) if usable else None
         if stats:
             yt["impressions_28d"] = stats["impressions"]
             yt["impression_ctr_28d"] = stats["ctr"]
@@ -655,6 +669,8 @@ def _metric(section: str, field: str, source_ok: bool, missing_reason: str):
             return None, missing_reason
         if block.get("pending_analytics"):
             return None, "analytics_pending"
+        if block.get("analytics_unavailable"):
+            return None, "video_analytics_unavailable"
         value = block.get(field)
         if value is None:
             return None, f"not_yet_{field}" if "day_" in field else f"no_{field}"

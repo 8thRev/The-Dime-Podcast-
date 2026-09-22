@@ -306,6 +306,23 @@
               "required": [
                 "video_id",
                 "published_at",
+                "analytics_unavailable",
+                "error"
+              ],
+              "properties": {
+                "analytics_unavailable": {
+                  "const": true
+                },
+                "error": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "video_id",
+                "published_at",
                 "duration_seconds",
                 "views_day_1",
                 "views_day_7",
@@ -574,6 +591,12 @@
                     }
                   }
                 }
+              ]
+            },
+            "ai_referrer_views_28d": {
+              "type": [
+                "integer",
+                "null"
               ]
             }
           }

@@ -257,3 +257,22 @@ def test_history_change_uses_row_28_days_back(tmp_path, monkeypatch):
     hist.write_text("date,ai_citation_rate\n2026-08-20,20.0\n2026-09-15,40.0\n")
     monkeypatch.setattr(weekly_data, "REACH_PATH", hist)
     assert snapshot()["reach"]["ai_citation_rate"]["change_28d"] == 30.0
+
+
+def test_one_failing_video_does_not_sink_youtube(monkeypatch):
+    clients = fakes.all_clients()
+    real = clients["youtube"].video_daily
+
+    def flaky(vid, start, end):
+        if vid == "vid7":
+            raise RuntimeError("500 backendError")
+        return real(vid, start, end)
+
+    monkeypatch.setattr(clients["youtube"], "video_daily", flaky)
+    snap = snapshot(clients)
+    assert snap["sources"]["youtube"]["status"] == "ok"
+    bad = by_slug(snap, "episode-7")
+    assert bad["youtube"]["analytics_unavailable"] is True
+    assert bad["baselines"]["youtube_views_day_7"]["reason"] == "video_analytics_unavailable"
+    assert by_slug(snap, "episode-8")["youtube"]["views_day_7"] == 70
+    assert weekly_report.validate(snap) == []

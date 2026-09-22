@@ -21,6 +21,42 @@ The show did not release over the summer. Jamie Pearson (Sep 16) is the first
 episode back and the cadence is now bi-weekly. Every comparison must be
 episode age normalized, never calendar normalized.
 
+## Amendments, Sep 22 2026 (after the first real data pull)
+
+The goal is growth through search, and above all through AI search results.
+Episode download ratios measure whether the existing audience holds (Apple is
+70 percent of downloads and mostly follower auto downloads), not whether
+search is bringing new people. So the report now answers, in priority order:
+
+1. **Is AI citing us more?** A weekly panel of fixed questions
+   (`data/ai_prompts.csv`, edited by Bryan) asked to Claude with web search;
+   headline metric is the citation rate. Plus AI assistant referrals to the
+   site (GA4, with landing pages) and to YouTube videos (external referrers).
+   AI assistants do not share what users ask; landing pages, question style
+   Google queries and YouTube search terms are the observable traces.
+2. **Is search finding us?** YouTube search views (49 percent of episode video
+   views in the first pull) trended weekly and per episode at day 7 and day
+   30 against baseline; Google split into branded and non branded queries;
+   YouTube thumbnail impressions and CTR from a Reporting API job
+   (`channel_reach_combined_a1`, created on first run, approved by Bryan).
+3. **Is the base holding?** Day 7 and day 30 downloads against baseline, and
+   Apple and Spotify follower counts entered by hand in
+   `data/platform_followers.csv` (neither platform has an API).
+
+Other changes from the original text below:
+- Video to episode mapping reuses the automatic
+  `app/content/video-episode-map.json`, with `data/video_episode_overrides.csv`
+  for corrections, instead of a hand kept `data/video_episode_map.csv`.
+- YouTube OAuth reuses the existing `YOUTUBE_OAUTH_*` secrets and
+  `bot/get_youtube_refresh_token.py`.
+- Search opportunities use position 5 to 30 and 10 or more impressions until
+  site volume grows; the thresholds are constants in `bot/weekly_data.py`.
+- Search Console data only exists from Apr 20, 2026.
+- GA4 total sessions are dominated by bot traffic; Organic Search and AI
+  Assistant sessions are the site numbers the report relies on.
+- Phase 2 rules and the Phase 3 headline should lead with the AI and search
+  questions above, not with downloads.
+
 ## Standing rules
 
 1. Never print, log, or commit a credential. Secrets come from environment
