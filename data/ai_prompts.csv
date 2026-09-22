@@ -1,26 +1,31 @@
 id,category,prompt,episode_slug
-cat-01,category,What are the best podcasts about the business of cannabis?,
-cat-02,category,Which podcasts interview cannabis industry executives and operators?,
-cat-03,category,What podcast should a cannabis investor listen to?,
-cat-04,category,What is a good podcast for understanding cannabis policy and rescheduling?,
-cat-05,category,Who are the most useful voices covering the cannabis industry in 2026?,
-cat-06,category,What is The Dime podcast about?,
-top-01,topic,How will the 2026 federal hemp ban affect CBD products and patients?,paige-figi-the-cannabis-industry-is-cheering-a-ban-on-medicine
-top-02,topic,"Is cannabis rescheduling to Schedule III going to happen, and which companies benefit?",hirsh-jain-rescheduling-is-already-picking-winners
-top-03,topic,Can expanding into Europe save US cannabis companies?,europe-is-not-a-rescue-plan-ft-jamie-pearson
-top-04,topic,Why is cannabis rescheduling taking so long in Washington?,gretchen-gailey-cannabis-industry-has-no-idea-how-dc-works-why-rescheduling-is-delayed
-top-05,topic,What do lenders look at before making a loan to a cannabis operator?,joe-lustberg-what-cannabis-lenders-see-that-operators-miss
-top-06,topic,What is British American Tobacco doing in the German cannabis market?,germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka
-top-07,topic,Why can't cannabis businesses accept credit cards?,the-legal-market-was-never-built-for-payments-why-cannabis-still-breaks-the-rules-ft-aubrey-amatelli
-top-08,topic,What are the biggest margin problems for multi state cannabis operators?,the-hidden-margin-killer-for-msos-ft-braunz-muller
+cat-01,category,What are the best podcasts about the business side of the cannabis industry?,
+cat-02,category,Which podcasts interview cannabis CEOs and operators rather than consumers?,
+cat-03,category,I invest in cannabis stocks. Which podcasts should I listen to for operator level insight?,
+cat-04,category,Where can I find long form interviews with cannabis executives about rescheduling and federal policy?,
+cat-05,category,Who are the most credible independent voices covering the cannabis industry in 2026?,
+cat-06,category,What is The Dime podcast about and who hosts it?,
+cat-07,category,Is there a newsletter that analyzes cannabis industry deals and strategy from an operator's point of view?,
+top-01,topic,How will the 2026 federal hemp ban affect CBD products and the patients who rely on them?,paige-figi-the-cannabis-industry-is-cheering-a-ban-on-medicine
+top-02,topic,Which cannabis companies benefit if rescheduling to Schedule III happens?,hirsh-jain-rescheduling-is-already-picking-winners
+top-03,topic,Can expanding into Germany and Europe save struggling US cannabis companies?,stop-ignoring-germanys-massive-opportunity-europe-is-coming-ft-jamie-pearson
+top-04,topic,Why has cannabis rescheduling taken so long in Washington?,gretchen-gailey-cannabis-industry-has-no-idea-how-dc-works-why-rescheduling-is-delayed
+top-05,topic,What do lenders look for before financing a cannabis operator?,joe-lustberg-what-cannabis-lenders-see-that-operators-miss
+top-06,topic,What is British American Tobacco's strategy in the German cannabis market?,germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka
+top-07,topic,Why can't cannabis dispensaries accept credit cards and how do they process payments?,the-legal-market-was-never-built-for-payments-why-cannabis-still-breaks-the-rules-ft-aubrey-amatelli
+top-08,topic,Where do multi state cannabis operators lose margin in manufacturing?,the-hidden-margin-killer-for-msos-ft-braunz-muller
 top-09,topic,Why is Ohio's adult use cannabis market working better than other states?,why-ohio-cannabis-is-built-different-inside-the-regulator-operator-alignment-thats-actually-working-ft-caroline-henry
-top-10,topic,Are cannabis beverages bringing in new consumers?,cannabis-beverages-are-bringing-new-consumers-into-cannabis-ft-kristin-eric-rogers
-top-11,topic,What does the 2026 Farm Bill mean for hemp and cannabis companies?,hidden-growth-unmasked-rescheduling-the-farm-bill-what-comes-next-ft-trent-woloveck
-gst-01,guest,Paige Figi interview on the hemp ban,paige-figi-the-cannabis-industry-is-cheering-a-ban-on-medicine
-gst-02,guest,Hirsh Jain on cannabis rescheduling,hirsh-jain-rescheduling-is-already-picking-winners
-gst-03,guest,Jamie Pearson on international cannabis expansion,europe-is-not-a-rescue-plan-ft-jamie-pearson
-gst-04,guest,Gretchen Gailey cannabis lobbying interview,gretchen-gailey-cannabis-industry-has-no-idea-how-dc-works-why-rescheduling-is-delayed
-gst-05,guest,Joe Lustberg cannabis lending interview,joe-lustberg-what-cannabis-lenders-see-that-operators-miss
-gst-06,guest,James Yamanaka on BAT and cannabis in Germany,germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka
-gst-07,guest,Ed Rosenthal and Greg Baughman podcast interview,ed-rosenthal-and-greg-baughman-youre-still-growing-cannabis-wrong
-gst-08,guest,Chris Guthrie on using AI to build software,understand-this-before-you-use-ai-to-build-software-ft-chris-guthrie
+top-10,topic,Are THC beverages bringing new consumers into cannabis?,cannabis-beverages-are-bringing-new-consumers-into-cannabis-ft-kristin-eric-rogers
+top-11,topic,What does the 2026 Farm Bill mean for hemp derived THC products?,hidden-growth-unmasked-rescheduling-the-farm-bill-what-comes-next-ft-trent-woloveck
+top-12,topic,What is the clinical evidence that cannabis works as medicine?,cannabis-was-medicine-now-the-proof-is-catching-up-ft-joel-stanley-and-dr-marcel-bonn-miller
+top-13,topic,What are the most common mistakes commercial cannabis growers make?,ed-rosenthal-and-greg-baughman-youre-still-growing-cannabis-wrong
+top-14,topic,How is SNDL building scale in cannabis and what does its supply chain look like?,inside-sndls-hidden-scale-global-reach-supply-chain-powerhouse-ft-tyler-robson
+top-15,topic,What did the Curaleaf and Aurora deal say about EU GMP supply in Europe?,
+gst-01,guest,What has Paige Figi said about the federal hemp ban and CBD access?,paige-figi-the-cannabis-industry-is-cheering-a-ban-on-medicine
+gst-02,guest,What is Hirsh Jain's view on cannabis rescheduling?,hirsh-jain-rescheduling-is-already-picking-winners
+gst-03,guest,What does Jamie Pearson say about cannabis companies expanding internationally?,stop-ignoring-germanys-massive-opportunity-europe-is-coming-ft-jamie-pearson
+gst-04,guest,What has Gretchen Gailey said about cannabis lobbying and why rescheduling is delayed?,gretchen-gailey-cannabis-industry-has-no-idea-how-dc-works-why-rescheduling-is-delayed
+gst-05,guest,Has Joe Lustberg given any interviews about cannabis lending?,joe-lustberg-what-cannabis-lenders-see-that-operators-miss
+gst-06,guest,What has James Yamanaka said about BAT and cannabis in Germany?,germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka
+gst-07,guest,Where can I hear Ed Rosenthal and Greg Baughman interviewed together?,ed-rosenthal-and-greg-baughman-youre-still-growing-cannabis-wrong
+gst-08,guest,What does Caroline Henry say about how Ohio regulates cannabis?,why-ohio-cannabis-is-built-different-inside-the-regulator-operator-alignment-thats-actually-working-ft-caroline-henry
