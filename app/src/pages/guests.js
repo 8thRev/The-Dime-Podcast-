@@ -462,13 +462,16 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             ))}
 
             {/* A soft signal, deliberately not a requirement or a form field:
-                a guest who already listens tends to fit the room. */}
+                a guest who already listens tends to fit the room. The copy must
+                never tie a review to being selected: that makes it an
+                incentivized review under Apple's rating guidelines and the
+                FTC review rule (16 CFR 465). */}
             <div style={{ marginBottom: 28, padding: '18px 20px', border: '1px solid var(--border)', borderLeft: '2px solid #00C9A7' }}>
               <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 6 }}>
                 Already a Listener?
               </div>
               <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.82, fontWeight: 300 }}>
-                The best guests usually know the show. A rating or review on Apple Podcasts is an easy way to show you&apos;re aligned with the conversation. It&apos;s not required, but we notice.{' '}
+                The best guests usually know the show. If you&apos;re already a listener, a rating or review on Apple Podcasts helps more operators find the conversation.{' '}
                 <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" style={{ color: '#00C9A7' }}>
                   Rate The Dime →
                 </a>
