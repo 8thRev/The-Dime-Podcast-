@@ -17,6 +17,7 @@ import csv
 import json
 import os
 import re
+import time
 import traceback
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -105,9 +106,11 @@ class Sources:
         self.status: dict[str, dict] = {}
 
     def run(self, name: str, fn, *args):
+        started = time.monotonic()
         try:
             result = fn(*args)
             self.status.setdefault(name, {"status": "ok", "error": None})
+            print(f"[{name}] {getattr(fn, '__name__', 'step')} done in {time.monotonic() - started:.0f}s", flush=True)
             return result
         except Exception as e:
             msg = scrub(f"{type(e).__name__}: {e}")[:500]

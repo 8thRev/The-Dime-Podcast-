@@ -25,6 +25,7 @@ PROMPTS_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_prompts.csv
 MAX_SEARCHES_PER_PROMPT = 3
 MAX_TOKENS = 1500
 WORKERS = 5
+REQUEST_TIMEOUT_SECONDS = 180
 SYSTEM = (
     "You are a search assistant. Answer the user's question the way a helpful "
     "AI search product would: search the web, give a concise answer, and cite "
@@ -121,7 +122,9 @@ def score(prompt_row: dict, blocks: list, video_ids: set[str]) -> dict:
 
 
 def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = None) -> dict:
-    client = client or anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+    # A question that hangs is recorded as an error, not allowed to stall
+    # the whole Monday run.
+    client = client or anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=REQUEST_TIMEOUT_SECONDS, max_retries=1)
     model = config.AI_VISIBILITY_MODEL
     prompts = prompts if prompts is not None else load_prompts()
 
