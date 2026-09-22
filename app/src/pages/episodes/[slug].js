@@ -182,6 +182,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         description={metaDescription}
         path={`/episodes/${episode.slug}`}
         ogType="article"
+        markdownAlternate
       />
 
       <Schema schema={schema} />

@@ -25,6 +25,18 @@ const nextConfig = {
     '/videos': ['./content/videos.json'],
     '/videos/[slug]': ['./content/videos.json', './content/video-episode-map.json'],
     '/': ['./content/videos.json'],
+    // The Markdown variants (/episodes/<slug>.md and friends, see the rewrite
+    // below) and the per topic llms.txt read the same content directories at
+    // request time. Listed explicitly for the same reason as the routes
+    // above: a request-time read that tracing missed serves a document with
+    // the AI sections silently absent, not an error.
+    '/api/markdown/[kind]/[slug]': [
+      './content/transcripts/**',
+      './content/newsletter/**',
+      './content/videos.json',
+      './content/video-episode-map.json',
+    ],
+    '/topics/[topic]/llms.txt': ['./content/transcripts/**', './content/newsletter/**'],
   },
   // eighthrevolution.com is an alias domain pointed at this same deployment.
   // Its homepage served the Dime homepage (canonicalled to dimepodcast.com),
@@ -78,7 +90,42 @@ const nextConfig = {
       statusCode: 301,
     }));
 
-    return [...hostRedirects, ...slugRedirects, ...feedAliases];
+    // Content negotiation for agents: a request for the HTML page that asks
+    // for text/markdown is sent to the page's .md variant. A redirect rather
+    // than a header-conditional rewrite on purpose: the HTML pages are
+    // statically generated and cached at the CDN by URL, and a rewrite would
+    // put two different bodies behind one URL and rely on the cache keying
+    // on the Accept header. A redirect is decided in the routing layer
+    // before any cache lookup, so the HTML entry is never touched and the
+    // agent still ends up on the Markdown. Browsers never send text/markdown
+    // in Accept, so no human request matches. `[^./]+` keeps the rule off
+    // /newsletter/rss.xml and off the .md URLs themselves (no loop).
+    const markdownNegotiation = [
+      {
+        source: '/:kind(episodes|guests|newsletter|topics)/:slug([^./]+)',
+        has: [{ type: 'header', key: 'accept', value: '.*text/markdown.*' }],
+        destination: '/:kind/:slug.md',
+        statusCode: 302,
+      },
+    ];
+
+    return [...hostRedirects, ...slugRedirects, ...feedAliases, ...markdownNegotiation];
+  },
+
+  // /episodes/<slug>.md and the other three content page kinds are served
+  // as text/markdown by src/pages/api/markdown/[kind]/[slug].js. The pages
+  // router has no way to spell a dotted dynamic segment as a page file, so
+  // the public URL is owned here and mapped onto that handler; the reasoning
+  // for an API route over a page is at the top of that file. This runs after
+  // static files and before dynamic routes, so `/episodes/<slug>.md` reaches
+  // the handler rather than `/episodes/[slug]` with a ".md" slug.
+  async rewrites() {
+    return [
+      {
+        source: '/:kind(episodes|guests|newsletter|topics)/:slug.md',
+        destination: '/api/markdown/:kind/:slug',
+      },
+    ];
   },
 
   async headers() {

@@ -240,7 +240,12 @@ module.exports = {
     transformRobotsTxt: async (_config, robotsTxt) =>
       `${robotsTxt}# LLM-readable index of this site:\n` +
       `# ${siteUrl}/llms.txt (curated: topic hubs + recent episodes)\n` +
-      `# ${siteUrl}/llms-full.txt (full catalogue with summaries, takeaways and FAQ)\n`,
+      `# ${siteUrl}/llms-full.txt (full catalogue with summaries, takeaways and FAQ)\n` +
+      // The per topic indexes and the Markdown page variants are linked from
+      // the pages and from llms.txt; named here too so a crawler that only
+      // reads robots.txt learns the convention.
+      `# ${siteUrl}/topics/<slug>/llms.txt (one topic's episodes and essays)\n` +
+      `# Markdown variant of any episode, guest, newsletter or topic page: add .md to its URL\n`,
   },
   // Real per-episode lastmod (from the RSS pubDate) instead of the
   // build-timestamp default — Google discounts lastmod that doesn't
