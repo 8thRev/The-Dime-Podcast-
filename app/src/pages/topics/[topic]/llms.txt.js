@@ -2,9 +2,9 @@
 // Serves /topics/<topic>/llms.txt: one topic's slice of the catalogue for
 // agents researching a single subject, so they read a few KB rather than the
 // 800KB+ of /llms-full.txt. Built by buildTopicLlms in lib/llms.js from the
-// same episode and edition line builders as /llms.txt, and from the hub
-// page's own loaders (getEpisodesByTopicSlug, getEditionsForTopic), so it
-// cannot drift from either.
+// same episode, edition and answer line builders as /llms.txt, and from the
+// hub page's own loaders (getEpisodesByTopicSlug, getEditionsForTopic,
+// getAnswersForTopic), so it cannot drift from any of them.
 //
 // Same request-time shape as src/pages/llms.txt.js, and for the same reason:
 // a static path segment (`llms.txt`) under a dynamic one is a valid page
@@ -14,6 +14,7 @@
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getEpisodesByTopicSlug } from '@/lib/topics';
 import { getEditionsForTopic } from '@/lib/newsletter';
+import { getAnswersForTopic } from '@/lib/answers';
 import { buildTopicLlms } from '@/lib/llms';
 
 export async function getServerSideProps({ params, res }) {
@@ -30,6 +31,7 @@ export async function getServerSideProps({ params, res }) {
       slug: params.topic,
       episodes: result.episodes,
       editions: getEditionsForTopic(params.topic),
+      answers: getAnswersForTopic(params.topic),
       getTranscript: getTranscriptBySlug,
     })
   );

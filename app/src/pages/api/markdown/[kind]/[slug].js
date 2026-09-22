@@ -1,10 +1,11 @@
 // src/pages/api/markdown/[kind]/[slug].js
 // Serves the Markdown variant of a content page as text/markdown:
 //
-//   /episodes/<slug>.md  /guests/<slug>.md  /newsletter/<slug>.md  /topics/<topic>.md
+//   /episodes/<slug>.md  /guests/<slug>.md  /newsletter/<slug>.md
+//   /answers/<slug>.md   /topics/<topic>.md
 //
 // Those public URLs are rewritten here by next.config.js (rewrites), so
-// `kind` is one of the four page directories and `slug` is the page's slug
+// `kind` is one of the five page directories and `slug` is the page's slug
 // with the .md already stripped. The documents themselves are built in
 // lib/markdown.js from the same loaders the HTML pages use.
 //
@@ -39,10 +40,17 @@ import { getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getGuestBySlug } from '@/lib/guests';
 import { getEditionBySlug, getEditionForEpisode, getEditionsForGuest, getEditionsForTopic } from '@/lib/newsletter';
+import { getAnswerBySlug } from '@/lib/answers';
 import { getEpisodesByTopicSlug } from '@/lib/topics';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllVideos } from '@/lib/youtube';
-import { buildEpisodeMarkdown, buildGuestMarkdown, buildEditionMarkdown, buildTopicMarkdown } from '@/lib/markdown';
+import {
+  buildEpisodeMarkdown,
+  buildGuestMarkdown,
+  buildEditionMarkdown,
+  buildAnswerMarkdown,
+  buildTopicMarkdown,
+} from '@/lib/markdown';
 
 const CACHE_CONTROL = 's-maxage=3600, stale-while-revalidate';
 
@@ -83,6 +91,20 @@ const BUILDERS = {
     if (!edition) return null;
     const episode = edition.episodeSlug ? await getEpisodeBySlug(edition.episodeSlug) : null;
     return buildEditionMarkdown({ edition, episode });
+  },
+
+  answers: async (slug) => {
+    const post = getAnswerBySlug(slug);
+    if (!post) return null;
+    // Same build-time resolution the HTML page does, and the same silent
+    // drop for a slug that is not in the feed, so the two renderings cite
+    // exactly the same episodes.
+    const episodes = [];
+    for (const episodeSlug of post.episodes) {
+      const match = await getEpisodeBySlug(episodeSlug);
+      if (match) episodes.push(match);
+    }
+    return buildAnswerMarkdown({ post, episodes });
   },
 
   topics: async (slug) => {

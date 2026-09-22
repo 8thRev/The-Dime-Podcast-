@@ -24,9 +24,12 @@
 
 import { SITE_URL, oneLine, episodeLines } from './llms';
 import { topicToSlug } from './topicSlug';
+import { COLUMN_AUTHOR, COLUMN_AUTHOR_ROLE } from './answersColumn';
 import { guestToSlug } from './guests';
 
 const AI_NOTE = '> AI generated from the episode audio by the transcript pipeline. May contain errors.';
+const ANSWERS_NOTE =
+  '> AI written. This is a column post generated from The Dime\'s episode catalogue, not a transcript and not written by the hosts.';
 const TRANSCRIPT_NOTE =
   '> AI generated transcript. Produced from the episode audio, not reviewed by the hosts, and may contain errors or mishear names.';
 
@@ -37,7 +40,7 @@ function footer() {
     '',
     '---',
     '',
-    'Markdown variant of any episode, guest, newsletter or topic page on this site: add .md to its URL.',
+    'Markdown variant of any episode, guest, newsletter, answer or topic page on this site: add .md to its URL.',
     `Site index: ${SITE_URL}/llms.txt. Complete catalogue: ${SITE_URL}/llms-full.txt`,
     '',
   ];
@@ -241,6 +244,60 @@ export function buildEditionMarkdown({ edition, episode = null }) {
 
   // The essay itself, exactly as written in content/newsletter/<slug>.md.
   lines.push('', edition.body);
+  lines.push(...footer());
+  return lines.join('\n');
+}
+
+/**
+ * /answers/<slug>.md: one Answers column post. The Q&A pairs are emitted as
+ * headed sections rather than a list, because this document's whole value to
+ * a retrieval system is that each question is a passage boundary with its
+ * answer directly under it.
+ *
+ * Provenance is stated twice and in the first two lines both times: the
+ * front matter block says AI written, and the cited episodes follow
+ * immediately. An agent that reads the head of this file and stops still
+ * knows who wrote it and what it is grounded in.
+ */
+export function buildAnswerMarkdown({ post, episodes = [] }) {
+  const url = `${SITE_URL}/answers/${post.slug}`;
+  const lines = [
+    `# ${post.title}`,
+    '',
+    ANSWERS_NOTE,
+    '',
+    // flat(), not oneLine(): oneLine truncates at 200 characters for an
+    // index line, and this document is the full text, not an index of it. A
+    // clipped standfirst here would hand an agent an answer ending in an
+    // ellipsis.
+    flat(post.summary),
+    '',
+    `- Author: ${COLUMN_AUTHOR}, ${COLUMN_AUTHOR_ROLE} (AI written, reviewed before publishing)`,
+    `- Published: ${isoDate(post.date)}`,
+    `- Canonical: ${url}`,
+    `- Column: ${SITE_URL}/answers`,
+  ];
+  if (post.topics.length) {
+    lines.push(`- Topics: ${post.topics.map((t) => `[${t}](${SITE_URL}/topics/${topicToSlug(t)})`).join(', ')}`);
+  }
+  if (episodes.length) {
+    lines.push('', '## Sources', '', 'Episodes of The Dime Podcast this answer is drawn from.', '');
+    for (const ep of episodes) {
+      const guest = hasRealGuest(ep) ? ` with ${ep.guest}` : '';
+      lines.push(`- [${ep.title}](${SITE_URL}/episodes/${ep.slug})${guest}`);
+      lines.push(`  Markdown: ${SITE_URL}/episodes/${ep.slug}.md`);
+    }
+  }
+
+  lines.push('', '## Answer', '', post.body);
+
+  if (post.faq.length) {
+    lines.push('', '## Related questions', '');
+    for (const pair of post.faq) {
+      lines.push(`### ${pair.question}`, '', flat(pair.answer), '');
+    }
+  }
+
   lines.push(...footer());
   return lines.join('\n');
 }

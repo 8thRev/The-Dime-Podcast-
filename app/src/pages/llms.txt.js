@@ -11,16 +11,18 @@ import { getAllEpisodes } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getAllTopics } from '@/lib/topics';
 import { getAllEditions } from '@/lib/newsletter';
+import { getAllAnswers } from '@/lib/answers';
 import { buildLlmsIndex } from '@/lib/llms';
 
 export async function getServerSideProps({ res }) {
   const episodes = await getAllEpisodes();
   const topics = await getAllTopics();
   const editions = getAllEditions();
+  const answers = getAllAnswers();
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
-  res.write(buildLlmsIndex(episodes, topics, editions, getTranscriptBySlug));
+  res.write(buildLlmsIndex(episodes, topics, editions, answers, getTranscriptBySlug));
   res.end();
 
   return { props: {} };

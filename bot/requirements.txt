@@ -20,6 +20,10 @@ google-analytics-data>=0.18.0
 # Timezone support (included in Python 3.11+, but listed for clarity)
 # pytz is not needed - using built-in zoneinfo and timezone-aware datetime
 
+# Isaac Burner column: front matter read and written as YAML, so the site's
+# gray-matter parser and this bot cannot disagree about quoting or escaping
+PyYAML>=6.0
+
 # Weekly report v2: snapshot schema validation and tests
 jsonschema>=4.21.0
 pytest>=8.0.0

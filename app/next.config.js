@@ -33,10 +33,11 @@ const nextConfig = {
     '/api/markdown/[kind]/[slug]': [
       './content/transcripts/**',
       './content/newsletter/**',
+      './content/answers/**',
       './content/videos.json',
       './content/video-episode-map.json',
     ],
-    '/topics/[topic]/llms.txt': ['./content/transcripts/**', './content/newsletter/**'],
+    '/topics/[topic]/llms.txt': ['./content/transcripts/**', './content/newsletter/**', './content/answers/**'],
   },
   // eighthrevolution.com is an alias domain pointed at this same deployment.
   // Its homepage served the Dime homepage (canonicalled to dimepodcast.com),
@@ -102,7 +103,7 @@ const nextConfig = {
     // /newsletter/rss.xml and off the .md URLs themselves (no loop).
     const markdownNegotiation = [
       {
-        source: '/:kind(episodes|guests|newsletter|topics)/:slug([^./]+)',
+        source: '/:kind(episodes|guests|newsletter|topics|answers)/:slug([^./]+)',
         has: [{ type: 'header', key: 'accept', value: '.*text/markdown.*' }],
         destination: '/:kind/:slug.md',
         statusCode: 302,
@@ -122,7 +123,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: '/:kind(episodes|guests|newsletter|topics)/:slug.md',
+        source: '/:kind(episodes|guests|newsletter|topics|answers)/:slug.md',
         destination: '/api/markdown/:kind/:slug',
       },
     ];

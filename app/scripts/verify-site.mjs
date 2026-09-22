@@ -159,8 +159,8 @@ const sitemapPaths = sitemapLocs.map((l) => normalise(l.replace(SITE_URL, '')) |
 
 // --- Sample selection -------------------------------------------------------
 
-const STATIC_SAMPLE = ['/', '/episodes', '/guests', '/topics', '/videos', '/newsletter', '/about', '/sponsorship', '/privacy', '/terms'];
-const DYNAMIC_PREFIXES = ['/episodes/', '/guests/', '/topics/', '/videos/', '/newsletter/'];
+const STATIC_SAMPLE = ['/', '/episodes', '/guests', '/topics', '/videos', '/newsletter', '/answers', '/about', '/sponsorship', '/privacy', '/terms'];
+const DYNAMIC_PREFIXES = ['/episodes/', '/guests/', '/topics/', '/videos/', '/newsletter/', '/answers/'];
 const dynamicSample = DYNAMIC_PREFIXES.map((prefix) => sitemapPaths.find((p) => p.startsWith(prefix))).filter(Boolean);
 
 // The plain-text and feed endpoints are excluded from the sitemap by
@@ -177,7 +177,7 @@ const NON_HTML_ENDPOINTS = ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newslet
 // returns 200 with its content type; the count floor there is what stops a
 // sitemap change from quietly emptying this list and leaving the .md URLs
 // unchecked.
-const MARKDOWN_KINDS = ['/episodes/', '/guests/', '/newsletter/', '/topics/'];
+const MARKDOWN_KINDS = ['/episodes/', '/guests/', '/newsletter/', '/answers/', '/topics/'];
 const MARKDOWN_SAMPLE = dynamicSample.filter((p) => MARKDOWN_KINDS.some((k) => p.startsWith(k))).map((p) => `${p}.md`);
 const topicSample = dynamicSample.find((p) => p.startsWith('/topics/'));
 const TOPIC_LLMS_SAMPLE = topicSample ? [`${topicSample}/llms.txt`] : [];

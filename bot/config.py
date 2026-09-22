@@ -116,6 +116,61 @@ class Config:
     # breaking the week over week comparability of the citation rate.
     AI_VISIBILITY_MODEL: str = os.getenv("AI_VISIBILITY_MODEL", "claude-sonnet-5")
 
+    # Isaac Burner column (bot/isaac_blogger.py). Small budget by design: a
+    # post is 350 to 700 words plus a short FAQ, an order of magnitude under
+    # a cleaned transcript, and the prompt carries only the summary,
+    # takeaways, FAQ and quotes of a handful of episodes rather than any
+    # full transcript.
+    ISAAC_MAX_TOKENS: int = int(os.getenv("ISAAC_MAX_TOKENS", "8000"))
+
+    # Posts per run. One is the intended cadence. The column's value is that
+    # every post answers a question someone actually searched and cites real
+    # episodes, and that supply is finite: raising this burns through the
+    # genuinely under-served queries in a week and then starts manufacturing
+    # questions nobody asked, which is what scaled content abuse looks like
+    # to Google and what makes a column unreadable to a human.
+    ISAAC_MAX_POSTS: int = int(os.getenv("ISAAC_MAX_POSTS", "1"))
+
+    # Search Console window the column mines for questions. 90 days rather
+    # than the SEO report's 7: this site takes roughly 885 impressions per 28
+    # days, so a 7 day window does not contain enough distinct queries to
+    # rank, let alone enough question shaped ones.
+    ISAAC_QUERY_DAYS: int = int(os.getenv("ISAAC_QUERY_DAYS", "90"))
+
+    # What counts as a gap worth answering: the query is seen, and the site
+    # is not winning it. Impressions are low in absolute terms for the same
+    # reason the window is long, so the floor is low on purpose. Position is
+    # an average, so 5.0 means "not reliably in the top few".
+    ISAAC_MIN_IMPRESSIONS: int = int(os.getenv("ISAAC_MIN_IMPRESSIONS", "2"))
+    ISAAC_MIN_POSITION: float = float(os.getenv("ISAAC_MIN_POSITION", "5.0"))
+
+    # Episodes whose material is put in front of Claude for one post. Three
+    # is enough to support a position and few enough that every citation
+    # earns its place; more dilutes the post into a listicle.
+    ISAAC_SOURCE_COUNT: int = int(os.getenv("ISAAC_SOURCE_COUNT", "3"))
+
+    # Manual override: answer this exact question and nothing else. Set from
+    # the workflow_dispatch input, for the case where Bryan wants a specific
+    # question covered rather than whatever the search data surfaces. Still
+    # subject to the grounding floor, so a question the catalogue cannot
+    # answer produces no post rather than a made up one.
+    ISAAC_FORCE_QUESTION: str = os.getenv("ISAAC_FORCE_QUESTION", "")
+
+    @classmethod
+    def validate_isaac_config(cls) -> tuple[bool, list[str]]:
+        """Validate config required by the Isaac Burner column.
+
+        Search Console is deliberately not required. It is the preferred
+        source of questions, but the column falls back to the episode
+        catalogue when it is unavailable, and a missing service account
+        should degrade the question source rather than stop the run.
+        """
+        required_vars = [
+            ("ANTHROPIC_API_KEY", cls.ANTHROPIC_API_KEY),
+        ]
+        missing = [name for name, value in required_vars if not value]
+        return len(missing) == 0, missing
+
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the SEO report script."""
