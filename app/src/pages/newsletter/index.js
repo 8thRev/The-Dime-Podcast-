@@ -56,8 +56,16 @@ export default function Newsletter({ editions }) {
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', marginBottom: 16, fontWeight: 300 }}>
           Every episode produces a newsletter. Not a recap. The structural principle underneath the conversation, written for operators who need to understand what&apos;s actually happening before the market makes it obvious.
         </p>
-        <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 48, letterSpacing: '.08em', fontWeight: 600, textTransform: 'uppercase' }}>
+        <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 16, letterSpacing: '.08em', fontWeight: 600, textTransform: 'uppercase' }}>
           550-650 WORDS · ONE IDEA · NO NOISE · FREE
+        </p>
+        {/* The byline is on this page, not only on each edition, because
+            /answers now has an archive index that names its author and
+            labels him AI. Two archive pages where only the AI one is
+            attributed reads backwards. Says "written by", not just the
+            name, so the contrast with the Answers banner is explicit. */}
+        <p className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: 48 }}>
+          Written by Bryan Fields. Every edition, by hand.
         </p>
 
         <ConvertKitEmbed location="newsletter_page" />
