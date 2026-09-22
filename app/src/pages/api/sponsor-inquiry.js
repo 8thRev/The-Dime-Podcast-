@@ -20,6 +20,7 @@
 // already points there, so it needs no new vendor and no new DNS.
 
 import { sendMail } from '@/lib/sendMail';
+import { isFilteredSubmission } from '@/lib/formSpam';
 
 // FROM_ADDRESS must be an address the configured transport is allowed to send
 // as. Falls back to EMAIL_FROM, the variable bot/config.py already uses with
@@ -44,8 +45,9 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
 
-  // Honeypot. Real users never see this field, so anything in it is a bot.
-  // Return 200 so the bot believes it succeeded and doesn't retry.
+  // Honeypot and fill-time check — see lib/formSpam.js for why the field is
+  // not called `website` any more, and why neither check may catch a person
+  // or an agent submitting on someone's behalf.
   // 200 so a naive bot believes it succeeded. `filtered` is there so the
   // client can skip its analytics event and not count bots as leads.
   //
@@ -53,7 +55,7 @@ export default async function handler(req, res) {
   // an accepted trade — the honeypot is a cheap filter for unsophisticated
   // spam, not a defence against a targeted attacker. Rate limiting is the
   // control that matters here and is not yet in place.
-  if (clean(body.website, 200)) return res.status(200).json({ ok: true, filtered: true });
+  if (isFilteredSubmission(body)) return res.status(200).json({ ok: true, filtered: true });
 
   const name = clean(body.name, MAX_LEN.name);
   const company = clean(body.company, MAX_LEN.company);

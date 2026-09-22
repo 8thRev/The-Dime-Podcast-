@@ -17,6 +17,7 @@
 // degrades to a prefilled draft rather than swallowing the applicant.
 
 import { sendMail } from '@/lib/sendMail';
+import { isFilteredSubmission } from '@/lib/formSpam';
 
 // FROM_ADDRESS must be an address the configured transport is allowed to send
 // as: on Google Workspace SMTP that means the authenticated user or one of its
@@ -56,13 +57,14 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
 
-  // Honeypot. Real users never see this field, so anything in it is a bot.
-  // 200 so a naive bot believes it succeeded and doesn't retry; `filtered`
-  // lets the client skip its analytics event rather than counting bots as
-  // applications. Same accepted trade as the sponsorship route: this is a
-  // cheap filter for unsophisticated spam, not a defence against a targeted
-  // attacker, and rate limiting is still the missing control.
-  if (clean(body.website, 200)) return res.status(200).json({ ok: true, filtered: true });
+  // Honeypot and fill-time check — see lib/formSpam.js for why the field is
+  // not called `website` any more. 200 so a naive bot believes it succeeded
+  // and doesn't retry; `filtered` lets the client skip its analytics event
+  // rather than counting bots as applications. Same accepted trade as the
+  // sponsorship route: this is a cheap filter for unsophisticated spam, not a
+  // defence against a targeted attacker, and rate limiting is still the
+  // missing control.
+  if (isFilteredSubmission(body)) return res.status(200).json({ ok: true, filtered: true });
 
   const name = clean(body.name, MAX_LEN.name);
   const companyTitle = clean(body.companyTitle, MAX_LEN.companyTitle);
