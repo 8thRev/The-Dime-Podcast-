@@ -37,11 +37,15 @@ def test_summarize_rates_and_competitors():
          "cited_domains": ["dimepodcast.com", "a.com"], "error": None},
         {"id": "2", "category": "topic", "cited": False, "mentioned": False, "in_search_results": False,
          "cited_domains": ["a.com"], "error": None},
-        {"id": "3", "category": "guest", "cited": False, "mentioned": False, "in_search_results": False,
+        {"id": "3", "category": "topic", "cited": True, "mentioned": True, "in_search_results": True,
+         "cited_domains": ["dimepodcast.com"], "error": None},
+        {"id": "4", "category": "topic", "cited": False, "mentioned": False, "in_search_results": False,
+         "cited_domains": [], "error": None},
+        {"id": "5", "category": "guest", "cited": False, "mentioned": False, "in_search_results": False,
          "cited_domains": [], "error": "boom"},
     ]
     s = ai_visibility.summarize(results, "m")
-    assert s["answered"] == 2 and s["citation_rate"] == 50.0
+    assert s["answered"] == 4 and s["citation_rate"] == 50.0
     assert s["top_cited_domains"] == [{"domain": "a.com", "questions": 2}]
 
 
