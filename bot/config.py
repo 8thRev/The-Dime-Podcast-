@@ -106,6 +106,11 @@ class Config:
     # broadcast stats for the weekly report.
     KIT_API_KEY: str = os.getenv("KIT_API_KEY", "")
 
+    # Upstash Redis REST endpoint (Vercel marketplace names) holding the AI
+    # agent fetch counters written by app/src/middleware.js. Read only here.
+    KV_REST_API_URL: str = os.getenv("KV_REST_API_URL") or os.getenv("UPSTASH_REDIS_REST_URL", "")
+    KV_REST_API_TOKEN: str = os.getenv("KV_REST_API_TOKEN") or os.getenv("UPSTASH_REDIS_REST_TOKEN", "")
+
     # Model for the weekly AI answer check (bot/ai_visibility.py). Separate
     # from ANTHROPIC_MODEL so the guest research model can change without
     # breaking the week over week comparability of the citation rate.

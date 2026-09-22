@@ -67,10 +67,16 @@ site was not built for. Sequence:
 1. **Fix the inquiry form honeypots.** Both lead forms hide a field labeled
    "Website" that agents and autofill will complete, and the submission is
    then silently discarded. In progress in a separate branch.
-2. **Log agent visits.** Record page fetches by ChatGPT-User, Claude-User,
-   Perplexity-User and the other live browsing agents (GA4 cannot see them)
-   and feed the counts and top pages into the Monday snapshot as a new
-   source. Small website PR.
+2. **Log agent visits.** Done Sep 22 2026: `app/src/middleware.js` counts
+   every page fetch by a known AI agent (class, agent name, path; nothing
+   else) into an Upstash Redis store attached through the Vercel
+   marketplace, and `bot/agent_visits_client.py` reads it into the snapshot
+   as the `agent_visits` source. Headline number is retrieval class fetches
+   (assistants answering live questions and their search indexes); training
+   and search engine crawls are listed but not headlined. Needs
+   `KV_REST_API_URL` and `KV_REST_API_TOKEN` on Vercel (set by the
+   integration) and in the repo secrets. Without them the middleware is a
+   no-op and the source reads "unavailable".
 3. **Plain text pages.** `/episodes/<slug>.md`, `/guests/<slug>.md`,
    `/newsletter/<slug>.md`, linked from each page head and from `llms.txt`.
    Plus a per topic `llms.txt` so an agent researching one subject reads

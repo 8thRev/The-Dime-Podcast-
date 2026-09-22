@@ -17,7 +17,8 @@
     "ga4",
     "reach",
     "ai_visibility",
-    "platform_followers"
+    "platform_followers",
+    "agent_visits"
   ],
   "additionalProperties": false,
   "$defs": {
@@ -499,7 +500,8 @@
         "kit",
         "gsc",
         "ga4",
-        "ai_visibility"
+        "ai_visibility",
+        "agent_visits"
       ]
     },
     "episodes": {
@@ -792,6 +794,7 @@
       "type": "object",
       "required": [
         "ai_citation_rate",
+        "ai_agent_fetches_28d",
         "ai_referral_sessions_28d",
         "youtube_ai_referral_views_28d",
         "youtube_search_views_28d",
@@ -871,6 +874,61 @@
             "apple_change_28d",
             "spotify_change_28d"
           ]
+        }
+      ]
+    },
+    "agent_visits": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "window_28d",
+            "fetches_28d",
+            "retrieval_fetches_28d",
+            "retrieval_fetches_7d",
+            "by_class_28d",
+            "by_agent_28d",
+            "top_pages_28d",
+            "top_retrieval_pages_28d",
+            "llms_txt_fetches_28d",
+            "weekly",
+            "days_with_data"
+          ],
+          "properties": {
+            "fetches_28d": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "retrieval_fetches_28d": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "top_pages_28d": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "fetches"
+                ]
+              }
+            },
+            "weekly": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "week_start",
+                  "week_end",
+                  "fetches",
+                  "retrieval_fetches"
+                ]
+              }
+            }
+          }
         }
       ]
     }
