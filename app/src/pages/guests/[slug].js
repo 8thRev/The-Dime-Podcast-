@@ -60,6 +60,7 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
         description={description}
         path={`/guests/${guest.slug}`}
         ogType="profile"
+        markdownAlternate
       />
 
       <Schema schema={personSchema} />

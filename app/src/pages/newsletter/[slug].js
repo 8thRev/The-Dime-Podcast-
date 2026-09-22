@@ -97,6 +97,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
         description={edition.description}
         path={`/newsletter/${edition.slug}`}
         ogType="article"
+        markdownAlternate
       />
 
       <Schema schema={articleSchema} />

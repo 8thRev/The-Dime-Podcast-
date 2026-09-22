@@ -70,6 +70,7 @@ export default function TopicPage({ topic, episodes, topicSlug, editions = [] })
         title={topic}
         description={`Episodes of The Dime Podcast covering ${topic}: cannabis business conversations with founders, executives, and investors.`}
         path={`/topics/${topicSlug}`}
+        markdownAlternate
       />
 
       <Schema schema={breadcrumbSchema} />

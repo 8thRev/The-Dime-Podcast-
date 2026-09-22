@@ -29,6 +29,10 @@ export default function SeoHead({
   ogType = 'website',
   ogImage = DEFAULT_OG_IMAGE,
   noindex = false,
+  // Set true on the four content page kinds that have a Markdown variant at
+  // `${path}.md` (episodes, guests, newsletter editions, topic hubs; see
+  // lib/markdown.js), so the page head advertises it to agents.
+  markdownAlternate = false,
   // Set true when `title` already IS the full page title (e.g. the
   // homepage's "The Dime Podcast — Cannabis Business Intelligence"), so
   // the " — The Dime Podcast" suffix isn't appended a second time.
@@ -44,6 +48,7 @@ export default function SeoHead({
       <title>{fullTitle}</title>
       <meta name="description" content={desc} />
       <link rel="canonical" href={canonical} />
+      {markdownAlternate && <link rel="alternate" type="text/markdown" href={`${canonical}.md`} />}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={desc} />
       <meta property="og:type" content={ogType} />

@@ -169,8 +169,20 @@ const dynamicSample = DYNAMIC_PREFIXES.map((prefix) => sitemapPaths.find((p) => 
 // htmlSample deliberately — checks 9-13 assert head invariants and would fail
 // on a document with no <head>.
 const NON_HTML_ENDPOINTS = ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newsletter/rss.xml'];
+
+// The Markdown variants (/episodes/<slug>.md and the other three kinds, served
+// through the rewrite in next.config.js) and the per topic llms.txt. Derived
+// from the dynamic sample so a real slug is exercised, and kept out of
+// htmlSample for the same reason as NON_HTML_ENDPOINTS. Check 14 asserts each
+// returns 200 with its content type; the count floor there is what stops a
+// sitemap change from quietly emptying this list and leaving the .md URLs
+// unchecked.
+const MARKDOWN_KINDS = ['/episodes/', '/guests/', '/newsletter/', '/topics/'];
+const MARKDOWN_SAMPLE = dynamicSample.filter((p) => MARKDOWN_KINDS.some((k) => p.startsWith(k))).map((p) => `${p}.md`);
+const topicSample = dynamicSample.find((p) => p.startsWith('/topics/'));
+const TOPIC_LLMS_SAMPLE = topicSample ? [`${topicSample}/llms.txt`] : [];
 const htmlSample = [...STATIC_SAMPLE, ...dynamicSample];
-const sampleUrls = [...htmlSample, ...NON_HTML_ENDPOINTS];
+const sampleUrls = [...htmlSample, ...NON_HTML_ENDPOINTS, ...MARKDOWN_SAMPLE, ...TOPIC_LLMS_SAMPLE];
 
 // --- Check 15: route coverage (runs first — it gates the value of everything
 // below it, and a new uncovered route should fail loudly, not silently pass) --
@@ -499,7 +511,13 @@ const endpoints = [
   ['/sitemap-0.xml', 'xml'],
   ['/rss.xml', 'application/rss+xml'],
   ['/newsletter/rss.xml', 'application/rss+xml'],
+  ...MARKDOWN_SAMPLE.map((p) => [p, 'text/markdown']),
+  ...TOPIC_LLMS_SAMPLE.map((p) => [p, 'text/plain']),
 ];
+if (MARKDOWN_SAMPLE.length !== MARKDOWN_KINDS.length) {
+  fail('14 endpoints', `only ${MARKDOWN_SAMPLE.length} of ${MARKDOWN_KINDS.length} Markdown page kinds have a sample URL: ${MARKDOWN_SAMPLE.join(', ') || 'none'}`);
+}
+if (TOPIC_LLMS_SAMPLE.length === 0) fail('14 endpoints', 'no topic hub in the sitemap sample, so /topics/<slug>/llms.txt was not checked');
 for (const [path, type] of endpoints) {
   const res = await getPage(path);
   if (res.status !== 200) fail('14 endpoints', `${path} returned ${res.status || res.error}`);
@@ -529,6 +547,24 @@ if (llmsIndex.status === 200) {
   // pointer has to survive independently of the size check above.
   if (!llmsIndex.body.includes('/llms-full.txt')) {
     fail('14 endpoints', '/llms.txt does not reference /llms-full.txt — the full catalogue becomes undiscoverable');
+  }
+}
+
+// The HTML page of each kind must send an agent that asks for text/markdown
+// to its .md variant (the header-conditional redirect in next.config.js). One
+// probe per kind: the rule is a single pattern, so one slug proves the rule.
+for (const mdPath of MARKDOWN_SAMPLE) {
+  const htmlPath = mdPath.replace(/\.md$/, '');
+  let res;
+  try {
+    res = await fetch(url(htmlPath), { redirect: 'manual', headers: { accept: 'text/markdown' } });
+  } catch (error) {
+    fail('14 endpoints', `${htmlPath} with Accept: text/markdown: ${error.cause?.code || error.message}`);
+    continue;
+  }
+  const location = normalise((res.headers.get('location') || '').replace(SITE_URL, '').replace(BASE, ''));
+  if (res.status !== 302 || location !== mdPath) {
+    fail('14 endpoints', `${htmlPath} with Accept: text/markdown returned ${res.status} ${res.headers.get('location') || ''}, expected 302 to ${mdPath}`);
   }
 }
 

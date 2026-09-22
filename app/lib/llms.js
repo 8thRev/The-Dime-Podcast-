@@ -5,6 +5,11 @@
 //                    essays, and the most recent episodes. Kept small.
 //   /llms-full.txt — the complete catalogue: every episode with its summary,
 //                    key takeaways and FAQ.
+//   /topics/<slug>/llms.txt
+//                    one topic's slice of the catalogue, so an agent
+//                    researching one subject reads tens of KB, not the full
+//                    document. Built by buildTopicLlms below from the same
+//                    episode and edition line builders as the other two.
 //
 // Why the split. The llms.txt convention is a *concise curated index* of
 // links with one-line descriptions, conventionally 5-20KB. This file used to
@@ -50,13 +55,26 @@ const RECENT_EDITION_COUNT = 12;
 // out of it.
 const DESCRIPTION_MAX = 200;
 
-function oneLine(text) {
+export function oneLine(text) {
   const flat = String(text || '').replace(/\s+/g, ' ').trim();
   if (flat.length <= DESCRIPTION_MAX) return flat;
   const cut = flat.slice(0, DESCRIPTION_MAX);
   const lastSpace = cut.lastIndexOf(' ');
   return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).trimEnd() + '…';
 }
+
+// Every episode, guest, First Principles and topic page has a Markdown
+// variant at the page URL plus `.md`, served by
+// src/pages/api/markdown/[kind]/[slug].js. The index says so once, as a rule,
+// rather than repeating a second URL on every line: at 18KB of a 20KB budget
+// there is no room for 37 extra links, and the rule is what an agent needs.
+// The per topic index does spell them out; it is small enough to afford it.
+const MARKDOWN_RULE = [
+  'Markdown variant of any episode, guest, newsletter or topic page: add .md to its URL',
+  `(for example ${SITE_URL}/episodes/<slug>.md). Per topic index: ${SITE_URL}/topics/<slug>/llms.txt`,
+];
+
+const markdownUrl = (url) => `${url}.md`;
 
 function header(episodes) {
   return [
@@ -88,7 +106,7 @@ function siteLinks() {
 // analysis with a named author — the most citable text on the site.
 // Descriptions only, not full bodies; the linked HTML pages carry the
 // full text and are explicitly allowed to AI crawlers in robots.txt.
-function editionsSection(editions, limit) {
+function editionsSection(editions, limit, { markdown = false } = {}) {
   if (editions.length === 0) return [];
   const listed = limit ? editions.slice(0, limit) : editions;
   const lines = [
@@ -106,6 +124,7 @@ function editionsSection(editions, limit) {
     const parts = [`- [${e.title}](${url})`];
     if (e.dateDisplay) parts.push(`(${e.dateDisplay})`);
     lines.push(`${parts.join(' ')}: ${oneLine(e.description)}`);
+    if (markdown) lines.push(`  Markdown: ${markdownUrl(url)}`);
     if (e.episodeSlug) {
       lines.push(`  Episode: ${SITE_URL}/episodes/${e.episodeSlug}`);
     }
@@ -127,17 +146,21 @@ function topicsSection(topics) {
 // one-line AI summary); `depth: 'full'` adds the takeaways and FAQ, which are
 // the answer-shaped blocks most readily lifted into an LLM answer and also
 // the reason the full document is three orders of magnitude larger.
-function episodeLines(ep, getTranscript, depth) {
+// `markdown: true` adds the episode's .md URL under the line (see
+// MARKDOWN_RULE for why the site index does not).
+export function episodeLines(ep, getTranscript, depth, { markdown = false } = {}) {
   const url = `${SITE_URL}/episodes/${ep.slug}`;
   const transcript = getTranscript(ep.slug);
+  const lines = [];
 
   if (!transcript?.summary) {
-    return [`- [${ep.title}](${url}) — ${ep.guest}`];
+    lines.push(`- [${ep.title}](${url}) — ${ep.guest}`);
+  } else {
+    const summary = depth === 'full' ? transcript.summary : oneLine(transcript.summary);
+    lines.push(`- [${ep.title}](${url}) — ${ep.guest}: ${summary}`);
   }
-
-  const summary = depth === 'full' ? transcript.summary : oneLine(transcript.summary);
-  const lines = [`- [${ep.title}](${url}) — ${ep.guest}: ${summary}`];
-  if (depth !== 'full') return lines;
+  if (markdown) lines.push(`  Markdown: ${markdownUrl(url)}`);
+  if (depth !== 'full' || !transcript?.summary) return lines;
 
   if (transcript.takeaways?.length) {
     lines.push('  Key takeaways:');
@@ -161,6 +184,7 @@ export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
     // document still learns the full catalogue exists and where it is.
     'This file is a curated index. The complete catalogue — every episode with',
     `its summary, key takeaways and FAQ — is at ${SITE_URL}/llms-full.txt`,
+    ...MARKDOWN_RULE,
     '',
     ...siteLinks(),
     ...editionsSection(editions, RECENT_EDITION_COUNT),
@@ -185,6 +209,7 @@ export function buildLlmsFull(episodes, topics, editions, getTranscript) {
   const lines = [
     ...header(episodes),
     `This is the complete catalogue. The curated index is at ${SITE_URL}/llms.txt`,
+    ...MARKDOWN_RULE,
     '',
     ...siteLinks(),
     ...editionsSection(editions),
@@ -197,6 +222,40 @@ export function buildLlmsFull(episodes, topics, editions, getTranscript) {
 
   for (const ep of episodes) {
     lines.push(...episodeLines(ep, getTranscript, 'full'));
+  }
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * One topic's index, served at /topics/<slug>/llms.txt. Same shape as the
+ * site index (header, written analysis, then episodes with one-line
+ * summaries), scoped to the hub and with every entry's Markdown URL spelled
+ * out, since this document is what an agent reads before choosing which
+ * pages to fetch. `episodes` and `editions` are the hub page's own lists
+ * (lib/topics getEpisodesByTopicSlug, lib/newsletter getEditionsForTopic), so
+ * the index and the page cannot disagree about what the topic contains.
+ */
+export function buildTopicLlms({ topic, slug, episodes, editions, getTranscript }) {
+  const hubUrl = `${SITE_URL}/topics/${slug}`;
+  const lines = [
+    `# The Dime Podcast: ${topic}`,
+    '',
+    '> Cannabis business intelligence. Strategy conversations for operators, not observers.',
+    '',
+    `${episodes.length} episode${episodes.length === 1 ? '' : 's'} on ${topic}. Hub page: ${hubUrl}`,
+    `This page as Markdown: ${markdownUrl(hubUrl)}`,
+    `Site index: ${SITE_URL}/llms.txt. Complete catalogue: ${SITE_URL}/llms-full.txt`,
+    ...MARKDOWN_RULE,
+    '',
+    ...editionsSection(editions, undefined, { markdown: true }),
+    '## Episodes',
+    '',
+  ];
+
+  for (const ep of episodes) {
+    lines.push(...episodeLines(ep, getTranscript, 'summary', { markdown: true }));
   }
   lines.push('');
 
