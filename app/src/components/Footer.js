@@ -68,7 +68,7 @@ export default function Footer() {
 
         @media (min-width: 768px) {
           .footer-grid {
-            grid-template-columns: 2fr 1fr 1fr 1fr;
+            grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
           }
           .footer-columns {
             display: contents;
@@ -106,14 +106,33 @@ export default function Footer() {
               { label: 'Videos', href: '/videos' },
               { label: 'Topics', href: '/topics' },
               { label: 'About', href: '/about' },
-              { label: 'Newsletter', href: '/newsletter' },
-              // The Answers column's only sitewide internal link. It is not
-              // in the header nav, which is already seven items wide on
-              // mobile; revisit that once the column has enough posts to
-              // earn the slot. Without this line /answers is reachable only
-              // from the sitemap and from the topic pages its posts tag.
-              { label: 'Answers', href: '/answers' },
               { label: 'Be a Guest', href: '/guests' },
+            ].map((nav) => (
+              <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
+                {nav.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Read */}
+          {/* Split out of Navigate when /answers landed. Navigate had grown to
+              seven items against five in Listen, and the two written archives
+              are a different kind of destination from the catalogue pages
+              around them: one is human written and one is not, and both are
+              places you read rather than browse. Giving them a labelled column
+              of their own also means neither is buried seventh in a list. */}
+          <div>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+              Read
+            </div>
+            {[
+              { label: 'First Principles', href: '/newsletter' },
+              // The Answers column's only sitewide internal link. It is not in
+              // the header nav, which is already seven items wide on mobile;
+              // revisit that once the column has enough posts to earn the
+              // slot. Without this line /answers is reachable only from the
+              // sitemap and from the topic pages its posts tag.
+              { label: 'Answers', href: '/answers' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
                 {nav.label}
@@ -145,9 +164,9 @@ export default function Footer() {
             <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
               Connect
             </div>
-            {/* Newsletter deliberately isn't repeated here — it's already in
-                Navigate above, and the same href twice in one footer splits
-                the internal-link signal for no user benefit. */}
+            {/* The two written archives deliberately aren't repeated here.
+                They're in Read above, and the same href twice in one footer
+                splits the internal-link signal for no user benefit. */}
             <Link href="/sponsorship" style={footerLinkStyle}>Sponsorship</Link>
             {SOCIAL_LINKS.map((s) => (
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer me" style={footerLinkStyle}>

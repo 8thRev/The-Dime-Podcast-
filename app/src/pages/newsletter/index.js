@@ -48,7 +48,12 @@ export default function Newsletter({ editions }) {
         <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
           First Principles
         </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,84px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, marginBottom: 32 }}>
+        {/* Floor lowered from 52px, which is what "the episode." needed: at
+            52px the headline was 358px of content in a 279px box at 375px
+            viewport, so this page scrolled sideways on a phone. Caught while
+            measuring the same failure on /answers. Re-measure before raising
+            it. */}
+        <h1 className="syne" style={{ fontSize: 'clamp(38px,8vw,84px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, marginBottom: 32 }}>
           The insight<br />
           behind<br />
           the episode.

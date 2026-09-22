@@ -60,7 +60,11 @@ export default function AnswersIndex({ posts }) {
         <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
           Answers
         </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(48px,7.5vw,78px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9, marginBottom: 32 }}>
+        {/* The 34px floor is set by the longest word in the headline, not by
+            taste. At 48px, "question." and "attached." are 384px wide inside a
+            279px content box at 375px viewport, which gave the whole page a
+            horizontal scroll. Re-measure before raising it. */}
+        <h1 className="syne" style={{ fontSize: 'clamp(34px,7.5vw,78px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9, marginBottom: 32 }}>
           One question.<br />
           One answer.<br />
           Receipts attached.
