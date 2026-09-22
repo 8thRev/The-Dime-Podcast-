@@ -9,12 +9,12 @@ scope was added will get a 403 from this API; callers should treat that
 as "not available yet" rather than a hard failure.
 """
 
-from datetime import date
+from datetime import date, timedelta
 
 import requests
 
 from config import config
-from youtube_client import CHANNEL_ID, raise_for_status
+from youtube_client import API_BASE as DATA_API_BASE, CHANNEL_ID, raise_for_status
 
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 API_BASE = "https://youtubeanalytics.googleapis.com/v2/reports"
@@ -96,6 +96,93 @@ class YouTubeAnalyticsClient:
             {"source": row[0], "views": int(row[1]), "minutes_watched": int(row[2])}
             for row in data.get("rows", [])
         ]
+
+    # Per video methods for the weekly report. The Analytics API has no
+    # impressions or thumbnail CTR metric (confirmed Sep 2026: both return
+    # 400); those only exist in the YouTube Reporting API bulk reports.
+
+    def channel_subscriber_count(self) -> int:
+        """Current public subscriber count, from the Data API."""
+        resp = requests.get(
+            f"{DATA_API_BASE}/channels",
+            params={"part": "statistics", "id": CHANNEL_ID},
+            headers=self._headers(),
+            timeout=30,
+        )
+        raise_for_status(resp)
+        return int(resp.json()["items"][0]["statistics"]["subscriberCount"])
+
+    def last_data_date(self) -> date | None:
+        """Latest day the Analytics API has channel data for. It trails the
+        calendar by two to three days, so day N values are only complete up
+        to this date."""
+        today = date.today()
+        data = self._query(today - timedelta(days=10), today, {"dimensions": "day", "metrics": "views"})
+        days = [row[0] for row in data.get("rows", [])]
+        return date.fromisoformat(max(days)) if days else None
+
+    def per_video_totals(self, start: date, end: date, video_ids: list[str]) -> dict[str, dict]:
+        """{video_id: {views, average_view_duration, average_view_percentage,
+        subscribers_gained}} for a date range. Videos with no views in the
+        range are absent from the result."""
+        out = {}
+        for i in range(0, len(video_ids), 200):
+            chunk = video_ids[i:i + 200]
+            data = self._query(
+                start,
+                end,
+                {
+                    "dimensions": "video",
+                    "metrics": "views,averageViewDuration,averageViewPercentage,subscribersGained",
+                    "filters": "video==" + ",".join(chunk),
+                    "maxResults": 200,
+                },
+            )
+            for vid, views, avd, avp, subs in data.get("rows", []):
+                out[vid] = {
+                    "views": int(views),
+                    "average_view_duration": float(avd),
+                    "average_view_percentage": float(avp),
+                    "subscribers_gained": int(subs),
+                }
+        return out
+
+    def video_daily(self, video_id: str, start: date, end: date) -> dict[str, dict]:
+        """{YYYY-MM-DD: {views, average_view_duration, average_view_percentage}}."""
+        data = self._query(
+            start,
+            end,
+            {
+                "dimensions": "day",
+                "metrics": "views,averageViewDuration,averageViewPercentage",
+                "filters": f"video=={video_id}",
+            },
+        )
+        return {
+            day: {
+                "views": int(views),
+                "average_view_duration": float(avd),
+                "average_view_percentage": float(avp),
+            }
+            for day, views, avd, avp in data.get("rows", [])
+        }
+
+    def video_traffic_sources(self, video_id: str, start: date, end: date) -> dict[str, int]:
+        data = self._query(
+            start,
+            end,
+            {"dimensions": "insightTrafficSourceType", "metrics": "views", "filters": f"video=={video_id}"},
+        )
+        return {source: int(views) for source, views in data.get("rows", []) if int(views) > 0}
+
+    def video_retention(self, video_id: str, start: date, end: date) -> list[tuple[float, float]]:
+        """[(elapsed_ratio, audience_watch_ratio)] in 1 percent steps."""
+        data = self._query(
+            start,
+            end,
+            {"dimensions": "elapsedVideoTimeRatio", "metrics": "audienceWatchRatio", "filters": f"video=={video_id}"},
+        )
+        return [(float(r), float(w)) for r, w in data.get("rows", [])]
 
     def top_search_terms(self, start: date, end: date, row_limit: int = 10) -> list[dict]:
         """Top YouTube search terms driving views, sorted by views desc."""

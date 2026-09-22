@@ -9,6 +9,9 @@ from google.analytics.data_v1beta import BetaAnalyticsDataClient
 from google.analytics.data_v1beta.types import (
     DateRange,
     Dimension,
+    Filter,
+    FilterExpression,
+    FilterExpressionList,
     Metric,
     OrderBy,
     RunReportRequest,
@@ -16,6 +19,12 @@ from google.analytics.data_v1beta.types import (
 
 from config import config
 from google_credentials import load_credentials
+
+
+def _exact(field: str, value: str) -> FilterExpression:
+    return FilterExpression(filter=Filter(
+        field_name=field, string_filter=Filter.StringFilter(value=value)
+    ))
 
 SCOPES = ["https://www.googleapis.com/auth/analytics.readonly"]
 
@@ -102,6 +111,61 @@ class GA4Client:
             }
             for row in response.rows
         ]
+
+    def _rows(self, start: date, end: date, dims: list[str], mets: list[str], flt=None, limit: int = 250) -> list[tuple]:
+        request = RunReportRequest(
+            property=self.property,
+            date_ranges=[DateRange(start_date=start.isoformat(), end_date=end.isoformat())],
+            dimensions=[Dimension(name=d) for d in dims],
+            metrics=[Metric(name=m) for m in mets],
+            dimension_filter=flt,
+            limit=limit,
+        )
+        response = self._client.run_report(request)
+        return [
+            (tuple(v.value for v in row.dimension_values), tuple(float(v.value) for v in row.metric_values))
+            for row in response.rows
+        ]
+
+    def sessions_by_channel_group(self, start: date, end: date) -> dict[str, int]:
+        rows = self._rows(start, end, ["sessionDefaultChannelGroup"], ["sessions"])
+        return {d[0]: int(m[0]) for d, m in rows}
+
+    def sessions_by_session_source(self, start: date, end: date) -> dict[str, int]:
+        rows = self._rows(start, end, ["sessionSource"], ["sessions"])
+        return {d[0]: int(m[0]) for d, m in rows}
+
+    def landing_page_engagement(self, start: date, end: date) -> list[dict]:
+        """Per landing page: sessions and total user engagement seconds."""
+        rows = self._rows(start, end, ["landingPage"], ["sessions", "userEngagementDuration"])
+        return [{"landing_page": d[0], "sessions": int(m[0]), "engagement_seconds": m[1]} for d, m in rows]
+
+    def homepage_path_page_views(self, start: date, end: date) -> list[dict]:
+        """page_view events whose pagePath is "/", split by pageLocation."""
+        flt = FilterExpression(and_group=FilterExpressionList(expressions=[
+            _exact("eventName", "page_view"),
+            _exact("pagePath", "/"),
+        ]))
+        rows = self._rows(start, end, ["pageLocation"], ["eventCount"], flt, limit=1000)
+        return [{"page_location": d[0], "count": int(m[0])} for d, m in rows]
+
+    def event_counts(self, start: date, end: date, names: list[str]) -> dict[str, int]:
+        """Counts for the given event names. Names with no events come back
+        as 0 rather than missing."""
+        flt = FilterExpression(filter=Filter(
+            field_name="eventName", in_list_filter=Filter.InListFilter(values=names)
+        ))
+        rows = self._rows(start, end, ["eventName"], ["eventCount"], flt)
+        found = {d[0]: int(m[0]) for d, m in rows}
+        return {name: found.get(name, 0) for name in names}
+
+    def audio_progress_count(self, start: date, end: date, percent: int) -> int:
+        flt = FilterExpression(and_group=FilterExpressionList(expressions=[
+            _exact("eventName", "audio_progress"),
+            _exact("customEvent:percent_played", str(percent)),
+        ]))
+        rows = self._rows(start, end, ["eventName"], ["eventCount"], flt)
+        return sum(int(m[0]) for _, m in rows)
 
     def ai_referrer_sessions(self, start: date | None = None, end: date | None = None) -> dict:
         """Sessions referred by known AI products (ChatGPT, Perplexity, Claude).

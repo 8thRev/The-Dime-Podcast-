@@ -1,7 +1,8 @@
 name: Report v2 dev (temporary)
 
-# Temporary: runs the Phase 1 probe and dry run on pushes to the dev branch,
-# because the API credentials only exist in Actions. Deleted before merge.
+# Temporary: runs the Phase 1 tests and a real dry run on pushes to the dev
+# branch, because the API credentials only exist in Actions. Deleted before
+# merge.
 on:
   push:
     branches: [report-v2-phase1]
@@ -18,7 +19,9 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           pip install -r bot/requirements.txt
-      - name: Run
+      - name: Unit tests
+        run: cd bot && python -m pytest tests -q
+      - name: Dry run, real credentials
         env:
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
@@ -27,6 +30,19 @@ jobs:
           YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
           SIMPLECAST_API_TOKEN: ${{ secrets.SIMPLECAST_API_TOKEN }}
           KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
-        run: |
-          cd bot
-          python report_probe.py
+        run: cd bot && python weekly_report.py --dry-run --out-dir ../out/real
+      - name: Dry run, deliberately bad Kit key
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+          YOUTUBE_OAUTH_CLIENT_ID: ${{ secrets.YOUTUBE_OAUTH_CLIENT_ID }}
+          YOUTUBE_OAUTH_CLIENT_SECRET: ${{ secrets.YOUTUBE_OAUTH_CLIENT_SECRET }}
+          YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
+          SIMPLECAST_API_TOKEN: ${{ secrets.SIMPLECAST_API_TOKEN }}
+          KIT_API_KEY: not-a-real-key-deliberately-bad
+        run: cd bot && python weekly_report.py --dry-run --out-dir ../out/bad-kit
+      - uses: actions/upload-artifact@v6
+        if: ${{ !cancelled() }}
+        with:
+          name: weekly-snapshots
+          path: out/

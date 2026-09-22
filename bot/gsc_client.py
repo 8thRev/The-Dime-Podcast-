@@ -61,6 +61,37 @@ class SearchConsoleClient:
             for row in response.get("rows", [])
         ]
 
+    def query_all(self, start: date, end: date, dimensions: list[str]) -> list[dict]:
+        """Every row for a multi dimension query, paging past the 25,000 row
+        cap. Each row is {keys: [...], clicks, impressions, position}."""
+        rows = []
+        page = 25000
+        start_row = 0
+        while True:
+            response = self._service.searchanalytics().query(
+                siteUrl=self.site_url,
+                body={
+                    "startDate": start.isoformat(),
+                    "endDate": end.isoformat(),
+                    "dimensions": dimensions,
+                    "rowLimit": page,
+                    "startRow": start_row,
+                },
+            ).execute()
+            batch = response.get("rows", [])
+            rows.extend(
+                {
+                    "keys": r["keys"],
+                    "clicks": r["clicks"],
+                    "impressions": r["impressions"],
+                    "position": r["position"],
+                }
+                for r in batch
+            )
+            if len(batch) < page:
+                return rows
+            start_row += page
+
     def query_totals(self, start: date, end: date) -> dict:
         """Site-wide totals (no dimension breakdown) for a date range."""
         response = self._service.searchanalytics().query(
