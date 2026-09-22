@@ -102,6 +102,10 @@ class Config:
     # skips the Simplecast section.
     SIMPLECAST_API_TOKEN: str = os.getenv("SIMPLECAST_API_TOKEN", "")
 
+    # Kit (ConvertKit) API v4 key, read only use: subscriber counts and
+    # broadcast stats for the weekly report.
+    KIT_API_KEY: str = os.getenv("KIT_API_KEY", "")
+
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the SEO report script."""
