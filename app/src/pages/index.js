@@ -146,7 +146,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
-              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>EP. {episodeCount} · NEW</span>
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>LATEST · EP. {episodeCount}</span>
               <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
             </div>
 
@@ -156,7 +156,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
             </h1>
 
             <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '70%', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
-              A weekly conversation with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
+              Conversations with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
             </p>
 
             <div className="stats-grid fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: '1px solid var(--border-subtle)' }}>
@@ -164,7 +164,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
                 { n: episodeCount, l: 'Episodes' },
                 { n: `${PODCAST_RATING.value}★`, l: `${PODCAST_RATING.count} Ratings` },
                 { n: 'Top 5%', l: 'Global Ranking' },
-                { n: 'Est. 2020', l: 'Weekly' },
+                { n: 'Since 2020', l: 'On Air' },
               ].map((s) => (
                 <div key={s.l} className="stat-item">
                   <div className="syne" style={{ fontSize: 'clamp(24px, 3vw, 32px)', fontWeight: 800, color: 'var(--text-accent)', marginBottom: 8 }}>

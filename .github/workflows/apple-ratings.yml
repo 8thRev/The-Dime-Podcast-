@@ -1,0 +1,72 @@
+name: Apple Ratings
+
+# Refreshes app/content/ratings.json — the Apple Podcasts rating shown on the
+# home, about, guests and sponsorship pages, the footer, and the podcast
+# JSON-LD. Scrapes the public show page per storefront (Apple has no ratings
+# API); see app/scripts/update-apple-ratings.mjs for the failure policy.
+on:
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Accept a rating-count drop larger than the safety tolerance'
+        type: boolean
+        default: false
+  schedule:
+    # 09:00 UTC daily — an hour after the video catalog, so the two commits
+    # don't race each other to main.
+    - cron: '0 9 * * *'
+
+jobs:
+  ratings:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Update ratings
+        # Explicit `shell: bash` turns on pipefail, so a refused update fails
+        # the step through the tee and the commit step below never runs.
+        shell: bash
+        env:
+          FORCE: ${{ inputs.force && '1' || '' }}
+        run: |
+          cd app
+          node scripts/update-apple-ratings.mjs | tee ratings-report.txt
+
+      - name: Write job summary
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo '```'
+            cat app/ratings-report.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit and push ratings
+        run: |
+          git config user.name "dime-transcript-bot"
+          git config user.email "actions@github.com"
+          git add app/content/ratings.json
+          if git diff --cached --quiet; then
+            echo "Ratings unchanged; nothing to commit."
+          else
+            # Not [skip ci]: the number ships inside the deployed bundle, so it
+            # only reaches production if this push triggers a Vercel deploy.
+            git commit -m "Update Apple Podcasts ratings"
+            for i in 1 2 3 4 5; do
+              if git push; then
+                exit 0
+              fi
+              echo "Push rejected (attempt $i/5), rebasing onto latest main..."
+              git fetch origin main
+              git rebase origin/main
+            done
+            echo "::error::Failed to push ratings after 5 attempts"
+            exit 1
+          fi

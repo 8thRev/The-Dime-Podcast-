@@ -1,0 +1,28 @@
+{
+  "value": 4.9,
+  "count": 114,
+  "source": "Apple Podcasts, summed across storefronts (id1540199573)",
+  "updatedAt": "2026-09-16",
+  "storefronts": {
+    "us": {
+      "count": 108,
+      "stars": 526
+    },
+    "ca": {
+      "count": 3,
+      "stars": 15
+    },
+    "au": {
+      "count": 1,
+      "stars": 5
+    },
+    "de": {
+      "count": 1,
+      "stars": 5
+    },
+    "ph": {
+      "count": 1,
+      "stars": 5
+    }
+  }
+}

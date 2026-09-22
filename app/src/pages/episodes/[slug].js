@@ -9,6 +9,7 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import AIDisclosure from '@/src/components/AIDisclosure';
 import SponsorSlot from '@/src/components/SponsorSlot';
+import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import { showNotesMentionSponsor } from '@/lib/sponsor';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
 import { getTranscriptBySlug, getAllTopicsBySlug } from '@/lib/transcripts';
@@ -345,6 +346,22 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
               />
             </div>
           )}
+        </section>
+
+        {/* Directly after the show notes: the point where a reader has
+            finished the human-facing summary and before the long AI
+            sections most visitors never scroll through. */}
+        <section style={{ marginBottom: '56px', padding: '28px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px' }}>
+          <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: '10px' }}>
+            First Principles Newsletter
+          </div>
+          <h2 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.3, marginBottom: '10px', color: 'var(--text-headline)' }}>
+            Get the insight behind the conversation.
+          </h2>
+          <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 20px' }}>
+            One structural idea from the episode, written for operators. 550–650 words, no fluff, free.
+          </p>
+          <ConvertKitEmbed location="episode_inline" episodeSlug={episode.slug} />
         </section>
 
         {transcript && transcript.takeaways?.length > 0 && (

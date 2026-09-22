@@ -36,7 +36,7 @@ export default function Newsletter({ editions }) {
     <>
       <SeoHead
         title="First Principles Newsletter"
-        description="One structural insight per episode. 550-650 words, one idea, no fluff. Free weekly newsletter for cannabis operators."
+        description="One structural insight per episode. 550-650 words, one idea, no fluff. Free newsletter for cannabis operators."
         path="/newsletter"
       />
 
