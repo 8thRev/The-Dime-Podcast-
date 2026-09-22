@@ -24,8 +24,10 @@ from config import config
 PROMPTS_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_prompts.csv"
 MAX_SEARCHES_PER_PROMPT = 3
 MAX_TOKENS = 1500
-WORKERS = 5
-REQUEST_TIMEOUT_SECONDS = 180
+# Web search turns take 1 to 3 minutes each; 25 questions at 5 workers ran
+# 16 minutes on Sep 22 2026, with 4 of them timing out at 180 seconds.
+WORKERS = 8
+REQUEST_TIMEOUT_SECONDS = 240
 MAX_FAILURE_SHARE = 0.2
 SYSTEM = (
     "You are a search assistant. Answer the user's question the way a helpful "

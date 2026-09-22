@@ -57,6 +57,33 @@ Other changes from the original text below:
 - Phase 2 rules and the Phase 3 headline should lead with the AI and search
   questions above, not with downloads.
 
+## Order of work after Phase 1 (decided Sep 22 2026)
+
+Agent readiness comes before Phases 2 and 3. Agents acting for people (a
+PR person pitching a guest, a brand researching sponsorships, an analyst
+pulling everything the show has said on a topic) are a growth channel the
+site was not built for. Sequence:
+
+1. **Fix the inquiry form honeypots.** Both lead forms hide a field labeled
+   "Website" that agents and autofill will complete, and the submission is
+   then silently discarded. In progress in a separate branch.
+2. **Log agent visits.** Record page fetches by ChatGPT-User, Claude-User,
+   Perplexity-User and the other live browsing agents (GA4 cannot see them)
+   and feed the counts and top pages into the Monday snapshot as a new
+   source. Small website PR.
+3. **Plain text pages.** `/episodes/<slug>.md`, `/guests/<slug>.md`,
+   `/newsletter/<slug>.md`, linked from each page head and from `llms.txt`.
+   Plus a per topic `llms.txt` so an agent researching one subject reads
+   20 KB, not the 861 KB full catalogue.
+4. **List the agent actions in `llms.txt`**: how to pitch a guest and how to
+   ask about sponsorship, with the fields each needs; sponsor facts
+   (audience size, formats) in machine readable form.
+5. **Phase 2 rules and Phase 3 email**, leading with AI citation rate, AI
+   referrals, agent visits and search growth.
+6. **A Dime MCP server** (search episodes, get takeaways and transcript, list
+   guests, latest First Principles, topic summary) once the agent visit
+   logs show demand.
+
 ## Standing rules
 
 1. Never print, log, or commit a credential. Secrets come from environment
