@@ -1,6 +1,6 @@
 """
 YouTube Analytics API client for the SEO report (traffic sources, watch
-time, search terms, and subscriber growth — deeper than the basic
+time, search terms, and subscriber growth, deeper than the basic
 views/likes/comments stats from the YouTube Data API in youtube_client.py).
 
 Requires the OAuth refresh token to include the yt-analytics.readonly
