@@ -19,3 +19,7 @@ google-analytics-data>=0.18.0
 
 # Timezone support (included in Python 3.11+, but listed for clarity)
 # pytz is not needed - using built-in zoneinfo and timezone-aware datetime
+
+# Weekly report v2: snapshot schema validation and tests
+jsonschema>=4.21.0
+pytest>=8.0.0

@@ -1,0 +1,878 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.dimepodcast.com/schemas/weekly.schema.json",
+  "title": "The Dime weekly report snapshot",
+  "description": "Written by bot/weekly_report.py to data/weekly/YYYY-MM-DD.json. See docs/report-v2-spec.md. Rates from Kit are percentages (56.7 means 56.7 percent); YouTube average_view_percentage is also a percentage; retention_30s is a 0 to 1 audience watch ratio. AI citation rates and search shares are percentages or 0 to 1 ratios as named (search_share is 0 to 1; citation_rate is a percentage).",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "run_date",
+    "sources",
+    "episodes",
+    "podcast",
+    "youtube_channel",
+    "kit",
+    "search_console",
+    "ga4",
+    "reach",
+    "ai_visibility",
+    "platform_followers"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "date": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "number_or_null": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "window": {
+      "type": "object",
+      "required": [
+        "start",
+        "end"
+      ],
+      "properties": {
+        "start": {
+          "$ref": "#/$defs/date"
+        },
+        "end": {
+          "$ref": "#/$defs/date"
+        }
+      }
+    },
+    "source_status": {
+      "type": "object",
+      "required": [
+        "status",
+        "error"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "unavailable"
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "required": [
+        "value",
+        "baseline",
+        "ratio",
+        "sample_size",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "baseline": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "ratio": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "sample_size": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "if": {
+        "properties": {
+          "ratio": {
+            "type": "null"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "day_n": {
+      "type": "object",
+      "properties": {
+        "day_1": {
+          "$ref": "#/$defs/count"
+        },
+        "day_3": {
+          "$ref": "#/$defs/count"
+        },
+        "day_7": {
+          "$ref": "#/$defs/count"
+        },
+        "day_14": {
+          "$ref": "#/$defs/count"
+        },
+        "day_30": {
+          "$ref": "#/$defs/count"
+        },
+        "day_60": {
+          "$ref": "#/$defs/count"
+        },
+        "day_90": {
+          "$ref": "#/$defs/count"
+        }
+      },
+      "required": [
+        "day_1",
+        "day_3",
+        "day_7",
+        "day_14",
+        "day_30",
+        "day_60",
+        "day_90"
+      ]
+    },
+    "video_totals": {
+      "type": "object",
+      "required": [
+        "views",
+        "average_view_duration",
+        "average_view_percentage",
+        "subscribers_gained"
+      ],
+      "properties": {
+        "views": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "average_view_duration": {
+          "type": "number"
+        },
+        "average_view_percentage": {
+          "type": "number"
+        },
+        "subscribers_gained": {
+          "type": "integer"
+        }
+      }
+    },
+    "reach_entry": {
+      "type": "object",
+      "required": [
+        "value",
+        "change_28d",
+        "note"
+      ],
+      "properties": {
+        "value": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "change_28d": {
+          "$ref": "#/$defs/number_or_null"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "episode": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "slug",
+        "number",
+        "published_at",
+        "age_days",
+        "downloads",
+        "video_id",
+        "youtube",
+        "newsletter",
+        "search",
+        "baselines"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "number": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "published_at": {
+          "$ref": "#/$defs/date"
+        },
+        "age_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "video_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "downloads": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/day_n"
+                }
+              ],
+              "type": "object",
+              "required": [
+                "lifetime",
+                "trailing_7d",
+                "trailing_28d"
+              ],
+              "properties": {
+                "lifetime": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "trailing_7d": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "trailing_28d": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          ]
+        },
+        "youtube": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "video_id",
+                "published_at",
+                "pending_analytics"
+              ],
+              "properties": {
+                "pending_analytics": {
+                  "const": true
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "video_id",
+                "published_at",
+                "analytics_unavailable",
+                "error"
+              ],
+              "properties": {
+                "analytics_unavailable": {
+                  "const": true
+                },
+                "error": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "video_id",
+                "published_at",
+                "duration_seconds",
+                "views_day_1",
+                "views_day_7",
+                "views_day_30",
+                "average_view_percentage_day_7",
+                "trailing_28d",
+                "lifetime",
+                "traffic_sources_28d",
+                "retention_30s",
+                "impressions_28d",
+                "impression_ctr_28d",
+                "search_views_day_7",
+                "search_views_day_30",
+                "search_impressions_28d",
+                "search_impression_ctr_28d"
+              ],
+              "properties": {
+                "video_id": {
+                  "type": "string"
+                },
+                "published_at": {
+                  "$ref": "#/$defs/date"
+                },
+                "average_view_percentage_day_7": {
+                  "$ref": "#/$defs/number_or_null"
+                },
+                "trailing_28d": {
+                  "$ref": "#/$defs/video_totals"
+                },
+                "lifetime": {
+                  "$ref": "#/$defs/video_totals"
+                },
+                "traffic_sources_28d": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "integer"
+                  }
+                },
+                "retention_30s": {
+                  "$ref": "#/$defs/number_or_null"
+                },
+                "impressions_28d": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "impression_ctr_28d": {
+                  "$ref": "#/$defs/number_or_null"
+                }
+              }
+            }
+          ]
+        },
+        "newsletter": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "subject",
+                "send_at",
+                "recipients",
+                "opens",
+                "clicks",
+                "open_rate",
+                "click_rate"
+              ],
+              "properties": {
+                "open_rate": {
+                  "type": "number"
+                },
+                "click_rate": {
+                  "type": "number"
+                }
+              }
+            }
+          ]
+        },
+        "search": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "required": [
+                "page",
+                "clicks_28d",
+                "impressions_28d",
+                "impressions_7d",
+                "opportunities"
+              ],
+              "properties": {
+                "opportunities": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/opportunity"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "baselines": {
+          "type": "object",
+          "required": [
+            "downloads_day_7",
+            "downloads_day_30",
+            "youtube_views_day_7",
+            "youtube_views_day_30",
+            "youtube_average_view_percentage_day_7",
+            "youtube_impression_ctr_28d",
+            "newsletter_click_rate",
+            "youtube_search_views_day_7",
+            "youtube_search_views_day_30"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/baseline"
+          }
+        }
+      }
+    },
+    "opportunity": {
+      "type": "object",
+      "required": [
+        "query",
+        "position",
+        "impressions",
+        "clicks"
+      ],
+      "properties": {
+        "query": {
+          "type": "string"
+        },
+        "position": {
+          "type": "number",
+          "minimum": 5,
+          "maximum": 30
+        },
+        "impressions": {
+          "type": "integer",
+          "minimum": 10
+        },
+        "clicks": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "run_date": {
+      "$ref": "#/$defs/date"
+    },
+    "sources": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/source_status"
+      },
+      "required": [
+        "simplecast",
+        "youtube",
+        "youtube_reach",
+        "kit",
+        "gsc",
+        "ga4",
+        "ai_visibility"
+      ]
+    },
+    "episodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/episode"
+      }
+    },
+    "podcast": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "window",
+            "downloads_28d",
+            "downloads_by_app_28d",
+            "downloads_by_country_28d",
+            "listeners_28d",
+            "listeners_prev_28d"
+          ],
+          "properties": {
+            "window": {
+              "$ref": "#/$defs/window"
+            }
+          }
+        }
+      ]
+    },
+    "youtube_channel": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "subscribers",
+            "subscribers_gained_week",
+            "subscribers_lost_week",
+            "subscribers_net_28d",
+            "last_data_date",
+            "unmapped_recent_videos",
+            "search_views_weekly",
+            "top_search_terms_28d",
+            "external_referrers_28d",
+            "ai_referrer_views_28d",
+            "reach_report"
+          ],
+          "properties": {
+            "subscribers": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "search_views_weekly": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "week_start",
+                  "week_end",
+                  "views",
+                  "search_views",
+                  "search_share"
+                ]
+              }
+            },
+            "reach_report": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "required": [
+                    "status",
+                    "job_created_this_run",
+                    "days_covered",
+                    "channel"
+                  ],
+                  "properties": {
+                    "status": {
+                      "enum": [
+                        "ok",
+                        "pending"
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            "ai_referrer_views_28d": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "kit": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "active_subscribers",
+            "week",
+            "last_28d",
+            "broadcasts",
+            "unmatched_broadcasts"
+          ],
+          "properties": {
+            "active_subscribers": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "week": {
+              "type": "object",
+              "required": [
+                "new_subscribers",
+                "cancellations",
+                "net_new_subscribers"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "search_console": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "window_28d",
+            "totals_28d",
+            "totals_prev_28d",
+            "monthly",
+            "pages",
+            "queries_28d",
+            "queries_prev_28d",
+            "top_non_brand_queries_28d",
+            "question_queries_28d",
+            "question_query_count_28d",
+            "weekly"
+          ],
+          "properties": {
+            "pages": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "page",
+                  "clicks_28d",
+                  "impressions_28d",
+                  "impressions_7d",
+                  "opportunities"
+                ],
+                "properties": {
+                  "opportunities": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/opportunity"
+                    }
+                  }
+                }
+              }
+            },
+            "queries_28d": {
+              "type": "object",
+              "required": [
+                "brand",
+                "non_brand"
+              ],
+              "properties": {
+                "brand": {
+                  "type": "object",
+                  "required": [
+                    "impressions",
+                    "clicks",
+                    "queries"
+                  ]
+                },
+                "non_brand": {
+                  "type": "object",
+                  "required": [
+                    "impressions",
+                    "clicks",
+                    "queries"
+                  ]
+                }
+              }
+            },
+            "queries_prev_28d": {
+              "type": "object",
+              "required": [
+                "brand",
+                "non_brand"
+              ],
+              "properties": {
+                "brand": {
+                  "type": "object",
+                  "required": [
+                    "impressions",
+                    "clicks",
+                    "queries"
+                  ]
+                },
+                "non_brand": {
+                  "type": "object",
+                  "required": [
+                    "impressions",
+                    "clicks",
+                    "queries"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "ga4": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "window",
+            "sessions",
+            "sessions_by_channel_group",
+            "sessions_by_source",
+            "direct_share",
+            "homepage_landing_share",
+            "homepage_avg_engagement_seconds",
+            "suspect_bot_traffic",
+            "stale_pageview_count",
+            "stale_pageview_bug",
+            "key_events",
+            "organic_search_sessions",
+            "weekly",
+            "ai_referrals_28d"
+          ],
+          "properties": {
+            "suspect_bot_traffic": {
+              "type": "boolean"
+            },
+            "stale_pageview_bug": {
+              "type": "boolean"
+            },
+            "key_events": {
+              "type": "object",
+              "required": [
+                "newsletter_signup",
+                "platform_subscribe_click",
+                "audio_progress_50",
+                "video_progress",
+                "sponsor_inquiry_submit",
+                "guest_inquiry_submit"
+              ],
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "ai_referrals_28d": {
+              "type": "object",
+              "required": [
+                "window",
+                "sessions",
+                "by_source",
+                "landing_pages"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "reach": {
+      "type": "object",
+      "required": [
+        "ai_citation_rate",
+        "ai_referral_sessions_28d",
+        "youtube_ai_referral_views_28d",
+        "youtube_search_views_28d",
+        "non_brand_search_impressions_28d",
+        "search_impressions_28d",
+        "podcast_listeners_28d",
+        "apple_followers",
+        "spotify_followers",
+        "youtube_subscribers",
+        "kit_active_subscribers"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/reach_entry"
+      }
+    },
+    "ai_visibility": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "model",
+            "questions",
+            "answered",
+            "citation_rate",
+            "mention_rate",
+            "in_search_results_rate",
+            "by_category",
+            "top_cited_domains",
+            "results"
+          ],
+          "properties": {
+            "citation_rate": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            },
+            "results": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "category",
+                  "prompt",
+                  "episode_slug",
+                  "cited",
+                  "in_search_results",
+                  "mentioned",
+                  "our_cited_urls",
+                  "cited_domains",
+                  "error"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "platform_followers": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": [
+            "as_of",
+            "stale",
+            "apple_followers",
+            "spotify_followers",
+            "apple_change_28d",
+            "spotify_change_28d"
+          ]
+        }
+      ]
+    }
+  }
+}
