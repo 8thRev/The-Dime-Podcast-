@@ -1,0 +1,61 @@
+name: Index New Pages
+
+# Submits newly published First Principles editions to IndexNow (Bing,
+# Yandex, etc. — and through Bing, ChatGPT search/Copilot) and resubmits the
+# sitemap to Google Search Console. Logic and caveats in bot/index_new_pages.py.
+#
+# Triggered by Vercel's production deployment_status rather than `push`, for
+# two reasons: it fires only once the new pages are actually live, and it
+# keeps the "no workflow in this repo triggers on push" invariant that
+# video-catalog.yml's loop-safety relies on. This job never commits, so the
+# daily catalog deploys that also land here just find no edition changes and
+# exit in seconds.
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      urls:
+        description: 'Space-separated paths or URLs to submit, e.g. /newsletter/some-slug'
+        required: true
+
+jobs:
+  index:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Production')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha || github.sha }}
+          # The deployed commit and its first parent. For a merge commit that
+          # parent is main's previous tip, so the diff is the whole PR.
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r bot/requirements.txt
+
+      - name: Submit new pages
+        working-directory: bot
+        env:
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          DEPLOY_SHA: ${{ github.event.deployment.sha }}
+          MANUAL_URLS: ${{ github.event.inputs.urls }}
+        run: |
+          if [ -n "$MANUAL_URLS" ]; then
+            args=()
+            for u in $MANUAL_URLS; do args+=(--url "$u"); done
+            python index_new_pages.py "${args[@]}"
+          else
+            python index_new_pages.py --base "$DEPLOY_SHA^1" --head "$DEPLOY_SHA"
+          fi
