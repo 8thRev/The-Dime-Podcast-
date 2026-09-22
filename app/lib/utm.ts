@@ -188,4 +188,5 @@ export const UTM = {
   showNotes: { medium: "show_notes", campaign: "episode_show_notes" },
   guestLink: { medium: "referral", campaign: "guest_link" },
   newsletter: { medium: "newsletter", campaign: "first_principles" },
+  answers: { medium: "answers", campaign: "isaac_burner" },
 } as const;

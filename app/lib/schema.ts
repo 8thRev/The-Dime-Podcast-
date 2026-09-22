@@ -251,6 +251,78 @@ export function createArticleSchema(
   return schema;
 }
 
+// Article schema for an Answers column post (content/answers/*.md, written
+// by bot/isaac_blogger.py). Sits between the two cases above: it is a dated
+// article with its own URL like a First Principles edition, but the text is
+// AI-written, so it carries the `disclaimer` an edition deliberately omits.
+//
+// `author` is the Organization, not a Person. "Isaac Burner" is the column's
+// byline and appears on the page, in the .md twin and in `creditText`, but
+// asserting a schema.org Person would be a claim that a human by that name
+// wrote this, which is the one thing this content type must not say. The
+// Organization did publish it, so that node is true as written.
+//
+// `about` takes every cited episode rather than one, which is what makes the
+// post a node in the same graph as the episodes it answers from instead of a
+// free-floating article that happens to link to them.
+export function createAnswerSchema(
+  post: {
+    title: string;
+    description: string;
+    slug: string;
+    date: string;
+    episodes?: string[];
+    wordCount?: number;
+    author?: string;
+  },
+  siteUrl: string = "https://www.dimepodcast.com"
+): SchemaMarkup {
+  const url = `${siteUrl}/answers/${post.slug}`;
+  const author = post.author || "Isaac Burner";
+  const schema: SchemaMarkup = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: post.title,
+    description: post.description,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    datePublished: post.date,
+    inLanguage: "en-US",
+    author: {
+      "@type": "Organization",
+      name: "The Dime Podcast",
+      url: siteUrl,
+    },
+    creditText: `${author}, AI analyst for The Dime`,
+    publisher: {
+      "@type": "Organization",
+      name: "The Dime Podcast",
+      url: siteUrl,
+    },
+    isPartOf: {
+      "@type": "CreativeWorkSeries",
+      name: "Answers",
+      url: `${siteUrl}/answers`,
+    },
+    disclaimer:
+      "Written by AI. This column is generated from The Dime's episode catalogue and reviewed before publication; it may contain errors.",
+  };
+
+  if (post.wordCount) {
+    schema.wordCount = post.wordCount;
+  }
+
+  const episodes = (post.episodes || []).filter(Boolean);
+  if (episodes.length > 0) {
+    schema.about = episodes.map((slug) => ({
+      "@type": "PodcastEpisode",
+      url: `${siteUrl}/episodes/${slug}`,
+    }));
+  }
+
+  return schema;
+}
+
 export function createVideoObjectSchema(
   video: {
     title: string;

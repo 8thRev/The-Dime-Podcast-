@@ -107,6 +107,12 @@ export default function Footer() {
               { label: 'Topics', href: '/topics' },
               { label: 'About', href: '/about' },
               { label: 'Newsletter', href: '/newsletter' },
+              // The Answers column's only sitewide internal link. It is not
+              // in the header nav, which is already seven items wide on
+              // mobile; revisit that once the column has enough posts to
+              // earn the slot. Without this line /answers is reachable only
+              // from the sitemap and from the topic pages its posts tag.
+              { label: 'Answers', href: '/answers' },
               { label: 'Be a Guest', href: '/guests' },
             ].map((nav) => (
               <Link key={nav.href} href={nav.href} style={footerLinkStyle}>
