@@ -55,6 +55,8 @@ def build_clients(skip_ai: bool = False) -> dict:
         make("youtube_reporting", True, lambda: YouTubeReportingClient(clients["youtube"]))
     make("gsc", config.GSC_SERVICE_ACCOUNT_JSON, SearchConsoleClient)
     make("ga4", config.GSC_SERVICE_ACCOUNT_JSON and config.GA4_PROPERTY_ID, GA4Client)
+    from agent_visits_client import AgentVisitsClient
+    make("agent_visits", config.KV_REST_API_URL and config.KV_REST_API_TOKEN, AgentVisitsClient)
     if config.ANTHROPIC_API_KEY and not skip_ai:
         import ai_visibility
         clients["ai"] = ai_visibility.run_panel

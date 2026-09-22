@@ -177,6 +177,21 @@ class FakeReporting:
         ]
 
 
+class FakeAgentVisits:
+    def daily_counts(self, start, end):
+        out = {}
+        d = start
+        while d <= end:
+            out[d.isoformat()] = [
+                {"class": "retrieval", "agent": "ChatGPT-User", "path": "/episodes/episode-9", "count": 2},
+                {"class": "retrieval", "agent": "Claude-User", "path": "/llms.txt", "count": 1},
+                {"class": "training", "agent": "GPTBot", "path": "/episodes/episode-1", "count": 5},
+                {"class": "search", "agent": "bingbot", "path": "/", "count": 3},
+            ]
+            d += timedelta(days=1)
+        return out
+
+
 def fake_ai_panel(video_ids):
     import ai_visibility
     results = [
@@ -213,4 +228,5 @@ VIDEO_MAP = {f"episode-{i}": [f"vid{i}"] for i in range(0, 9)}
 
 def all_clients():
     return {"simplecast": FakeSimplecast(), "youtube": FakeYouTube(), "youtube_reporting": FakeReporting(),
-            "kit": FakeKit(), "gsc": FakeGSC(), "ga4": FakeGA4(), "ai": fake_ai_panel}
+            "kit": FakeKit(), "gsc": FakeGSC(), "ga4": FakeGA4(), "ai": fake_ai_panel,
+            "agent_visits": FakeAgentVisits()}
