@@ -147,7 +147,7 @@ def test_one_bad_token_does_not_stop_the_run(monkeypatch):
 
 
 def test_every_source_failing_still_produces_a_valid_snapshot():
-    broken = {name: fakes.Broken() for name in ("simplecast", "youtube", "youtube_reporting", "kit", "gsc", "ga4")}
+    broken = {name: fakes.Broken() for name in ("simplecast", "youtube", "youtube_reporting", "kit", "gsc", "ga4", "agent_visits")}
     broken["ai"] = fakes.Broken().run
     snap = snapshot(broken)
     assert all(snap["sources"][n]["status"] == "unavailable" for n in ("simplecast", "youtube", "kit", "gsc", "ga4", "ai_visibility"))
@@ -276,3 +276,15 @@ def test_one_failing_video_does_not_sink_youtube(monkeypatch):
     assert bad["baselines"]["youtube_views_day_7"]["reason"] == "video_analytics_unavailable"
     assert by_slug(snap, "episode-8")["youtube"]["views_day_7"] == 70
     assert weekly_report.validate(snap) == []
+
+
+def test_agent_visits_aggregate_and_headline_retrieval_only():
+    snap = snapshot()
+    a = snap["agent_visits"]
+    assert a["fetches_28d"] == 28 * 11
+    assert a["retrieval_fetches_28d"] == 28 * 3
+    assert a["by_agent_28d"]["GPTBot"] == 140
+    assert a["top_retrieval_pages_28d"][0] == {"path": "/episodes/episode-9", "fetches": 56}
+    assert a["llms_txt_fetches_28d"] == 28
+    assert len(a["weekly"]) == 8 and a["weekly"][-1]["retrieval_fetches"] == 21
+    assert snap["reach"]["ai_agent_fetches_28d"]["value"] == 84

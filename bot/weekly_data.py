@@ -87,7 +87,10 @@ SECRET_ENV_NAMES = [
     "GA4_PROPERTY_ID",
     "ANTHROPIC_API_KEY",
     "EMAIL_PASSWORD",
+    "KV_REST_API_TOKEN",
+    "UPSTASH_REDIS_REST_TOKEN",
 ]
+AGENT_TOP_PAGES = 25
 
 
 def scrub(text: str) -> str:
@@ -623,6 +626,62 @@ def collect_ga4(ga4, today: date) -> dict:
     }
 
 
+# ---------------------------------------------------------------- agent visits
+
+def collect_agent_visits(client, today: date) -> dict:
+    """Page fetches by AI agents, from the counters the site middleware
+    writes. Retrieval class fetches (an assistant answering a live question
+    or indexing for its own search) are the demand signal; training and
+    search engine crawls are shown but not headlined."""
+    end = today - timedelta(days=1)
+    start_28 = end - timedelta(days=27)
+    start_7 = end - timedelta(days=6)
+    trend_start = end - timedelta(days=7 * TREND_WEEKS - 1)
+    daily = client.daily_counts(trend_start, end)
+
+    def rows_between(lo, hi):
+        return [r for d, rows in daily.items() if lo <= date.fromisoformat(d) <= hi for r in rows]
+
+    month = rows_between(start_28, end)
+    by_class: dict[str, int] = {}
+    by_agent: dict[str, int] = {}
+    by_page: dict[str, int] = {}
+    retrieval_pages: dict[str, int] = {}
+    for r in month:
+        by_class[r["class"]] = by_class.get(r["class"], 0) + r["count"]
+        by_agent[r["agent"]] = by_agent.get(r["agent"], 0) + r["count"]
+        by_page[r["path"]] = by_page.get(r["path"], 0) + r["count"]
+        if r["class"] == "retrieval":
+            retrieval_pages[r["path"]] = retrieval_pages.get(r["path"], 0) + r["count"]
+
+    def top(counts, n=AGENT_TOP_PAGES):
+        return [{"path": p, "fetches": c} for p, c in sorted(counts.items(), key=lambda kv: kv[1], reverse=True)[:n]]
+
+    weekly = []
+    for ws, we in _week_buckets(end):
+        rows = rows_between(ws, we)
+        weekly.append({
+            "week_start": ws.isoformat(), "week_end": we.isoformat(),
+            "fetches": sum(r["count"] for r in rows),
+            "retrieval_fetches": sum(r["count"] for r in rows if r["class"] == "retrieval"),
+        })
+
+    week = rows_between(start_7, end)
+    return {
+        "window_28d": {"start": start_28.isoformat(), "end": end.isoformat()},
+        "fetches_28d": sum(r["count"] for r in month),
+        "retrieval_fetches_28d": by_class.get("retrieval", 0),
+        "retrieval_fetches_7d": sum(r["count"] for r in week if r["class"] == "retrieval"),
+        "by_class_28d": by_class,
+        "by_agent_28d": dict(sorted(by_agent.items(), key=lambda kv: kv[1], reverse=True)),
+        "top_pages_28d": top(by_page),
+        "top_retrieval_pages_28d": top(retrieval_pages),
+        "llms_txt_fetches_28d": by_page.get("/llms.txt", 0) + by_page.get("/llms-full.txt", 0),
+        "weekly": weekly,
+        "days_with_data": sum(1 for d, rows in daily.items() if rows and start_28 <= date.fromisoformat(d) <= end),
+    }
+
+
 # ---------------------------------------------------------------- manual inputs
 
 def load_platform_followers(today: date) -> dict | None:
@@ -711,11 +770,12 @@ def _history_change(column: str, value, today: date) -> float | None:
     return round(float(value) - float(older[-1][column]), 1)
 
 
-def build_reach(podcast, youtube_channel, kit, gsc, ga4, ai, followers, today: date) -> dict:
+def build_reach(podcast, youtube_channel, kit, gsc, ga4, ai, followers, today: date, agents=None) -> dict:
     def entry(value, change, note):
         return {"value": value, "change_28d": change, "note": note}
 
     ai_rate = ai["citation_rate"] if ai else None
+    agent_fetches = agents["retrieval_fetches_28d"] if agents else None
     ai_sessions = ga4["ai_referrals_28d"]["sessions"] if ga4 else None
     non_brand = gsc["queries_28d"]["non_brand"] if gsc else None
     non_brand_prev = gsc["queries_prev_28d"]["non_brand"] if gsc else None
@@ -723,6 +783,10 @@ def build_reach(podcast, youtube_channel, kit, gsc, ga4, ai, followers, today: d
         "ai_citation_rate": entry(
             ai_rate, _history_change("ai_citation_rate", ai_rate, today),
             "percent of the weekly AI question panel whose answer cites The Dime; change is against the run 28 days earlier.",
+        ),
+        "ai_agent_fetches_28d": entry(
+            agent_fetches, _history_change("ai_agent_fetches_28d", agent_fetches, today),
+            "page fetches by retrieval class AI agents (assistants answering live questions and their search indexes) over the trailing 28 days; change is against the run 28 days earlier.",
         ),
         "ai_referral_sessions_28d": entry(
             ai_sessions, _history_change("ai_referral_sessions_28d", ai_sessions, today),
@@ -838,6 +902,8 @@ def build_snapshot(clients: dict, today: date | None = None) -> dict:
     our_videos = set(catalog)
     ai = sources.run("ai_visibility", clients["ai"], our_videos) if clients.get("ai") else sources.missing("ai_visibility")
 
+    agents = sources.run("agent_visits", collect_agent_visits, clients["agent_visits"], today) if clients.get("agent_visits") else sources.missing("agent_visits")
+
     followers = sources.run("platform_followers", load_platform_followers, today)
 
     for ep in episodes:
@@ -856,14 +922,16 @@ def build_snapshot(clients: dict, today: date | None = None) -> dict:
         "search_console": gsc,
         "ga4": ga4,
         "ai_visibility": ai,
+        "agent_visits": agents,
         "platform_followers": followers,
-        "reach": build_reach(podcast, youtube_channel, kit, gsc, ga4, ai, followers, today),
+        "reach": build_reach(podcast, youtube_channel, kit, gsc, ga4, ai, followers, today, agents),
     }
 
 
 REACH_COLUMNS = [
     "date",
     "ai_citation_rate",
+    "ai_agent_fetches_28d",
     "ai_referral_sessions_28d",
     "youtube_ai_referral_views_28d",
     "youtube_search_views_28d",

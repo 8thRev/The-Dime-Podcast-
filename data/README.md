@@ -8,7 +8,9 @@ Spec: [docs/report-v2-spec.md](../docs/report-v2-spec.md).
   [schemas/weekly.schema.json](../schemas/weekly.schema.json). Every episode
   metric is normalized by episode age (day 7, day 30) and compared to the
   median of the previous 8 episodes at the same age, never to last week.
-- `reach.csv`: one row per run date. `podcast_listeners_28d` is Simplecast's
+- `reach.csv`: one row per run date. `ai_agent_fetches_28d` counts page
+  fetches by retrieval class AI agents, from the counters
+  `app/src/middleware.js` writes. `podcast_listeners_28d` is Simplecast's
   unique listeners over the trailing 28 days, because Simplecast exposes no
   follower count.
 - `video_episode_overrides.csv`: hand fixes for the video to episode mapping.
