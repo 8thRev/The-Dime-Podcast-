@@ -11,7 +11,9 @@ from tests import fakes
 
 
 @pytest.fixture(autouse=True)
-def offline(monkeypatch):
+def offline(monkeypatch, tmp_path):
+    monkeypatch.setattr(weekly_data, "REACH_PATH", tmp_path / "reach_history.csv")
+    monkeypatch.setattr(weekly_data, "FOLLOWERS_PATH", tmp_path / "followers.csv")
     monkeypatch.setattr(weekly_data, "load_video_catalog", lambda: fakes.CATALOG)
     monkeypatch.setattr(weekly_data, "load_video_map", lambda: fakes.VIDEO_MAP)
     monkeypatch.setattr(weekly_data.simplecast_feed, "fetch_episodes", lambda: [
@@ -145,9 +147,10 @@ def test_one_bad_token_does_not_stop_the_run(monkeypatch):
 
 
 def test_every_source_failing_still_produces_a_valid_snapshot():
-    broken = {name: fakes.Broken() for name in ("simplecast", "youtube", "kit", "gsc", "ga4")}
+    broken = {name: fakes.Broken() for name in ("simplecast", "youtube", "youtube_reporting", "kit", "gsc", "ga4")}
+    broken["ai"] = fakes.Broken().run
     snap = snapshot(broken)
-    assert all(snap["sources"][n]["status"] == "unavailable" for n in broken)
+    assert all(snap["sources"][n]["status"] == "unavailable" for n in ("simplecast", "youtube", "kit", "gsc", "ga4", "ai_visibility"))
     assert snap["sources"]["rss_feed"]["status"] == "ok"  # episode list fell back to the feed
     assert weekly_report.validate(snap) == []
 
@@ -166,8 +169,10 @@ def test_reach_csv_one_row_per_date(tmp_path):
     weekly_report.write_outputs(snap, tmp_path)
     rows = list(csv.DictReader((tmp_path / "reach.csv").open()))
     assert len(rows) == 1
-    assert rows[0] == {"date": "2026-09-22", "podcast_listeners_28d": "393", "youtube_subscribers": "6720",
-                       "kit_active_subscribers": "1230", "search_impressions_28d": "500"}
+    assert rows[0]["date"] == "2026-09-22"
+    assert rows[0]["ai_citation_rate"] == "50.0"
+    assert rows[0]["youtube_subscribers"] == "6720"
+    assert rows[0]["apple_followers"] == ""  # nothing entered yet
 
 
 def test_json_written_to_dated_file(tmp_path):
@@ -182,3 +187,73 @@ def test_refuses_to_write_a_credential(tmp_path, monkeypatch):
     snap["episodes"][0]["title"] = "leak sc_token_abcdef"
     with pytest.raises(RuntimeError):
         weekly_report.write_outputs(snap, tmp_path)
+
+
+# ------------------------------------------------------------ search and AI
+
+def test_youtube_search_trend_and_ai_referrers():
+    yt = snapshot()["youtube_channel"]
+    assert len(yt["search_views_weekly"]) == 8
+    assert yt["search_views_weekly"][-1]["search_share"] == 0.5  # 5 of 10 views a day
+    assert yt["ai_referrer_views_28d"] == 5  # chatgpt 4 + perplexity 1, google excluded
+
+
+def test_episode_search_views_get_baselines():
+    ep = by_slug(snapshot(), "episode-8")
+    assert ep["youtube"]["search_views_day_7"] == 35
+    assert ep["baselines"]["youtube_search_views_day_7"]["value"] == 35
+
+
+def test_reach_report_fills_impressions_and_search_ctr():
+    snap = snapshot()
+    yt = by_slug(snap, "episode-8")["youtube"]
+    assert yt["impressions_28d"] == 4000
+    assert yt["impression_ctr_28d"] == 2.0  # (50 + 30) / 4000
+    assert yt["search_impressions_28d"] == 1000 and yt["search_impression_ctr_28d"] == 5.0
+    assert snap["youtube_channel"]["reach_report"]["status"] == "ok"
+
+
+def test_reach_report_pending_before_youtube_publishes(monkeypatch):
+    clients = fakes.all_clients()
+    monkeypatch.setattr(clients["youtube_reporting"], "reach_rows", lambda *a: [])
+    report = snapshot(clients)["youtube_channel"]["reach_report"]
+    assert report["status"] == "pending" and report["days_covered"] == 0
+
+
+def test_gsc_brand_split_and_question_queries():
+    gsc = snapshot()["search_console"]
+    assert gsc["queries_28d"]["brand"]["impressions"] == 84
+    assert gsc["queries_28d"]["non_brand"]["queries"] == 2
+    assert [q["query"] for q in gsc["question_queries_28d"]] == ["why is cannabis rescheduling taking so long"]
+    assert len(gsc["weekly"]) == 8
+
+
+def test_ga4_ai_referrals_count_channel_and_known_domains():
+    ga4 = snapshot()["ga4"]
+    assert ga4["ai_referrals_28d"]["sessions"] == 4  # chatgpt via channel, perplexity via domain
+    assert ga4["ai_referrals_28d"]["landing_pages"][0] == {"page": "/episodes/episode-9", "sessions": 3}
+    assert ga4["weekly"][-1]["ai_assistant"] == 7
+
+
+def test_ai_citation_rate_in_reach():
+    snap = snapshot()
+    assert snap["ai_visibility"]["citation_rate"] == 50.0
+    assert snap["reach"]["ai_citation_rate"]["value"] == 50.0
+
+
+def test_platform_followers_change_and_staleness(tmp_path, monkeypatch):
+    path = tmp_path / "followers.csv"
+    path.write_text("date,apple_followers,spotify_followers,notes\n2026-08-20,900,300,\n2026-09-20,950,310,\n")
+    monkeypatch.setattr(weekly_data, "FOLLOWERS_PATH", path)
+    snap = snapshot()
+    f = snap["platform_followers"]
+    assert f["apple_followers"] == 950 and f["apple_change_28d"] == 50 and f["stale"] is False
+    assert snap["reach"]["spotify_followers"]["value"] == 310
+    assert snap["reach"]["spotify_followers"]["change_28d"] == 10
+
+
+def test_history_change_uses_row_28_days_back(tmp_path, monkeypatch):
+    hist = tmp_path / "reach_history.csv"
+    hist.write_text("date,ai_citation_rate\n2026-08-20,20.0\n2026-09-15,40.0\n")
+    monkeypatch.setattr(weekly_data, "REACH_PATH", hist)
+    assert snapshot()["reach"]["ai_citation_rate"]["change_28d"] == 30.0

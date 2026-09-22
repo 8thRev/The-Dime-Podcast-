@@ -23,7 +23,7 @@ SCHEMA_PATH = weekly_data.REPO_ROOT / "schemas" / "weekly.schema.json"
 DEFAULT_OUT = weekly_data.REPO_ROOT / "data"
 
 
-def build_clients() -> dict:
+def build_clients(skip_ai: bool = False) -> dict:
     """Instantiate each client whose credentials are present. Construction
     itself can fail (a malformed service account key, for example), so that
     is caught per client too and reported as a missing source."""
@@ -50,8 +50,14 @@ def build_clients() -> dict:
         config.YOUTUBE_OAUTH_CLIENT_ID and config.YOUTUBE_OAUTH_CLIENT_SECRET and config.YOUTUBE_OAUTH_REFRESH_TOKEN,
         YouTubeAnalyticsClient,
     )
+    if "youtube" in clients:
+        from youtube_reporting_client import YouTubeReportingClient
+        make("youtube_reporting", True, lambda: YouTubeReportingClient(clients["youtube"]))
     make("gsc", config.GSC_SERVICE_ACCOUNT_JSON, SearchConsoleClient)
     make("ga4", config.GSC_SERVICE_ACCOUNT_JSON and config.GA4_PROPERTY_ID, GA4Client)
+    if config.ANTHROPIC_API_KEY and not skip_ai:
+        import ai_visibility
+        clients["ai"] = ai_visibility.run_panel
     return clients
 
 
@@ -78,9 +84,10 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Weekly Report v2")
     parser.add_argument("--dry-run", action="store_true", help="write the JSON and send nothing")
     parser.add_argument("--out-dir", type=Path, default=DEFAULT_OUT)
+    parser.add_argument("--skip-ai", action="store_true", help="skip the paid AI answer check")
     args = parser.parse_args(argv)
 
-    snapshot = weekly_data.build_snapshot(build_clients())
+    snapshot = weekly_data.build_snapshot(build_clients(skip_ai=args.skip_ai))
     errors = validate(snapshot)
     path = write_outputs(snapshot, args.out_dir)
 

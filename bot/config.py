@@ -106,6 +106,11 @@ class Config:
     # broadcast stats for the weekly report.
     KIT_API_KEY: str = os.getenv("KIT_API_KEY", "")
 
+    # Model for the weekly AI answer check (bot/ai_visibility.py). Separate
+    # from ANTHROPIC_MODEL so the guest research model can change without
+    # breaking the week over week comparability of the citation rate.
+    AI_VISIBILITY_MODEL: str = os.getenv("AI_VISIBILITY_MODEL", "claude-sonnet-5")
+
     @classmethod
     def validate_seo_report_config(cls) -> tuple[bool, list[str]]:
         """Validate config required specifically by the SEO report script."""

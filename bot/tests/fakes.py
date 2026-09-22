@@ -67,6 +67,20 @@ class FakeYouTube:
     def video_retention(self, vid, start, end):
         return [(0.01, 0.88), (0.02, 0.44)]
 
+    def daily_views_by_source(self, start, end, video_id=None):
+        out = {}
+        d = start
+        while d <= end:
+            out[d.isoformat()] = {"YT_SEARCH": 5, "SUBSCRIBER": 3, "EXT_URL": 2}
+            d += timedelta(days=1)
+        return out
+
+    def external_referrers(self, start, end):
+        return {"chatgpt.com": 4, "google.com": 10, "perplexity.ai": 1}
+
+    def top_search_terms(self, start, end, row_limit=10):
+        return [{"term": "cannabis rescheduling", "views": 12}]
+
     def totals(self, start, end):
         return {"views": 333, "minutes_watched": 933, "avg_view_duration_seconds": 300.0, "subscribers_gained": 3, "subscribers_lost": 71}
 
@@ -98,6 +112,15 @@ class FakeGSC:
                 {"keys": [page, "too few"], "clicks": 0, "impressions": 5, "position": 10.0},
                 {"keys": [page, "already top"], "clicks": 4, "impressions": 90, "position": 2.0},
             ]
+        if dims == ["date", "query"]:
+            rows = []
+            d = start
+            while d <= end:
+                rows.append({"keys": [d.isoformat(), "the dime podcast"], "clicks": 1, "impressions": 3, "position": 2.0})
+                rows.append({"keys": [d.isoformat(), "hemp ban cbd"], "clicks": 0, "impressions": 2, "position": 14.0})
+                rows.append({"keys": [d.isoformat(), "why is cannabis rescheduling taking so long"], "clicks": 0, "impressions": 1, "position": 9.0})
+                d += timedelta(days=1)
+            return rows
         return [{"keys": [end.isoformat()], "clicks": 3, "impressions": 100, "position": 12.0}]
 
     def query_totals(self, start, end):
@@ -125,6 +148,47 @@ class FakeGA4:
     def audio_progress_count(self, start, end, percent):
         return 0
 
+    def daily_sessions_by_channel(self, start, end):
+        out = {}
+        d = start
+        while d <= end:
+            out[d.isoformat()] = {"Direct": 20, "Organic Search": 1, "AI Assistant": 1}
+            d += timedelta(days=1)
+        return out
+
+    def sessions_by_source_channel_landing(self, start, end):
+        return [
+            {"source": "chatgpt.com", "channel": "AI Assistant", "landing_page": "/episodes/episode-9", "sessions": 3},
+            {"source": "perplexity.ai", "channel": "Referral", "landing_page": "/episodes/episode-8", "sessions": 1},
+            {"source": "google", "channel": "Organic Search", "landing_page": "/", "sessions": 9},
+        ]
+
+
+class FakeReporting:
+    def ensure_job(self):
+        return "job1", False
+
+    def reach_rows(self, job_id, start, end):
+        return [
+            {"date": "20260910", "video_id": "vid8", "traffic_source_type": "5",
+             "video_thumbnail_impressions": "1000", "video_thumbnail_impressions_ctr": "0.05"},
+            {"date": "20260910", "video_id": "vid8", "traffic_source_type": "7",
+             "video_thumbnail_impressions": "3000", "video_thumbnail_impressions_ctr": "0.01"},
+        ]
+
+
+def fake_ai_panel(video_ids):
+    import ai_visibility
+    results = [
+        {"id": "cat-01", "category": "category", "prompt": "q1", "episode_slug": None, "cited": True,
+         "in_search_results": True, "mentioned": True, "our_cited_urls": ["https://www.dimepodcast.com/"],
+         "cited_domains": ["dimepodcast.com", "forbes.com"], "error": None},
+        {"id": "top-01", "category": "topic", "prompt": "q2", "episode_slug": "episode-9", "cited": False,
+         "in_search_results": False, "mentioned": False, "our_cited_urls": [],
+         "cited_domains": ["mjbizdaily.com"], "error": None},
+    ]
+    return ai_visibility.summarize(results, "test-model")
+
 
 class Broken:
     """Every method raises, like a client holding a bad token."""
@@ -148,4 +212,5 @@ VIDEO_MAP = {f"episode-{i}": [f"vid{i}"] for i in range(0, 9)}
 
 
 def all_clients():
-    return {"simplecast": FakeSimplecast(), "youtube": FakeYouTube(), "kit": FakeKit(), "gsc": FakeGSC(), "ga4": FakeGA4()}
+    return {"simplecast": FakeSimplecast(), "youtube": FakeYouTube(), "youtube_reporting": FakeReporting(),
+            "kit": FakeKit(), "gsc": FakeGSC(), "ga4": FakeGA4(), "ai": fake_ai_panel}

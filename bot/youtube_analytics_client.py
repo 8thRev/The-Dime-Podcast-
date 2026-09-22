@@ -184,6 +184,32 @@ class YouTubeAnalyticsClient:
         )
         return [(float(r), float(w)) for r, w in data.get("rows", [])]
 
+    def daily_views_by_source(self, start: date, end: date, video_id: str | None = None) -> dict[str, dict[str, int]]:
+        """{YYYY-MM-DD: {traffic_source_type: views}}, channel wide or for one video."""
+        params = {"dimensions": "day,insightTrafficSourceType", "metrics": "views"}
+        if video_id:
+            params["filters"] = f"video=={video_id}"
+        data = self._query(start, end, params)
+        out: dict[str, dict[str, int]] = {}
+        for day, source, views in data.get("rows", []):
+            out.setdefault(day, {})[source] = int(views)
+        return out
+
+    def external_referrers(self, start: date, end: date, row_limit: int = 50) -> dict[str, int]:
+        """Views from outside sites by referring domain (EXT_URL detail)."""
+        data = self._query(
+            start,
+            end,
+            {
+                "dimensions": "insightTrafficSourceDetail",
+                "metrics": "views",
+                "filters": "insightTrafficSourceType==EXT_URL",
+                "sort": "-views",
+                "maxResults": row_limit,
+            },
+        )
+        return {detail: int(views) for detail, views in data.get("rows", [])}
+
     def top_search_terms(self, start: date, end: date, row_limit: int = 10) -> list[dict]:
         """Top YouTube search terms driving views, sorted by views desc."""
         data = self._query(

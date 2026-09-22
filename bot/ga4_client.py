@@ -140,6 +140,24 @@ class GA4Client:
         rows = self._rows(start, end, ["landingPage"], ["sessions", "userEngagementDuration"])
         return [{"landing_page": d[0], "sessions": int(m[0]), "engagement_seconds": m[1]} for d, m in rows]
 
+    def daily_sessions_by_channel(self, start: date, end: date) -> dict[str, dict[str, int]]:
+        """{YYYY-MM-DD: {channel_group: sessions}}."""
+        rows = self._rows(start, end, ["date", "sessionDefaultChannelGroup"], ["sessions"], limit=5000)
+        out: dict[str, dict[str, int]] = {}
+        for (day, channel), m in rows:
+            iso = f"{day[:4]}-{day[4:6]}-{day[6:]}"  # GA4 returns YYYYMMDD
+            out.setdefault(iso, {})[channel] = int(m[0])
+        return out
+
+    def sessions_by_source_channel_landing(self, start: date, end: date) -> list[dict]:
+        rows = self._rows(
+            start, end, ["sessionSource", "sessionDefaultChannelGroup", "landingPage"], ["sessions"], limit=5000
+        )
+        return [
+            {"source": d[0], "channel": d[1], "landing_page": d[2], "sessions": int(m[0])}
+            for d, m in rows
+        ]
+
     def homepage_path_page_views(self, start: date, end: date) -> list[dict]:
         """page_view events whose pagePath is "/", split by pageLocation."""
         flt = FilterExpression(and_group=FilterExpressionList(expressions=[

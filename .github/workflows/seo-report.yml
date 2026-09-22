@@ -44,6 +44,8 @@ jobs:
           YOUTUBE_OAUTH_REFRESH_TOKEN: ${{ secrets.YOUTUBE_OAUTH_REFRESH_TOKEN }}
           SIMPLECAST_API_TOKEN: ${{ secrets.SIMPLECAST_API_TOKEN }}
           KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+          # Weekly AI answer check (bot/ai_visibility.py), about $1 to $2 a run.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           cd bot
           python weekly_report.py
