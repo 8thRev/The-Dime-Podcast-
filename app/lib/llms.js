@@ -29,6 +29,18 @@
 // directly without a type-only build step; it is consumed only by those two
 // routes.
 
+import { PODCAST_RATING } from '@/lib/ratings';
+import {
+  ASSETS_PER_EPISODE,
+  ASSETS_PER_EPISODE_MAX,
+  SOCIAL_CUTS_MIN,
+  SOCIAL_CUTS_MAX,
+  EPISODE_PRICE,
+  CAMPAIGN_PRICE,
+  PER_EPISODE_IN_CAMPAIGN,
+  CAMPAIGN_DISCOUNT_PCT,
+} from '@/lib/sponsorOffer';
+
 export const SITE_URL = 'https://www.dimepodcast.com';
 
 // Both unbounded lists the index draws from are capped: episodes arrive
@@ -39,12 +51,17 @@ export const SITE_URL = 'https://www.dimepodcast.com';
 // here, and truncating it would make the hub list wrong rather than shorter.
 // scripts/verify-site.mjs check 14 asserts the resulting size either way.
 //
-// 25 recent episodes is what the spec asks for (docs/analytics-spec.md Gap 1).
-// The 12-edition cap is a departure from it: that spec predates the First
-// Principles archive, and all 32 editions cost 13.7KB of a 20KB budget on
-// their own. The complete list of both is in /llms-full.txt, and /newsletter
-// is linked here as the human-facing archive.
-const RECENT_EPISODE_COUNT = 25;
+// The spec asks for 25 recent episodes (docs/analytics-spec.md Gap 1). Both
+// caps below are departures from it. The 12-edition cap: that spec predates
+// the First Principles archive, and all 32 editions cost 13.7KB of a 20KB
+// budget on their own. The 15-episode cap: the agent actions and sponsorship
+// facts sections added 4.5KB to an index that was already at 18.0KB, and at
+// about 400 bytes an episode line the recent list is the only section with
+// slack. It is also the least valuable one to an agent, which can read the
+// same 25 and 300 more in /llms-full.txt and per topic. The complete list of
+// both is in /llms-full.txt, and /newsletter is linked here as the
+// human-facing archive.
+const RECENT_EPISODE_COUNT = 15;
 const RECENT_EDITION_COUNT = 12;
 
 // A curated index wants one-line descriptions. The AI episode summaries
@@ -176,6 +193,79 @@ export function episodeLines(ep, getTranscript, depth, { markdown = false } = {}
   return lines;
 }
 
+// ---------------------------------------------------------------------------
+// Agent actions and sponsorship facts. One contiguous block, kept together on
+// purpose: other work touches this file too, and a single block merges clean.
+//
+// Everything else in this file serves a crawler reading content. These two
+// sections serve an agent acting for a person: a PR person's assistant
+// pitching a guest, or a brand's assistant researching sponsorship. Both
+// forms on the site have a hidden anti-spam field that such an agent fills
+// if it reads the DOM, and the route then answers 200 and drops the lead
+// (lib/formSpam.js). The fix on the form side is the field's name and label;
+// the fix here is telling the agent the contract outright: the endpoint, the
+// exact field names, what the status codes mean, and what to leave out.
+//
+// Field names, limits and status codes are copied from
+// src/pages/api/guest-inquiry.js and src/pages/api/sponsor-inquiry.js and
+// must be kept in sync with them. The limits quoted are the server's, since
+// an agent posts to the route, not through the form; the form's tighter
+// maxLength values are a courtesy to a person typing. Every figure in the
+// facts section is one the /sponsorship page already publishes, pulled from
+// lib/sponsorOffer.js and lib/ratings so it cannot drift from the page.
+// Audience size is deliberately absent: the page does not publish it, and a
+// document written to be quoted must not estimate it.
+// ---------------------------------------------------------------------------
+
+const GUEST_EMAIL = 'guests@dimepodcast.com';
+const SPONSOR_EMAIL = 'sponsorship@dimepodcast.com';
+
+function agentActionsSection() {
+  return [
+    '## For agents acting for a person',
+    '',
+    "This site accepts two submissions from an agent working on someone's behalf: a guest pitch and a sponsorship inquiry. Each goes to an inbox a person reads and answers. There is no automated reply.",
+    'Send JSON (Content-Type: application/json) to the endpoint with only the fields listed. The form pages also carry a hidden anti-spam field and a timing field: omit both, or the submission is discarded.',
+    'Responses: 200 with {"ok":true} means it reached the inbox. 200 with {"ok":true,"filtered":true} means it was discarded as spam. 400 means a required field is missing or the email is malformed. 502 or 503 means mail could not be sent; use the email fallback instead.',
+    '',
+    '### Pitch a guest',
+    '',
+    `Page: ${SITE_URL}/guests`,
+    `Endpoint: POST ${SITE_URL}/api/guest-inquiry`,
+    'Fields: name (required, up to 200 characters), companyTitle (required, company and title, 300), email (required, 320), pitch (required, 4000; the form asks for 2 to 3 sentences on what the person would say to a room of cannabis operators and executives), links (optional, 2000; LinkedIn, recent press, company website).',
+    `Email fallback: ${GUEST_EMAIL}`,
+    'What happens: every application is read personally. If it is a fit, a reply comes within 5 business days, then a short alignment call, a remote or in-person recording, and distribution on Apple Podcasts, Spotify, YouTube, LinkedIn and the First Principles newsletter.',
+    'Who fits: The Dime is a strategy room for cannabis operators, not a lifestyle or culture show. Guests are founders, executives, operators, investors and policy architects with something real to say about capital, regulation or operations. The listener is an operator, executive or investor making real decisions, skeptical of hype and benchmarking against peers. Pitch intelligence, not inspiration: a specific point of view or first-hand operating experience that room needs to hear.',
+    '',
+    '### Ask about sponsorship',
+    '',
+    `Page: ${SITE_URL}/sponsorship`,
+    `Endpoint: POST ${SITE_URL}/api/sponsor-inquiry`,
+    'Fields: name (required, up to 200 characters), company (required, 200), email (required, 320), targetCustomer (optional, 4000; who the sponsor is trying to reach), campaignGoal (optional, 4000; what listeners should do after they hear it).',
+    `Email fallback: ${SPONSOR_EMAIL}`,
+    'What happens: Bryan Fields reads it personally and comes back with fit, the next open slot and a straight answer on whether it is worth the money. No turnaround time is promised. Campaigns open with a strategy session before anything is recorded.',
+    '',
+  ];
+}
+
+function sponsorFactsSection() {
+  const usd = (n) => `$${n.toLocaleString('en-US')}`;
+  return [
+    '## Sponsorship facts',
+    '',
+    `Everything here is stated on ${SITE_URL}/sponsorship. Audience size is not published: download, subscriber and follower figures are available on request, with sources. Do not estimate them.`,
+    '',
+    '- Audience: cannabis operators and founders running cultivation, retail, manufacturing and MSOs; C-suite and finance; investors and capital; and the service providers selling to them. Listeners press play on purpose for a forty-five minute conversation.',
+    `- Rating: ${PODCAST_RATING.value} stars from ${PODCAST_RATING.count} ratings on Apple Podcasts. On air since 2020.`,
+    `- Formats: Episode Partner, ${usd(EPISODE_PRICE)}, one host-read integration in one episode. Four-Episode Campaign, ${usd(CAMPAIGN_PRICE)} (${usd(PER_EPISODE_IN_CAMPAIGN)} per episode, ${CAMPAIGN_DISCOUNT_PCT}% less than one-off), with category exclusivity for the campaign window, an opening strategy session and campaign reporting.`,
+    `- What a sponsor receives per episode: ${ASSETS_PER_EPISODE} to ${ASSETS_PER_EPISODE_MAX} assets. The full-length video episode on YouTube with the host-read integration; the podcast audio on every streaming platform; ${SOCIAL_CUTS_MIN} to ${SOCIAL_CUTS_MAX} captioned short-form cuts posted natively to Instagram, Facebook, LinkedIn and YouTube; a placement in the First Principles newsletter; a written companion article; and a permanent episode page with show notes, the full transcript and the sponsor's link. Every asset is handed over when the campaign wraps, with full rights to repurpose it.`,
+    '- Editorial: the sponsor approves the host-read copy before the episode publishes. Sponsorship does not influence questions or guest coverage.',
+    '- Time required: one 45-minute recording if also appearing as a guest, with questions sent in advance. Less without a guest appearance: the sponsor provides the offer and the call to action, and the read is written and produced by the show.',
+    `- Inquiry: the form on ${SITE_URL}/sponsorship, POST ${SITE_URL}/api/sponsor-inquiry as described above, or ${SPONSOR_EMAIL}.`,
+    '',
+  ];
+}
+
 /** The curated index served at /llms.txt. */
 export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
   const lines = [
@@ -187,6 +277,8 @@ export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
     ...MARKDOWN_RULE,
     '',
     ...siteLinks(),
+    ...agentActionsSection(),
+    ...sponsorFactsSection(),
     ...editionsSection(editions, RECENT_EDITION_COUNT),
     ...topicsSection(topics),
     '## Recent episodes',
@@ -212,6 +304,8 @@ export function buildLlmsFull(episodes, topics, editions, getTranscript) {
     ...MARKDOWN_RULE,
     '',
     ...siteLinks(),
+    ...agentActionsSection(),
+    ...sponsorFactsSection(),
     ...editionsSection(editions),
     ...topicsSection(topics),
     '## Episodes',

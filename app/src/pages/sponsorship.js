@@ -16,6 +16,15 @@ import { getAllEditions } from '@/lib/newsletter';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllTranscriptSlugs } from '@/lib/transcripts';
 import { HONEYPOT_FIELD, HONEYPOT_LABEL, FILL_TIME_FIELD } from '@/lib/formSpam';
+import {
+  ASSETS_PER_EPISODE,
+  ASSETS_PER_EPISODE_MAX,
+  EPISODE_PRICE,
+  CAMPAIGN_PRICE,
+  CAMPAIGN_EPISODES,
+  PER_EPISODE_IN_CAMPAIGN,
+  CAMPAIGN_DISCOUNT_PCT,
+} from '@/lib/sponsorOffer';
 import testimonials from '@/content/testimonials.json';
 import videos from '@/content/videos.json';
 
@@ -92,21 +101,10 @@ export async function getStaticProps() {
 // click away. Leading with volume invites that comparison and loses it.
 // ---------------------------------------------------------------------------
 
-// Assets produced per sponsored episode: 1 video + 1 audio + 3-5 social cuts
-// + newsletter + article + episode page. That is 8 at the floor and 10 at the
-// ceiling, so 8 is what gets quoted and what drives the per-asset math below.
-//
-// Quote the floor, not the ceiling. This page argues that it does not publish
-// numbers it cannot show you, and the first sum a buyer can check by hand is
-// this one — "3-5 clips plus five other things" does not reach 10 at the low
-// end. A smaller honest number is worth more here than a bigger padded one.
-const ASSETS_PER_EPISODE = 8;
-const ASSETS_PER_EPISODE_MAX = 10;
-const EPISODE_PRICE = 1000;
-const CAMPAIGN_PRICE = 3000;
-const CAMPAIGN_EPISODES = 4;
-const PER_EPISODE_IN_CAMPAIGN = CAMPAIGN_PRICE / CAMPAIGN_EPISODES;
-const CAMPAIGN_DISCOUNT_PCT = Math.round((1 - PER_EPISODE_IN_CAMPAIGN / EPISODE_PRICE) * 100);
+// The asset counts and prices live in lib/sponsorOffer.js, shared with the
+// "Sponsorship facts" section of /llms.txt so the two cannot quote different
+// figures. The reasoning behind the numbers (quote the floor, not the
+// ceiling) is written up there.
 // Per-asset cost is a RANGE, because the asset count is. Dividing by the
 // count floor gives the highest price per asset, not the lowest — say "from
 // $100", never "under $125", or the first division a buyer does contradicts
