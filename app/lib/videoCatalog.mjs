@@ -99,7 +99,9 @@ async function fetchAllVideoIds(auth) {
     pageToken = data.nextPageToken;
   } while (pageToken);
 
-  return ids;
+  // The uploads playlist can list the same video more than once, which would
+  // otherwise become duplicate /videos/[slug] pages.
+  return [...new Set(ids)];
 }
 
 // Throws on any API/network failure rather than returning whatever was
@@ -121,7 +123,7 @@ async function fetchVideoDetails(auth, ids) {
     const params = new URLSearchParams({
       ...authQuery(auth),
       id: chunk.join(","),
-      part: "snippet,contentDetails,statistics",
+      part: "snippet,contentDetails,statistics,status",
     });
 
     const res = await fetch(`${BASE}/videos?${params}`, { headers: authHeaders(auth) });
@@ -138,6 +140,11 @@ async function fetchVideoDetails(auth, ids) {
       // synchronously into the enclosing scope, which previously had
       // nothing but the outer try/catch to stop that cascade.
       try {
+        // The generator authenticates as the channel owner, so the API also
+        // returns private, unlisted and scheduled videos. Their thumbnails are
+        // signed i9.ytimg.com URLs that 404 for everyone else, and visitors
+        // can't watch them, so they get no page until they go public.
+        if (item.status?.privacyStatus !== "public") return;
         if (parseDurationSeconds(item.contentDetails.duration) < MIN_DURATION_SECONDS) return;
         if (item.snippet.publishedAt.startsWith(AUDIO_ONLY_REUPLOAD_DATE)) return;
 
