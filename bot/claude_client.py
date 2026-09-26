@@ -72,6 +72,7 @@ class ClaudeClient:
                 tools=self.research_tools,
                 messages=messages,
             )
+            usage = [message.usage]
 
             # Claude's server-side search loop pauses after its default
             # iteration limit if it's still researching; resend history to
@@ -91,7 +92,22 @@ class ClaudeClient:
                     tools=self.research_tools,
                     messages=messages,
                 )
+                usage.append(message.usage)
                 continuations += 1
+
+            self._print_usage(usage, message.stop_reason)
+
+            # Only an end_turn is a finished brief. max_tokens means the
+            # write-up was cut off (or never started), and a pause_turn left
+            # over after MAX_CONTINUATIONS means research never finished;
+            # either way the text is a fragment and must not be emailed.
+            if message.stop_reason != "end_turn":
+                print(
+                    f"Error: Claude stopped with stop_reason={message.stop_reason!r} "
+                    f"after {continuations} continuation(s); no complete brief. "
+                    "If this is max_tokens, raise ANTHROPIC_MAX_TOKENS."
+                )
+                return False, ""
 
             # Join every text block in order (adaptive thinking, search
             # narration, and the final write-up can each land in separate
@@ -113,6 +129,24 @@ class ClaudeClient:
         except Exception as e:
             print(f"Unexpected error generating research: {e}")
             return False, ""
+
+    @staticmethod
+    def _print_usage(usage: list, stop_reason: str) -> None:
+        """Log what a guest's research cost, so spend shows up in the run log
+        whether or not the run succeeded."""
+        input_tokens = sum(u.input_tokens or 0 for u in usage)
+        output_tokens = sum(u.output_tokens or 0 for u in usage)
+        searches = sum(
+            (getattr(u.server_tool_use, "web_search_requests", 0) or 0)
+            if getattr(u, "server_tool_use", None)
+            else 0
+            for u in usage
+        )
+        print(
+            f"Claude usage: {len(usage)} request(s), {input_tokens:,} input tokens, "
+            f"{output_tokens:,} output tokens, {searches} web search(es), "
+            f"final stop_reason={stop_reason}"
+        )
 
     def validate_api_key(self) -> bool:
         """
