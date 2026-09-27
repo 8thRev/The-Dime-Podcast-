@@ -22,7 +22,11 @@ class Config:
     # Anthropic Configuration
     ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
     ANTHROPIC_MODEL: str = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-5")
-    ANTHROPIC_MAX_TOKENS: int = int(os.getenv("ANTHROPIC_MAX_TOKENS", "8000"))
+    # Sonnet 5 thinks by default, and thinking plus the search/fetch turns all
+    # count against this cap. At 8000 the 23 Sep 2026 run paid for ~5 minutes
+    # of research and came back with no text at all, so the guest got no brief.
+    # claude_client.py now logs stop_reason and usage for every guest.
+    ANTHROPIC_MAX_TOKENS: int = int(os.getenv("ANTHROPIC_MAX_TOKENS", "16000"))
 
     # web_search is billed per use ($10/1,000 searches) in addition to token
     # costs; web_fetch has no per-use fee but its content still counts as
