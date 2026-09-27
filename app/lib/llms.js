@@ -40,6 +40,7 @@ import {
   PER_EPISODE_IN_CAMPAIGN,
   CAMPAIGN_DISCOUNT_PCT,
 } from '@/lib/sponsorOffer';
+import { COLUMN_AUTHOR as ANSWERS_AUTHOR } from './answersColumn';
 
 export const SITE_URL = 'https://www.dimepodcast.com';
 
@@ -87,7 +88,7 @@ export function oneLine(text) {
 // there is no room for 37 extra links, and the rule is what an agent needs.
 // The per topic index does spell them out; it is small enough to afford it.
 const MARKDOWN_RULE = [
-  'Markdown variant of any episode, guest, newsletter or topic page: add .md to its URL',
+  'Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL',
   `(for example ${SITE_URL}/episodes/<slug>.md). Per topic index: ${SITE_URL}/topics/<slug>/llms.txt`,
 ];
 
@@ -144,6 +145,49 @@ function editionsSection(editions, limit, { markdown = false } = {}) {
     if (markdown) lines.push(`  Markdown: ${markdownUrl(url)}`);
     if (e.episodeSlug) {
       lines.push(`  Episode: ${SITE_URL}/episodes/${e.episodeSlug}`);
+    }
+  }
+  lines.push('');
+  return lines;
+}
+
+// The Answers column. Listed directly under First Principles so the two
+// written sections sit together, and labelled AI written in its own first
+// line, because the section above it is labelled "Not AI-generated" and an
+// unlabelled section between them would read as covered by that claim.
+//
+// `pointer` is the /llms.txt form: the column's name, its archive URL and a
+// count, and nothing else. The index is at 18.2KB of the 20KB convention
+// budget (checked by verify-site.mjs check 14), and this column gains a post
+// every few days, so listing the questions there would pass today and fail
+// the build on its own within a month. The questions themselves are listed
+// in full at /llms-full.txt and, per topic, in each hub's own index, both of
+// which are already orders of magnitude past any such budget.
+function answersSection(answers, { markdown = false, pointer = false } = {}) {
+  if (answers.length === 0) return [];
+  const lines = [
+    '## Answers (AI written column)',
+    '',
+    "Short answers to operator questions, drawn from the episode catalogue and citing it.",
+    `Written by ${ANSWERS_AUTHOR}, an AI analyst. Reviewed before publishing.`,
+    `Archive: ${SITE_URL}/answers`,
+  ];
+  if (pointer) {
+    lines.push(
+      `${answers.length} answer${answers.length === 1 ? '' : 's'}, each listed with its question at ${SITE_URL}/llms-full.txt`,
+      ''
+    );
+    return lines;
+  }
+  lines.push('');
+  for (const a of answers) {
+    const url = `${SITE_URL}/answers/${a.slug}`;
+    const parts = [`- [${a.title}](${url})`];
+    if (a.dateDisplay) parts.push(`(${a.dateDisplay})`);
+    lines.push(`${parts.join(' ')}: ${oneLine(a.summary)}`);
+    if (markdown) lines.push(`  Markdown: ${markdownUrl(url)}`);
+    for (const episodeSlug of a.episodes) {
+      lines.push(`  Source: ${SITE_URL}/episodes/${episodeSlug}`);
     }
   }
   lines.push('');
@@ -267,7 +311,7 @@ function sponsorFactsSection() {
 }
 
 /** The curated index served at /llms.txt. */
-export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
+export function buildLlmsIndex(episodes, topics, editions, answers, getTranscript) {
   const lines = [
     ...header(episodes),
     // Stated before any list, not in a footer: a consumer that truncates this
@@ -280,6 +324,7 @@ export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
     ...agentActionsSection(),
     ...sponsorFactsSection(),
     ...editionsSection(editions, RECENT_EDITION_COUNT),
+    ...answersSection(answers, { pointer: true }),
     ...topicsSection(topics),
     '## Recent episodes',
     '',
@@ -297,7 +342,7 @@ export function buildLlmsIndex(episodes, topics, editions, getTranscript) {
 }
 
 /** The complete catalogue served at /llms-full.txt. */
-export function buildLlmsFull(episodes, topics, editions, getTranscript) {
+export function buildLlmsFull(episodes, topics, editions, answers, getTranscript) {
   const lines = [
     ...header(episodes),
     `This is the complete catalogue. The curated index is at ${SITE_URL}/llms.txt`,
@@ -307,6 +352,7 @@ export function buildLlmsFull(episodes, topics, editions, getTranscript) {
     ...agentActionsSection(),
     ...sponsorFactsSection(),
     ...editionsSection(editions),
+    ...answersSection(answers),
     ...topicsSection(topics),
     '## Episodes',
     '',
@@ -331,7 +377,7 @@ export function buildLlmsFull(episodes, topics, editions, getTranscript) {
  * (lib/topics getEpisodesByTopicSlug, lib/newsletter getEditionsForTopic), so
  * the index and the page cannot disagree about what the topic contains.
  */
-export function buildTopicLlms({ topic, slug, episodes, editions, getTranscript }) {
+export function buildTopicLlms({ topic, slug, episodes, editions, answers = [], getTranscript }) {
   const hubUrl = `${SITE_URL}/topics/${slug}`;
   const lines = [
     `# The Dime Podcast: ${topic}`,
@@ -344,6 +390,7 @@ export function buildTopicLlms({ topic, slug, episodes, editions, getTranscript 
     ...MARKDOWN_RULE,
     '',
     ...editionsSection(editions, undefined, { markdown: true }),
+    ...answersSection(answers, { markdown: true }),
     '## Episodes',
     '',
   ];

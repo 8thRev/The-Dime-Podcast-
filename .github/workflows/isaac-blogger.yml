@@ -1,0 +1,114 @@
+name: Isaac Burner (Answers column)
+
+on:
+  # Twice a week. The column's supply is under-served questions the episode
+  # catalogue can actually answer, and that set refills slowly; running daily
+  # would exhaust it and start manufacturing questions nobody asked.
+  schedule:
+    - cron: '0 14 * * 2,4'
+
+  workflow_dispatch:
+    inputs:
+      question:
+        description: 'Answer this exact question instead of picking one from search data. Leave blank for the normal run.'
+        required: false
+        default: ''
+      max_posts:
+        description: 'Posts to write this run.'
+        required: false
+        default: '1'
+
+# contents: write to push the branch, pull-requests: write to open the PR.
+# Deliberately not a push to main: unlike a transcript, a column post is an
+# opinion published under the show's name and gets a human gate.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  answers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r bot/requirements.txt
+
+      - name: Write the post
+        id: write
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Optional. Missing credentials fall the run through to the episode
+          # catalogue as its question source rather than failing the job.
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
+          ISAAC_FORCE_QUESTION: ${{ github.event.inputs.question }}
+          ISAAC_MAX_POSTS: ${{ github.event.inputs.max_posts || '1' }}
+        run: |
+          cd bot
+          python isaac_blogger.py
+
+      - name: Open a pull request
+        if: ${{ steps.write.outputs.post_count != '0' && steps.write.outputs.post_count != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POST_SLUG: ${{ steps.write.outputs.post_slug }}
+          POST_TITLE: ${{ steps.write.outputs.post_title }}
+        run: |
+          BRANCH="answers/${POST_SLUG}"
+          git config user.name "isaac-burner-bot"
+          git config user.email "actions@github.com"
+          git checkout -b "$BRANCH"
+          git add app/content/answers
+          git commit -m "Answers: ${POST_TITLE}"
+          git push origin "$BRANCH"
+          # --body-file rather than --body: a post title routinely contains
+          # quotes and apostrophes, and interpolating one into a shell string
+          # is how a PR body ends up truncated at the first quote.
+          {
+            echo "Draft post for the Answers column, written by bot/isaac_blogger.py."
+            echo
+            echo "**${POST_TITLE}**"
+            echo
+            echo "Preview once Vercel builds: \`/answers/${POST_SLUG}\`"
+            echo
+            echo "Before merging, check the three things the validator cannot:"
+            echo
+            echo "- Does every claim actually match what the guest said, not just what the summary implies?"
+            echo "- Is the position one the show would stand behind?"
+            echo "- Does the short answer read like us?"
+            echo
+            echo "Edit the markdown directly on this branch if it is close, or close the PR if it is not. The question goes back in the pool either way."
+            echo
+            echo "Generated with [Claude Code](https://claude.com/claude-code)"
+          } > /tmp/pr-body.md
+          gh pr create \
+            --title "Answers: ${POST_TITLE}" \
+            --body-file /tmp/pr-body.md \
+            --base main \
+            --head "$BRANCH"
+
+      - name: Report a quiet run
+        if: ${{ steps.write.outputs.post_count == '0' || steps.write.outputs.post_count == '' }}
+        run: |
+          echo "No post this run. Every candidate question was already answered or could not be grounded in the catalogue." >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: isaac-blogger-logs
+          path: |
+            bot/*.log
+            bot/*.txt
+          retention-days: 7

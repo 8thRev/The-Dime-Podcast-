@@ -48,7 +48,12 @@ export default function Newsletter({ editions }) {
         <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
           First Principles
         </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,84px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, marginBottom: 32 }}>
+        {/* Floor lowered from 52px, which is what "the episode." needed: at
+            52px the headline was 358px of content in a 279px box at 375px
+            viewport, so this page scrolled sideways on a phone. Caught while
+            measuring the same failure on /answers. Re-measure before raising
+            it. */}
+        <h1 className="syne" style={{ fontSize: 'clamp(38px,8vw,84px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, marginBottom: 32 }}>
           The insight<br />
           behind<br />
           the episode.
@@ -56,8 +61,16 @@ export default function Newsletter({ editions }) {
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', marginBottom: 16, fontWeight: 300 }}>
           Every episode produces a newsletter. Not a recap. The structural principle underneath the conversation, written for operators who need to understand what&apos;s actually happening before the market makes it obvious.
         </p>
-        <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 48, letterSpacing: '.08em', fontWeight: 600, textTransform: 'uppercase' }}>
+        <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 16, letterSpacing: '.08em', fontWeight: 600, textTransform: 'uppercase' }}>
           550-650 WORDS · ONE IDEA · NO NOISE · FREE
+        </p>
+        {/* The byline is on this page, not only on each edition, because
+            /answers now has an archive index that names its author and
+            labels him AI. Two archive pages where only the AI one is
+            attributed reads backwards. Says "written by", not just the
+            name, so the contrast with the Answers banner is explicit. */}
+        <p className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: 48 }}>
+          Written by Bryan Fields. Every edition, by hand.
         </p>
 
         <ConvertKitEmbed location="newsletter_page" />

@@ -1,8 +1,13 @@
 """
-Tell search engines about newly published First Principles editions.
+Tell search engines about newly published written pages.
+
+Two content types qualify: First Principles editions (app/content/newsletter)
+and Answers column posts (app/content/answers). Both are markdown with a
+`slug` in frontmatter, both get their own URL, and both are published by a
+merge rather than by a deploy of unchanged content.
 
 Run by .github/workflows/index-new-pages.yml after every successful Vercel
-production deploy. Finds newsletter markdown added or changed in the deployed
+production deploy. Finds the markdown added or changed in the deployed
 commit, waits for those URLs to actually serve 200 on dimepodcast.com, then:
 
   1. IndexNow — one POST notifies Bing, Yandex, Seznam, Naver and the other
@@ -18,11 +23,14 @@ commit, waits for those URLs to actually serve 200 on dimepodcast.com, then:
      permission on the property, and the SEO report only ever needed read.
 
 Each edition also nudges its related episode page (it gained a cross-link)
-and the /newsletter index (it gained a listing).
+and the /newsletter index (it gained a listing). An Answers post nudges only
+the /answers index: it links out to the episodes it cites, but those episode
+pages do not yet link back, so their HTML is unchanged. Add the nudge here
+if that backlink ever ships.
 
 Usage:
     python index_new_pages.py --base <sha> --head <sha>
-    python index_new_pages.py --url /newsletter/some-slug [--url ...]
+    python index_new_pages.py --url /answers/some-slug [--url ...]
 """
 
 import argparse
@@ -42,6 +50,7 @@ INDEXNOW_ENDPOINT = "https://api.indexnow.org/indexnow"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 NEWSLETTER_DIR = "app/content/newsletter"
+ANSWERS_DIR = "app/content/answers"
 
 # Vercel marks the deployment successful once the production alias points at
 # it, but give CDN propagation some slack before calling a URL dead.
@@ -54,10 +63,11 @@ def warn(message: str) -> None:
     print(f"::warning::{message}")
 
 
-def changed_editions(base: str, head: str) -> list[Path]:
-    """Newsletter markdown files added or modified between two commits."""
+def changed_markdown(base: str, head: str, directory: str) -> list[Path]:
+    """Markdown files added or modified between two commits, under one
+    content directory."""
     out = subprocess.run(
-        ["git", "diff", "--name-only", "--diff-filter=AM", base, head, "--", NEWSLETTER_DIR],
+        ["git", "diff", "--name-only", "--diff-filter=AM", base, head, "--", directory],
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
@@ -88,6 +98,24 @@ def urls_for_editions(files: list[Path]) -> list[str]:
             urls.append(f"{SITE}/episodes/{episode_slug}")
     if urls:
         urls.append(f"{SITE}/newsletter")
+    return list(dict.fromkeys(urls))
+
+
+def urls_for_answers(files: list[Path]) -> list[str]:
+    """An Answers post's own URL, plus the column index that now lists it.
+
+    Deliberately shorter than urls_for_editions: the cited episode pages are
+    not nudged because nothing on them changed. See the note at the top of
+    this file.
+    """
+    urls: list[str] = []
+    for f in files:
+        text = f.read_text(encoding="utf-8")
+        # Same fallback as lib/answers.ts: slug defaults to the filename.
+        slug = frontmatter_field(text, "slug") or f.stem
+        urls.append(f"{SITE}/answers/{slug}")
+    if urls:
+        urls.append(f"{SITE}/answers")
     return list(dict.fromkeys(urls))
 
 
@@ -163,11 +191,12 @@ def main() -> int:
 
     urls = [u if u.startswith("http") else SITE + "/" + u.lstrip("/") for u in args.url]
     if args.base and args.head:
-        urls += urls_for_editions(changed_editions(args.base, args.head))
+        urls += urls_for_editions(changed_markdown(args.base, args.head, NEWSLETTER_DIR))
+        urls += urls_for_answers(changed_markdown(args.base, args.head, ANSWERS_DIR))
     urls = list(dict.fromkeys(urls))
 
     if not urls:
-        print("No new or changed newsletter editions in this deploy — nothing to submit.")
+        print("No new or changed editions or answers in this deploy, nothing to submit.")
         return 0
 
     print("Candidates:\n  " + "\n  ".join(urls))

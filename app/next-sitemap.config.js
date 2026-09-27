@@ -8,6 +8,7 @@ const Parser = require('rss-parser');
 const siteUrl = process.env.SITE_URL || 'https://www.dimepodcast.com';
 const FEED_URL = 'https://feeds.simplecast.com/Vnrz0StH';
 const NEWSLETTER_DIR = path.join(__dirname, 'content', 'newsletter');
+const ANSWERS_DIR = path.join(__dirname, 'content', 'answers');
 
 // Static pages that get a hand-set priority rather than the config default.
 // These are emitted by additionalPaths() below AND auto-discovered by
@@ -24,6 +25,10 @@ const STATIC_PAGES = [
   // Raised from 0.6/monthly: /newsletter is now an archive index over the
   // First Principles editions, not a standalone signup form.
   { path: '/newsletter', priority: 0.8, changefreq: 'weekly' },
+  // The Answers column. Weekly-or-faster cadence and the same 0.8 as the
+  // newsletter archive: both are index pages over a growing set of written
+  // pages, and neither is a leaf.
+  { path: '/answers', priority: 0.8, changefreq: 'weekly' },
   { path: '/privacy', priority: 0.3, changefreq: 'yearly' },
   { path: '/terms', priority: 0.3, changefreq: 'yearly' },
 ];
@@ -105,27 +110,31 @@ async function getEpisodeLastmodBySlug() {
 // is on disk — so it's a plain sync read rather than a cached async fetch.
 // gray-matter is CommonJS, so requiring it from this plain-Node script is
 // safe (lib/newsletter.ts itself can't be imported here — it's TypeScript).
-let newsletterLastmodCache = null;
-function getNewsletterLastmodBySlug() {
-  if (newsletterLastmodCache) return newsletterLastmodCache;
-  newsletterLastmodCache = {};
+const markdownLastmodCaches = {};
+function getMarkdownLastmodBySlug(dir, label) {
+  if (markdownLastmodCaches[label]) return markdownLastmodCaches[label];
+  const cache = {};
+  markdownLastmodCaches[label] = cache;
   try {
-    if (!fs.existsSync(NEWSLETTER_DIR)) return newsletterLastmodCache;
+    if (!fs.existsSync(dir)) return cache;
     const matter = require('gray-matter');
-    for (const file of fs.readdirSync(NEWSLETTER_DIR)) {
+    for (const file of fs.readdirSync(dir)) {
       if (!file.endsWith('.md')) continue;
-      const { data } = matter(fs.readFileSync(path.join(NEWSLETTER_DIR, file), 'utf-8'));
+      const { data } = matter(fs.readFileSync(path.join(dir, file), 'utf-8'));
       const slug = String(data.slug || file.replace(/\.md$/, '')).trim();
       const parsed = new Date(data.date);
       if (slug && !Number.isNaN(parsed.getTime())) {
-        newsletterLastmodCache[slug] = parsed.toISOString();
+        cache[slug] = parsed.toISOString();
       }
     }
   } catch (error) {
-    console.error('next-sitemap: could not read newsletter frontmatter for lastmod:', error.message);
+    console.error(`next-sitemap: could not read ${label} frontmatter for lastmod:`, error.message);
   }
-  return newsletterLastmodCache;
+  return cache;
 }
+
+const getNewsletterLastmodBySlug = () => getMarkdownLastmodBySlug(NEWSLETTER_DIR, 'newsletter');
+const getAnswersLastmodBySlug = () => getMarkdownLastmodBySlug(ANSWERS_DIR, 'answers');
 
 // The video catalogue, keyed by slug. Committed to the repo by
 // scripts/build-video-catalog.mjs, so reading it here costs no YouTube quota
@@ -245,7 +254,8 @@ module.exports = {
       // the pages and from llms.txt; named here too so a crawler that only
       // reads robots.txt learns the convention.
       `# ${siteUrl}/topics/<slug>/llms.txt (one topic's episodes and essays)\n` +
-      `# Markdown variant of any episode, guest, newsletter or topic page: add .md to its URL\n`,
+      `# ${siteUrl}/answers (AI-written Q&A column, cites the episodes it draws from)\n` +
+      `# Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL\n`,
   },
   // Real per-episode lastmod (from the RSS pubDate) instead of the
   // build-timestamp default — Google discounts lastmod that doesn't
@@ -286,6 +296,19 @@ module.exports = {
           priority: config.priority,
           lastmod: new Date(video.publishedAt).toISOString(),
           videos: [videoSitemapEntry(video)],
+        };
+      }
+    }
+
+    const answersMatch = path.match(/^\/answers\/(.+)$/);
+    if (answersMatch) {
+      const lastmod = getAnswersLastmodBySlug()[answersMatch[1]];
+      if (lastmod) {
+        return {
+          loc: path,
+          changefreq: 'monthly',
+          priority: 0.7,
+          lastmod,
         };
       }
     }
