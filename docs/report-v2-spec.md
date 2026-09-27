@@ -83,7 +83,9 @@ site was not built for. Sequence:
    20 KB, not the 861 KB full catalogue.
 4. **List the agent actions in `llms.txt`**: how to pitch a guest and how to
    ask about sponsorship, with the fields each needs; sponsor facts
-   (audience size, formats) in machine readable form.
+   (audience size, formats) in machine readable form. Done Sep 22 2026 in
+   `app/lib/llms.js`. Audience size is stated as not published, because the
+   sponsorship page does not publish it.
 5. **Phase 2 rules and Phase 3 email**, leading with AI citation rate, AI
    referrals, agent visits and search growth.
 6. **A Dime MCP server** (search episodes, get takeaways and transcript, list
