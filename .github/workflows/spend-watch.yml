@@ -1,0 +1,28 @@
+name: Spend Watch
+
+on:
+  schedule:
+    - cron: '30 12 * * *'
+  workflow_dispatch:
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install requests
+      # Fails the run (GitHub emails that) and posts to the webhook if any key
+      # spent over the daily limit or any workflow ran 5x its median.
+      - name: Check spend and run durations
+        env:
+          ANTHROPIC_ADMIN_KEY: ${{ secrets.ANTHROPIC_ADMIN_KEY }}
+          SPEND_ALERT_WEBHOOK: ${{ secrets.SPEND_ALERT_WEBHOOK }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd bot
+          python spend_watch.py

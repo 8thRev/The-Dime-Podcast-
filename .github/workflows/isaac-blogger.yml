@@ -28,6 +28,7 @@ permissions:
 jobs:
   answers:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
       - name: Checkout repository
@@ -48,6 +49,7 @@ jobs:
         id: write
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SPEND_ALERT_WEBHOOK: ${{ secrets.SPEND_ALERT_WEBHOOK }}
           # Optional. Missing credentials fall the run through to the episode
           # catalogue as its question source rather than failing the job.
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
@@ -112,3 +114,12 @@ jobs:
             bot/*.log
             bot/*.txt
           retention-days: 7
+
+      - name: Upload API usage log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-usage
+          path: bot/logs/api_usage.jsonl
+          if-no-files-found: ignore
+          retention-days: 30

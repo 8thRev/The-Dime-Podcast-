@@ -7,6 +7,7 @@ topic tags — returned as one structured JSON object.
 import json
 
 import anthropic
+import spend_guard
 
 from config import config
 from transcript_prompts import get_transcript_prompt
@@ -23,7 +24,7 @@ class TranscriptClaudeClient:
     """Client for generating transcript-derived artifacts via Claude."""
 
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        self.client = spend_guard.make_client("transcript")
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.TRANSCRIPT_MAX_TOKENS
 

@@ -16,6 +16,7 @@ on:
 jobs:
   research-automation:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     
     steps:
       - name: Checkout repository
@@ -39,6 +40,7 @@ jobs:
           TRELLO_BOARD_ID: ${{ secrets.TRELLO_BOARD_ID }}
           TRELLO_PRE_COLUMN_NAME: ${{ secrets.TRELLO_PRE_COLUMN_NAME }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SPEND_ALERT_WEBHOOK: ${{ secrets.SPEND_ALERT_WEBHOOK }}
           EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
           EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
           EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
@@ -59,3 +61,12 @@ jobs:
             bot/*.log
             bot/*.txt
           retention-days: 7
+
+      - name: Upload API usage log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-usage
+          path: bot/logs/api_usage.jsonl
+          if-no-files-found: ignore
+          retention-days: 30

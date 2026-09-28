@@ -15,6 +15,7 @@ from email_client import EmailClient
 from ga4_client import GA4Client
 from gsc_client import SearchConsoleClient, current_and_previous_windows
 from simplecast_client import SimplecastClient
+import spend_guard
 from youtube_analytics_client import YouTubeAnalyticsClient
 from youtube_client import YouTubeClient
 
@@ -368,6 +369,13 @@ def main() -> int:
     youtube_analytics = YouTubeAnalyticsClient() if has_youtube_creds else None
     simplecast = SimplecastClient() if config.SIMPLECAST_API_TOKEN else None
     subject, html_body, text_body = build_report(gsc, ga4, youtube, youtube_analytics, simplecast)
+
+    # The weekly snapshot step (AI answer check) ran earlier in this same
+    # workflow run and logged its calls, so the estimate covers it.
+    note = spend_guard.cost_note()
+    if note:
+        html_body += f'<hr><p style="color:#666;font-size:12px">{note}</p>'
+        text_body += f"\n\n{note}\n"
 
     # Printed unconditionally, before the send attempt, so a downstream SMTP
     # failure (auth, network, whatever) never discards a report that was

@@ -3,6 +3,7 @@ Anthropic Claude API client for generating research documents.
 """
 
 import anthropic
+import spend_guard
 from config import config
 from prompt_template import get_research_prompt
 
@@ -15,7 +16,7 @@ class ClaudeClient:
     MAX_CONTINUATIONS = 5
 
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        self.client = spend_guard.make_client("guest_research")
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.ANTHROPIC_MAX_TOKENS
         # Server-side tools: web_search finds guest info, web_fetch pulls the
@@ -59,6 +60,7 @@ class ClaudeClient:
         """
         try:
             print(f"Generating research for {guest_name} via Claude API...")
+            self.client.budget.label = guest_name
 
             # Build the prompt (includes links/notes when provided)
             prompt = get_research_prompt(

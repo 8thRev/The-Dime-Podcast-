@@ -7,7 +7,9 @@ to measure AI search visibility: the same questions every week, trended.
 Answers vary run to run, so read the citation rate over several weeks.
 
 Cost: up to MAX_SEARCHES_PER_PROMPT web searches per question at $10 per
-1,000, plus tokens; roughly $1 to $2 per weekly run for 25 questions.
+1,000, plus tokens; measured at about $2.5 for 25 questions at 3 searches and 2 continuations
+(Sep 28: 92 calls, 881K tokens in); 15 questions, 2 searches and 1 continuation
+should be roughly a third of that. Real numbers: the api-usage artifact.
 """
 
 import csv
@@ -17,12 +19,14 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlparse
 
-import anthropic
-
+import spend_guard
 from config import config
 
 PROMPTS_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_prompts.csv"
-MAX_SEARCHES_PER_PROMPT = 3
+MAX_SEARCHES_PER_PROMPT = 2
+# Each pause_turn continuation resends every search result so far, so it is the
+# expensive part of a question. One is enough to let a 2 search answer finish.
+MAX_CONTINUATIONS = 1
 MAX_TOKENS = 1500
 # Web search turns take 1 to 3 minutes each; 25 questions at 5 workers ran
 # 16 minutes on Sep 22 2026, with 4 of them timing out at 180 seconds.
@@ -97,7 +101,7 @@ def ask(client, model: str, prompt: str) -> list:
     messages = [{"role": "user", "content": prompt}]
     message = client.messages.create(model=model, max_tokens=MAX_TOKENS, system=SYSTEM, tools=tools, messages=messages)
     content = list(message.content)
-    for _ in range(2):
+    for _ in range(MAX_CONTINUATIONS):
         if message.stop_reason != "pause_turn":
             break
         messages = [{"role": "user", "content": prompt}, {"role": "assistant", "content": message.content}]
@@ -127,7 +131,7 @@ def score(prompt_row: dict, blocks: list, video_ids: set[str]) -> dict:
 def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = None) -> dict:
     # A question that hangs is recorded as an error, not allowed to stall
     # the whole Monday run.
-    client = client or anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=REQUEST_TIMEOUT_SECONDS, max_retries=1)
+    client = client or spend_guard.make_client("seo_ai_panel", timeout=REQUEST_TIMEOUT_SECONDS, max_retries=1)
     model = config.AI_VISIBILITY_MODEL
     prompts = prompts if prompts is not None else load_prompts()
 
@@ -144,6 +148,11 @@ def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = Non
 
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         results = list(pool.map(one, prompts))
+    # A capped panel is a partial panel: fail the source rather than record
+    # a citation rate computed from the questions that happened to run first.
+    tripped = getattr(getattr(client, "budget", None), "tripped", None)
+    if tripped:
+        raise RuntimeError(f"AI panel stopped by spend cap: {tripped}")
     return summarize(results, model)
 
 
