@@ -61,3 +61,6 @@ bot/caption_census_cache.json
 
 # Claude Code
 .claude/
+
+# Local API usage log (bot/spend_guard.py); CI uploads it as an artifact
+bot/logs/

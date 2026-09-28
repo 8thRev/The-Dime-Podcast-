@@ -11,6 +11,7 @@ on:
 jobs:
   seo-report:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     # Needed to commit the weekly snapshot back to the repo.
     permissions:
       contents: write
@@ -36,7 +37,7 @@ jobs:
       # source inside it already degrades to "unavailable" on its own.
       - name: Build weekly snapshot
         continue-on-error: true
-        timeout-minutes: 35
+        timeout-minutes: 20
         env:
           GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
@@ -51,6 +52,7 @@ jobs:
           KV_REST_API_TOKEN: ${{ secrets.KV_REST_API_TOKEN }}
           # Weekly AI answer check (bot/ai_visibility.py), about $1 to $2 a run.
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SPEND_ALERT_WEBHOOK: ${{ secrets.SPEND_ALERT_WEBHOOK }}
         run: |
           cd bot
           python weekly_report.py
@@ -98,3 +100,12 @@ jobs:
           done
           echo "::error::Failed to push weekly snapshot after 5 attempts"
           exit 1
+
+      - name: Upload API usage log
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-usage
+          path: bot/logs/api_usage.jsonl
+          if-no-files-found: ignore
+          retention-days: 30

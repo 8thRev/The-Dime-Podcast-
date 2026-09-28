@@ -17,8 +17,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from urllib.parse import urlparse
 
-import anthropic
-
+import spend_guard
 from config import config
 
 PROMPTS_PATH = Path(__file__).resolve().parent.parent / "data" / "ai_prompts.csv"
@@ -127,7 +126,7 @@ def score(prompt_row: dict, blocks: list, video_ids: set[str]) -> dict:
 def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = None) -> dict:
     # A question that hangs is recorded as an error, not allowed to stall
     # the whole Monday run.
-    client = client or anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY, timeout=REQUEST_TIMEOUT_SECONDS, max_retries=1)
+    client = client or spend_guard.make_client("seo_ai_panel", timeout=REQUEST_TIMEOUT_SECONDS, max_retries=1)
     model = config.AI_VISIBILITY_MODEL
     prompts = prompts if prompts is not None else load_prompts()
 
@@ -144,6 +143,11 @@ def run_panel(video_ids: set[str], client=None, prompts: list[dict] | None = Non
 
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
         results = list(pool.map(one, prompts))
+    # A capped panel is a partial panel: fail the source rather than record
+    # a citation rate computed from the questions that happened to run first.
+    tripped = getattr(getattr(client, "budget", None), "tripped", None)
+    if tripped:
+        raise RuntimeError(f"AI panel stopped by spend cap: {tripped}")
     return summarize(results, model)
 
 

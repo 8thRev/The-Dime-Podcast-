@@ -15,6 +15,7 @@ the token budget is a fraction of a cleaned transcript's.
 import json
 
 import anthropic
+import spend_guard
 
 from config import config
 from isaac_prompts import get_answer_prompt
@@ -39,7 +40,7 @@ class IsaacClaudeClient:
     """Client for generating one Answers column post via Claude."""
 
     def __init__(self):
-        self.client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+        self.client = spend_guard.make_client("isaac")
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.ISAAC_MAX_TOKENS
 
