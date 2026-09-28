@@ -152,7 +152,10 @@ def log_path() -> Path:
     return Path(os.getenv("SPEND_LOG_PATH", str(Path(__file__).resolve().parent / "logs" / "api_usage.jsonl")))
 
 
-def log_call(budget: Budget, model: str, usage, usd: float) -> None:
+def log_call(budget: Budget, model: str, usage, usd: float, message=None, seconds: float = 0.0, error: str = "") -> None:
+    """One JSONL row and one stdout line per API call, errors included."""
+    stop = getattr(message, "stop_reason", "") or ""
+    tools = getattr(usage, "server_tool_use", None)
     row = {
         "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "run_id": os.getenv("GITHUB_RUN_ID", "local"),
@@ -160,14 +163,25 @@ def log_call(budget: Budget, model: str, usage, usd: float) -> None:
         "ref": os.getenv("GITHUB_REF", ""),
         "purpose": budget.purpose,
         "label": budget.label,
+        "call_n": budget.calls,
         "model": model,
+        "message_id": getattr(message, "id", "") or "",
+        "stop_reason": stop,
+        "seconds": round(seconds, 1),
         "input": getattr(usage, "input_tokens", 0) or 0,
         "output": getattr(usage, "output_tokens", 0) or 0,
         "cache_read": getattr(usage, "cache_read_input_tokens", 0) or 0,
         "cache_write": getattr(usage, "cache_creation_input_tokens", 0) or 0,
         "searches": _searches(usage),
+        "fetches": (getattr(tools, "web_fetch_requests", 0) or 0) if tools else 0,
         "est_usd": round(usd, 4),
+        "cum_usd": round(budget.usd, 4),
+        "error": error,
     }
+    print(f"[api] {budget.purpose}{' [' + budget.label + ']' if budget.label else ''} #{budget.calls} {model} "
+          f"in={row['input']} out={row['output']} cache_r={row['cache_read']} searches={row['searches']} "
+          f"stop={stop or '-'} {row['seconds']}s ~${usd:.3f} (run ~${budget.usd:.2f})"
+          f"{' ERROR ' + error if error else ''}", flush=True)
     try:
         path = log_path()
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -177,21 +191,69 @@ def log_call(budget: Budget, model: str, usage, usd: float) -> None:
         print(f"[spend_guard] usage log write failed: {e}", file=sys.stderr)
 
 
+_PROCESS_START = datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def run_summary(label: str | None = None) -> dict:
+    """Estimated spend for this workflow run (all steps share GITHUB_RUN_ID and
+    the log file), or for this process when run locally. Optionally only the
+    rows for one label (a guest name)."""
+    out = {"usd": 0.0, "calls": 0, "searches": 0, "input": 0, "output": 0, "by_purpose": {}}
+    path = log_path()
+    if not path.exists():
+        return out
+    run = os.getenv("GITHUB_RUN_ID", "local")
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            r = json.loads(line)
+        except ValueError:
+            continue
+        if r.get("run_id") != run or (run == "local" and r.get("ts", "") < _PROCESS_START):
+            continue
+        if label is not None and r.get("label") != label:
+            continue
+        out["usd"] += r.get("est_usd", 0)
+        out["calls"] += 1
+        out["searches"] += r.get("searches", 0)
+        out["input"] += r.get("input", 0)
+        out["output"] += r.get("output", 0)
+        bp = out["by_purpose"].setdefault(r.get("purpose", "?"), {"usd": 0.0, "calls": 0})
+        bp["usd"] += r.get("est_usd", 0)
+        bp["calls"] += 1
+    return out
+
+
+def cost_note(label: str | None = None) -> str:
+    """One plain sentence for an email footer. Empty when nothing was spent
+    (dry run, or no API call this run)."""
+    m = run_summary(label)
+    if not m["calls"]:
+        return ""
+    return (f"Estimated API cost: ${m['usd']:.2f} ({m['calls']} calls, {m['searches']} web searches, "
+            f"{m['input'] // 1000}K tokens in, {m['output'] // 1000}K out). "
+            "List-price estimate; the Anthropic Console is the bill.")
+
+
 # ---- guarded client -----------------------------------------------------
 
 class _GuardedStream:
     def __init__(self, guard, manager, model):
         self._guard, self._manager, self._model = guard, manager, model
         self._stream = None
+        self._t0 = 0.0
 
     def __enter__(self):
+        self._t0 = time.monotonic()
         self._stream = self._manager.__enter__()
         return self._stream
 
     def __exit__(self, *exc):
         result = self._manager.__exit__(*exc)
         if exc[0] is None:
-            self._guard._account(self._model, self._stream.get_final_message().usage)
+            message = self._stream.get_final_message()
+            self._guard._account(self._model, message.usage, message, time.monotonic() - self._t0)
+        else:
+            self._guard._failed(self._model, exc[1], time.monotonic() - self._t0)
         return result
 
 
@@ -201,18 +263,29 @@ class _GuardedMessages:
 
     def create(self, **kwargs):
         self._budget.check()
-        message = self._inner.messages.create(**kwargs)
-        self._account(kwargs.get("model", ""), message.usage)
+        t0 = time.monotonic()
+        try:
+            message = self._inner.messages.create(**kwargs)
+        except Exception as e:
+            self._failed(kwargs.get("model", ""), e, time.monotonic() - t0)
+            raise
+        self._account(kwargs.get("model", ""), message.usage, message, time.monotonic() - t0)
         return message
 
     def stream(self, **kwargs):
         self._budget.check()
         return _GuardedStream(self, self._inner.messages.stream(**kwargs), kwargs.get("model", ""))
 
-    def _account(self, model, usage):
+    def _account(self, model, usage, message=None, seconds=0.0):
         usd = price_usd(model, usage)
         self._budget.record(usd, _searches(usage))
-        log_call(self._budget, model, usage, usd)
+        log_call(self._budget, model, usage, usd, message, seconds)
+
+    def _failed(self, model, exc, seconds):
+        # A failed or timed out request can still have been billed; count the
+        # call against the cap and make it visible.
+        self._budget.record(0.0, 0)
+        log_call(self._budget, model, None, 0.0, None, seconds, error=f"{type(exc).__name__}: {str(exc)[:150]}")
 
 
 class GuardedClient:
@@ -301,17 +374,17 @@ def make_client(purpose: str, budget: Budget | None = None, **anthropic_kwargs):
 # ---- process exit -------------------------------------------------------
 
 def _summary_line() -> None:
-    path = log_path()
     step = os.getenv("GITHUB_STEP_SUMMARY")
-    if not step or not path.exists():
+    m = run_summary()
+    if not step or not m["calls"]:
         return
-    run = os.getenv("GITHUB_RUN_ID", "local")
-    rows = [r for r in (json.loads(l) for l in path.read_text(encoding="utf-8").splitlines() if l.strip())
-            if r.get("run_id") == run]
-    if rows:
-        with open(step, "a", encoding="utf-8") as f:
-            f.write(f"\n**API spend (estimate):** ${sum(r['est_usd'] for r in rows):.2f} over {len(rows)} calls, "
-                    f"{sum(r['searches'] for r in rows)} searches\n")
+    lines = ["", "### API spend (estimate)", "", "| Purpose | Calls | Est. cost |", "|---|---|---|"]
+    lines += [f"| {k} | {v['calls']} | ${v['usd']:.2f} |" for k, v in sorted(m["by_purpose"].items())]
+    lines += [f"| **Total** | **{m['calls']}** | **${m['usd']:.2f}** |", "",
+              f"{m['searches']} web searches, {m['input'] // 1000}K tokens in, {m['output'] // 1000}K out. "
+              "List-price estimate; the Anthropic Console is the bill.", ""]
+    with open(step, "a", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 @atexit.register

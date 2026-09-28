@@ -106,3 +106,21 @@ cheaper model for the panel is worth it. Untested guesses until then. One
 that needs no measurement: the panel does not need `max_uses: 3` on 25
 questions weekly at full price; cutting to 2 searches or 15 questions is a
 product decision, not an engineering one.
+
+## Update: cheaper weekly panel and cost visibility
+
+* Panel cut from 25 to 15 questions (4 category, 7 topic, 4 guest), 2 searches
+  per question (was 3), 1 continuation (was 2). Still weekly. Expect roughly a
+  third of the ~$2.5 measured on Sep 28; confirm from the next `api-usage`
+  artifact. The trend line restarts: week over week rates before and after this
+  change are not comparable. Model unchanged (Sonnet 5): a switch to Haiku 4.5
+  needs the basic search tool and a quality check I have not run.
+* Every call now logs a line in the job output (`[api] purpose [label] #n model
+  in= out= searches= stop= seconds ~$ (run ~$)`) and a JSONL row with message
+  id, stop reason, seconds, cumulative cost and any error. Failed and timed out
+  calls are logged and count against the cap.
+* Where the estimate shows up: the SEO report email footer, each Guest Research
+  email footer (that guest's calls only), and a per purpose cost table on the
+  Actions job summary of every paid workflow.
+* The rewritten question set on `8926eef` is still unmerged; if you merge it,
+  trim it to 15 as well.

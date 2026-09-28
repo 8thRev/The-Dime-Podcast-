@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import spend_guard
 from config import config
 from trello_client import TrelloClient, TrelloCard
 from claude_client import ClaudeClient
@@ -145,7 +146,9 @@ def process_guest(
 
     # Step 3: Send email
     print("Step 3: Sending email with document...")
-    success = email_client.send_research_document(guest_name, doc_path)
+    success = email_client.send_research_document(
+        guest_name, doc_path, cost_note=spend_guard.cost_note(guest_name)
+    )
 
     if not success:
         print("✗ Failed to send email")

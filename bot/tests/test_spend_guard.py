@@ -162,3 +162,40 @@ def test_alert_selftest_posts_to_webhook(monkeypatch):
     monkeypatch.setattr("sys.argv", ["spend_watch.py", "--selftest"])
     assert spend_watch.main() == 0
     assert posted and "alerts reach you" in posted[0][1]["text"]
+
+
+def test_cost_note_and_summary_cover_a_guest_and_the_whole_run(monkeypatch, capsys):
+    monkeypatch.setattr(spend_guard, "_PROCESS_START", "2000-01-01T00:00:00")
+    ok = lambda **kw: SimpleNamespace(id="msg_1", stop_reason="end_turn", content=[], usage=usage(500_000, 20_000, searches=4))
+    a = GuardedClient(SimpleNamespace(messages=SimpleNamespace(create=ok)), Budget("guest_research"))
+    a.budget.label = "Jane Doe"
+    a.messages.create(model="claude-sonnet-5", messages=[])
+    b = GuardedClient(SimpleNamespace(messages=SimpleNamespace(create=ok)), Budget("seo_ai_panel"))
+    b.messages.create(model="claude-sonnet-5", messages=[])
+    assert "$1.24" in spend_guard.cost_note("Jane Doe")  # 1.00 in + 0.20 out + 0.04 searches
+    whole = spend_guard.run_summary()
+    assert whole["calls"] == 2 and set(whole["by_purpose"]) == {"guest_research", "seo_ai_panel"}
+    assert "[api] guest_research [Jane Doe] #1" in capsys.readouterr().out
+
+
+def test_failed_calls_are_logged_and_counted(tmp_path):
+    def boom(**kw):
+        raise TimeoutError("read timed out")
+    client = GuardedClient(SimpleNamespace(messages=SimpleNamespace(create=boom)), Budget("seo_ai_panel"))
+    with pytest.raises(TimeoutError):
+        client.messages.create(model="claude-sonnet-5", messages=[])
+    row = json.loads((tmp_path / "usage.jsonl").read_text().splitlines()[0])
+    assert row["error"].startswith("TimeoutError") and client.budget.calls == 1
+
+
+def test_no_cost_note_when_nothing_was_spent(monkeypatch):
+    monkeypatch.setattr(spend_guard, "_PROCESS_START", "2000-01-01T00:00:00")
+    assert spend_guard.cost_note() == ""
+
+
+def test_panel_is_fifteen_questions_one_continuation():
+    assert len(ai_visibility.load_prompts()) == 15
+    assert ai_visibility.MAX_CONTINUATIONS == 1 and ai_visibility.MAX_SEARCHES_PER_PROMPT == 2
+    inner = LoopingClient()
+    ai_visibility.ask(GuardedClient(inner, Budget("seo_ai_panel", max_usd=99, max_calls=99)), "claude-sonnet-5", "q")
+    assert inner.calls == 2  # first request plus exactly one continuation

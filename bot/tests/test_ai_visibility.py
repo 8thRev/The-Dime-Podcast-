@@ -51,7 +51,7 @@ def test_summarize_rates_and_competitors():
 
 def test_prompts_file_is_well_formed():
     prompts = ai_visibility.load_prompts()
-    assert len(prompts) >= 20
+    assert len(prompts) >= 10  # deliberately trimmed to 15 to cut the weekly bill
     assert len({p["id"] for p in prompts}) == len(prompts)
     assert {p["category"] for p in prompts} == {"category", "topic", "guest"}
 
