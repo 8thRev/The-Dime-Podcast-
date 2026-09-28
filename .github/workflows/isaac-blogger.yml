@@ -44,6 +44,24 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r bot/requirements.txt
 
+      # The bot only sees main, so without this a post waiting on review looks
+      # unanswered and the next run pays Claude to write it again (#69/#72).
+      # Only OPEN PRs: a closed one's question goes back in the pool. Copied
+      # outside app/content/answers so the commit below never picks them up.
+      - name: Collect posts awaiting review
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PENDING="$RUNNER_TEMP/pending-answers"
+          mkdir -p "$PENDING"
+          for branch in $(gh pr list --state open --limit 100 --json headRefName \
+              --jq '.[].headRefName | select(startswith("answers/"))'); do
+            git fetch --quiet --depth=1 origin "$branch"
+            git archive FETCH_HEAD app/content/answers | tar -x -C "$PENDING" --strip-components=3
+            echo "  collected $branch"
+          done
+          echo "ISAAC_PENDING_DIR=$PENDING" >> "$GITHUB_ENV"
+
       - name: Write the post
         id: write
         env:

@@ -101,15 +101,15 @@ def tokenize(text: str) -> set[str]:
 # --- Existing posts ----------------------------------------------------------
 
 
-def load_existing_posts() -> list[dict]:
+def load_existing_posts(directory: Path = OUTPUT_DIR) -> list[dict]:
     """Front matter of every published post. Tolerant by design: a file the
     bot cannot parse is skipped rather than failing the run, because the only
     thing this data is used for is avoiding repeats, and losing one entry
     costs a near duplicate post, not a broken site."""
     posts = []
-    if not OUTPUT_DIR.exists():
+    if not directory.exists():
         return posts
-    for path in sorted(OUTPUT_DIR.glob("*.md")):
+    for path in sorted(directory.glob("*.md")):
         try:
             raw = path.read_text(encoding="utf-8")
             if not raw.startswith("---"):
@@ -131,6 +131,22 @@ def load_existing_posts() -> list[dict]:
         except Exception as e:
             print(f"  ! could not read {path.name}: {e}")
     return posts
+
+
+def load_pending_posts(published_slugs: set[str]) -> list[dict]:
+    """Posts sitting in open answers/ pull requests, which the workflow copies
+    into ISAAC_PENDING_DIR before this runs. Without these the bot only sees
+    main, so a post waiting on review looks unanswered and gets paid for
+    again: #69 and #72 were the same question, written two days apart.
+    Closed PRs are deliberately not collected, so a rejected question still
+    goes back in the pool."""
+    pending_dir = os.getenv("ISAAC_PENDING_DIR", "").strip()
+    if not pending_dir:
+        return []
+    return [
+        p for p in load_existing_posts(Path(pending_dir))
+        if p["slug"] not in published_slugs
+    ]
 
 
 def answered_questions(posts: list[dict]) -> list[str]:
@@ -494,11 +510,16 @@ def main() -> int:
             print(f"  - {var}")
         return 1
 
-    posts = load_existing_posts()
+    published = load_existing_posts()
+    pending = load_pending_posts({p["slug"] for p in published})
+    posts = published + pending
     existing_slugs = {p["slug"] for p in posts}
     answered = answered_questions(posts)
     seen = {normalize_question(q) for q in answered}
-    print(f"\n{len(posts)} published post(s), {len(answered)} question(s) already answered")
+    print(
+        f"\n{len(published)} published post(s), {len(pending)} awaiting review, "
+        f"{len(answered)} question(s) already answered"
+    )
 
     print("\nLoading the episode catalogue...")
     catalogue = load_catalogue()
