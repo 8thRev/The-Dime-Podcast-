@@ -124,8 +124,17 @@ class Config:
     # post is 350 to 700 words plus a short FAQ, an order of magnitude under
     # a cleaned transcript, and the writer's prompt carries a few thousand
     # characters of transcript excerpts per episode rather than any full
-    # transcript.
-    ISAAC_MAX_TOKENS: int = int(os.getenv("ISAAC_MAX_TOKENS", "8000"))
+    # transcript. The cap covers Sonnet's thinking as well as the post, so
+    # it is set well above the ~3,000 tokens a post takes; it is not paid
+    # unless used.
+    ISAAC_MAX_TOKENS: int = int(os.getenv("ISAAC_MAX_TOKENS", "16000"))
+
+    # Writer effort (output_config.effort). "low": the post is a short,
+    # tightly specified JSON object, the fact check is the quality gate, and
+    # at the model default ("high") the writer thought past 8,000 tokens and
+    # cost $0.11 for no post. Raise to "medium" if posts start failing the
+    # fact check for reasoning rather than grounding reasons.
+    ISAAC_EFFORT: str = os.getenv("ISAAC_EFFORT", "low")
 
     # The fact check pass reads the full transcripts of every cited episode
     # (about 7,500 tokens each) and returns one verdict per claim. Haiku,
