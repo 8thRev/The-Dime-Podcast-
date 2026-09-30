@@ -41,6 +41,25 @@ A written post then has to clear, in order:
 
 All four exist because the first batch of posts (Sep 30, 2026) had every
 one of those faults, and a reviewer reading for voice missed them.
+
+Topic briefs, the second half of every run:
+
+  One brief per topic hub, written to app/content/topic-briefs/<slug>.md and
+  rendered only into /topics/<slug>/llms.txt (app/lib/topicBriefs.ts). Where
+  a post answers one question from three episodes, a brief synthesizes every
+  transcribed episode on the topic: what guests agree on, where they split,
+  how the view moved over time, each claim linked to its episode. It is the
+  part of the per topic index an agent can actually cite, where the rest is
+  a list of links it would have to open one by one.
+
+  Several are written per run (ISAAC_MAX_BRIEFS), topics without a brief
+  first, then the topics that have gained the most episodes since theirs.
+  They ride in the same pull request as the post and get the same review.
+
+  A brief clears the same kind of gates as a post: validate_brief()
+  (structure, citations, every quotation word for word in a source
+  transcript), then the fact check against the full transcripts of every
+  episode it cites.
 """
 
 import json
@@ -58,12 +77,19 @@ import yaml
 import simplecast_feed
 from config import config
 from isaac_claude_client import IsaacClaudeClient
-from isaac_prompts import MAX_WORDS, MIN_WORDS
+from isaac_prompts import (
+    BRIEF_MAX_WORDS,
+    BRIEF_MIN_WORDS,
+    MAX_WORDS,
+    MIN_WORDS,
+    format_brief_source,
+)
 from transcript_prompts import CANONICAL_TOPICS
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 OUTPUT_DIR = REPO_ROOT / "app" / "content" / "answers"
 TRANSCRIPT_DIR = REPO_ROOT / "app" / "content" / "transcripts"
+BRIEF_DIR = REPO_ROOT / "app" / "content" / "topic-briefs"
 
 EM_DASH = chr(0x2014)
 
@@ -692,6 +718,292 @@ def emit_output(name: str, value: str) -> None:
         f.write(f"{name}={value}\n")
 
 
+# --- Topic briefs ------------------------------------------------------------
+
+# The five sections every brief has, in order. Fixed rather than left to the
+# model so an agent reading any topic's index finds "Where guests disagree"
+# in the same place, and so the validator can tell a brief from an essay.
+# Must match the headings listed in get_brief_prompt().
+BRIEF_SECTIONS = [
+    "The short version",
+    "Where guests agree",
+    "Where guests disagree",
+    "How the view has changed",
+    "What it means for operators",
+]
+
+# Fields dropped from the oldest episodes first when a topic's material is
+# over ISAAC_BRIEF_SOURCE_CHARS, in this order: the AI notes before the
+# evidence. The summary is never dropped: every episode on the topic stays
+# in front of the model.
+TRIMMABLE_FIELDS = ("faq", "takeaways", "quotes", "passages")
+
+EPISODE_LINK_RE = re.compile(r"\]\(/episodes/([^)\s#?]+)\)")
+ANY_LINK_RE = re.compile(r"\]\(([^)\s]+)\)")
+
+
+def topic_to_slug(topic: str) -> str:
+    """Mirrors topicToSlug() in app/lib/topicSlug.ts. The brief's filename
+    has to be the hub's URL slug or the site never finds it."""
+    out = topic.lower().replace("&", "and")
+    out = re.sub(r"[^a-z0-9\s-]", "", out)
+    out = re.sub(r"\s+", "-", out)
+    out = re.sub(r"-+", "-", out)
+    return out.rstrip("-")
+
+
+def load_existing_briefs() -> dict[str, dict]:
+    """{topic slug: {date, sourceEpisodes}} for every brief on disk. Same
+    tolerance as load_existing_posts(): an unreadable file means that topic
+    looks unbriefed and gets rewritten, which is the safe direction."""
+    briefs = {}
+    if not BRIEF_DIR.exists():
+        return briefs
+    for path in sorted(BRIEF_DIR.glob("*.md")):
+        try:
+            raw = path.read_text(encoding="utf-8")
+            _, front, _ = raw.split("---", 2)
+            data = yaml.safe_load(front) or {}
+            briefs[path.stem] = {
+                "date": str(data.get("date") or ""),
+                "sourceEpisodes": {str(s) for s in (data.get("sourceEpisodes") or [])},
+            }
+        except Exception as e:
+            print(f"  ! could not read {path.name}: {e}")
+    return briefs
+
+
+def topic_sources(topic: str, catalogue: list[dict]) -> list[dict]:
+    """Every published, transcribed episode tagged `topic`, newest first,
+    with its air date as YYYY-MM-DD.
+
+    Published means present in the Simplecast feed, the same rule the topic
+    hub uses (getAllTopics in app/lib/topics.ts): the transcript pipeline
+    can run ahead of an episode's air date, and a brief must not cite an
+    episode page that does not exist yet."""
+    out = []
+    for entry in catalogue:
+        if topic not in entry["topics"] or not entry.get("pubDate"):
+            continue
+        ts = published_at(entry)
+        aired = datetime.fromtimestamp(ts, timezone.utc).strftime("%Y-%m-%d") if ts else ""
+        out.append({**entry, "date": aired})
+    out.sort(key=lambda e: -published_at(e))
+    return out
+
+
+def stale_topics(catalogue: list[dict], briefs: dict[str, dict], force_topic: str = "") -> list[dict]:
+    """Topics due a brief, most due first: every topic with no brief yet
+    (largest first, since those indexes are the hardest to read without
+    one), then topics whose brief is missing at least
+    ISAAC_BRIEF_REFRESH_AFTER of their current episodes."""
+    due = []
+    for topic in CANONICAL_TOPICS:
+        sources = topic_sources(topic, catalogue)
+        if force_topic:
+            if topic == force_topic and sources:
+                due.append({"topic": topic, "sources": sources, "reason": "requested by hand", "rank": (0, 0)})
+            continue
+        if len(sources) < config.ISAAC_BRIEF_MIN_EPISODES:
+            continue
+        previous = briefs.get(topic_to_slug(topic))
+        if previous is None:
+            due.append({"topic": topic, "sources": sources, "reason": "no brief yet", "rank": (0, -len(sources))})
+            continue
+        new = {s["slug"] for s in sources} - previous["sourceEpisodes"]
+        if len(new) >= config.ISAAC_BRIEF_REFRESH_AFTER:
+            due.append(
+                {
+                    "topic": topic,
+                    "sources": sources,
+                    "reason": f"{len(new)} episodes since the {previous['date']} brief",
+                    "rank": (1, -len(new)),
+                }
+            )
+    due.sort(key=lambda d: d["rank"])
+    return due
+
+
+def fit_sources(sources: list[dict], budget: int) -> tuple[list[dict], int]:
+    """Trim a topic's material to `budget` characters without dropping any
+    episode. Returns (sources, number of episodes trimmed).
+
+    Measured with the prompt's own formatter, so the budget is what the model
+    actually receives. Oldest episodes lose detail first: a brief leans on
+    recent episodes for the current position anyway, and an old episode
+    keeps its summary, which is enough for "how the view has changed"."""
+    fitted = [dict(s) for s in sources]
+    sizes = [len(format_brief_source(s, i + 1)) for i, s in enumerate(fitted)]
+    trimmed = set()
+    for field in TRIMMABLE_FIELDS:
+        for i in range(len(fitted) - 1, -1, -1):
+            if sum(sizes) <= budget:
+                return fitted, len(trimmed)
+            if fitted[i].get(field):
+                fitted[i][field] = []
+                sizes[i] = len(format_brief_source(fitted[i], i + 1))
+                trimmed.add(i)
+    return fitted, len(trimmed)
+
+
+def min_cited_for(source_count: int) -> int:
+    """Distinct episodes a brief must link. A quarter of the topic, at least
+    four and at most fifteen: enough that a 71 episode topic cannot be
+    summarized from its newest five, few enough that citing does not become
+    the point."""
+    return min(source_count, max(4, min(15, source_count // 4)))
+
+
+def validate_brief(body: str, sources: list[dict], min_cited: int) -> tuple[bool, str, list[str]]:
+    """Everything that would put a wrong or unattributed claim into an index
+    written for agents to quote. Returns (ok, reason, cited slugs in order).
+
+    The cited list is derived from the body rather than asked of the model,
+    so the frontmatter cannot disagree with the links."""
+    body = body.strip()
+    if not body:
+        return False, "empty body", []
+
+    words = len(body.split())
+    if words < BRIEF_MIN_WORDS or words > BRIEF_MAX_WORDS:
+        return False, f"body is {words} words, outside the {BRIEF_MIN_WORDS} to {BRIEF_MAX_WORDS} band", []
+
+    lines = body.split("\n")
+    if any(line.startswith("# ") for line in lines):
+        return False, "body contains an h1; the index renders the heading itself", []
+    headings = [line[3:].strip() for line in lines if line.startswith("## ")]
+    if headings != BRIEF_SECTIONS:
+        return False, f"sections are {headings}, expected {BRIEF_SECTIONS}", []
+
+    # Only episode links. A brief is a map of this catalogue; a link out is
+    # either a hallucinated source or promotion, and neither belongs in it.
+    foreign = [href for href in ANY_LINK_RE.findall(body) if not href.startswith("/episodes/")]
+    if foreign:
+        return False, f"links outside the episode catalogue: {foreign[:3]}", []
+
+    source_slugs = {s["slug"] for s in sources}
+    cited = list(dict.fromkeys(EPISODE_LINK_RE.findall(body)))
+    unknown = [s for s in cited if s not in source_slugs]
+    if unknown:
+        return False, f"cited episodes that were not in the source material: {unknown}", []
+    if len(cited) < min_cited:
+        return False, f"cites {len(cited)} distinct episodes, needs at least {min_cited}", []
+    if len(cited) > config.ISAAC_BRIEF_MAX_CITED:
+        # The fact check reads every cited transcript in one call, and that
+        # has to fit the checker's context. See ISAAC_BRIEF_MAX_CITED.
+        return False, f"cites {len(cited)} distinct episodes, over the {config.ISAAC_BRIEF_MAX_CITED} the fact check can read", []
+
+    # Quotation marks are a claim that a guest said exactly this. Same rule
+    # as a post (unverified_quotes): three words or more inside them must be
+    # word for word in a transcript the brief cites. The transcript, not the
+    # stored "quotes" field, because most of those turned out to be
+    # paraphrases (see load_catalogue).
+    unverified = unverified_quotes({"body": body, "episodes": cited}, sources)
+    if unverified:
+        return False, f"quotation not word for word in a cited transcript: {unverified[0][:80]!r}", []
+
+    return True, "", cited
+
+
+def write_brief(topic: str, body: str, sources: list[dict], cited: list[str]) -> Path:
+    """Write content/topic-briefs/<topic slug>.md, replacing the previous
+    brief for the topic. The old one is in git history and in the pull
+    request diff, which is where a reviewer compares them."""
+    BRIEF_DIR.mkdir(parents=True, exist_ok=True)
+    slug = topic_to_slug(topic)
+    front = {
+        "topic": topic,
+        "slug": slug,
+        "date": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        # Every episode the brief was written from, not just the cited ones:
+        # this is what the next run diffs against to decide it is stale, and
+        # what the topic index uses to say how many episodes are newer.
+        "sourceEpisodes": [s["slug"] for s in sources],
+        "episodes": cited,
+    }
+    rendered = yaml.safe_dump(front, sort_keys=False, allow_unicode=True, width=10000)
+    path = BRIEF_DIR / f"{slug}.md"
+    path.write_text(f"---\n{rendered}---\n\n{body.strip()}\n", encoding="utf-8")
+    return path
+
+
+def run_briefs(claude: IsaacClaudeClient, catalogue: list[dict]) -> list[str]:
+    """Write up to ISAAC_MAX_BRIEFS briefs. Returns the topics written."""
+    if config.ISAAC_MAX_BRIEFS <= 0:
+        return []
+    if not any(entry.get("pubDate") for entry in catalogue):
+        print("\nNo air dates from the feed, so published episodes cannot be told apart. Skipping briefs.")
+        return []
+
+    force = config.ISAAC_FORCE_TOPIC.strip()
+    if force and force not in CANONICAL_TOPICS:
+        print(f"\n! ISAAC_FORCE_TOPIC {force!r} is not a canonical topic. Skipping briefs.")
+        return []
+
+    briefs = load_existing_briefs()
+    due = stale_topics(catalogue, briefs, force)
+    print(f"\n{len(briefs)} topic brief(s) on disk, {len(due)} topic(s) due one")
+
+    today = datetime.now(timezone.utc).date().isoformat()
+    written = []
+    for item in due[: config.ISAAC_MAX_BRIEFS]:
+        topic = item["topic"]
+        with_passages = [
+            {
+                **s,
+                "passages": transcript_passages(
+                    s, topic, config.ISAAC_BRIEF_PASSAGES_PER_SOURCE, config.ISAAC_PASSAGE_CHARS
+                ),
+            }
+            for s in item["sources"]
+        ]
+        sources, trimmed = fit_sources(with_passages, config.ISAAC_BRIEF_SOURCE_CHARS)
+        min_cited = min_cited_for(len(sources))
+        print(f"\n{'-' * 80}")
+        print(f"Brief: {topic} ({item['reason']})")
+        print(f"  {len(sources)} episodes as source, {trimmed} trimmed to fit, must cite {min_cited}")
+
+        success, data = claude.generate_brief(topic, sources, min_cited, today)
+        if not success:
+            print("  x generation failed")
+            continue
+        if data.get("insufficient"):
+            print("  - Claude judged the material too thin for a brief")
+            continue
+
+        body = strip_em_dashes(str(data.get("body") or ""))
+        valid, reason, cited = validate_brief(body, sources, min_cited)
+        if not valid:
+            print(f"  x rejected: {reason}")
+            continue
+
+        checked = [s for s in sources if s["slug"] in set(cited)]
+        size = sum(len(s.get("transcript", "")) for s in checked)
+        if size > config.ISAAC_BRIEF_CHECK_MAX_CHARS:
+            print(f"  x rejected: cited transcripts are {size:,} characters, over the "
+                  f"{config.ISAAC_BRIEF_CHECK_MAX_CHARS:,} the fact check can read in one call")
+            continue
+        ok, claims = claude.check_post(
+            {"summary": "", "body": body, "faq": []}, checked, today,
+            label="brief fact check", max_tokens=config.ISAAC_BRIEF_CHECK_MAX_TOKENS,
+        )
+        if not ok or not claims:
+            print("  x rejected: the fact check did not run or returned no claims")
+            continue
+        failures = fact_check_failures(claims)
+        print(f"  fact check: {len(claims)} claims, {len(failures)} failed")
+        for claim in failures:
+            print(f"    x [{claim.get('verdict')}] {claim.get('claim')} :: {claim.get('note')}")
+        if failures:
+            print("  x rejected: fact check")
+            continue
+
+        path = write_brief(topic, body, sources, cited)
+        written.append(topic)
+        print(f"  + wrote {display_path(path)} ({len(body.split())} words, {len(cited)} episodes cited)")
+    return written
+
+
 # --- Main --------------------------------------------------------------------
 
 
@@ -745,7 +1057,6 @@ def main() -> int:
 
     if not candidates:
         print("\nNothing left to answer. This is a success, not a failure.")
-        return 0
 
     today = datetime.now(timezone.utc).date().isoformat()
     undated = [e["slug"] for e in catalogue if not e["published"]]
@@ -832,13 +1143,20 @@ def main() -> int:
             f"Newest source: {max((s['published'] for s in cited_sources(data, sources)), default='') or 'undated'}.",
         )
 
-    print(f"\n{'=' * 80}")
-    print(f"Wrote {written} post(s) from {attempted} candidate(s)")
+    print(f"\nWrote {written} post(s) from {attempted} candidate(s)")
     emit_output("post_count", str(written))
+
+    brief_topics = run_briefs(claude, catalogue)
+
+    print(f"\n{'=' * 80}")
+    print(f"Wrote {written} post(s) and {len(brief_topics)} topic brief(s)")
+    emit_output("brief_count", str(len(brief_topics)))
+    emit_output("brief_topics", "; ".join(brief_topics))
     # A run that writes nothing is not an error. Every question may already
-    # be answered, or every candidate may have failed the grounding floor,
-    # and both are the column working as intended. The workflow checks
-    # post_count and skips the pull request rather than failing the job.
+    # be answered, every candidate may have failed the grounding floor, and
+    # every brief may be current, and all three are the column working as
+    # intended. The workflow checks both counts and skips the pull request
+    # rather than failing the job.
     return 0
 
 

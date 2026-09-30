@@ -37,7 +37,12 @@ const nextConfig = {
       './content/videos.json',
       './content/video-episode-map.json',
     ],
-    '/topics/[topic]/llms.txt': ['./content/transcripts/**', './content/newsletter/**', './content/answers/**'],
+    '/topics/[topic]/llms.txt': [
+      './content/transcripts/**',
+      './content/newsletter/**',
+      './content/answers/**',
+      './content/topic-briefs/**',
+    ],
   },
   // eighthrevolution.com is an alias domain pointed at this same deployment.
   // Its homepage served the Dime homepage (canonicalled to dimepodcast.com),

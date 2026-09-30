@@ -105,6 +105,43 @@ async function getEpisodeLastmodBySlug() {
   return episodeLastmodCache;
 }
 
+// Mirrors topicToSlug() in lib/topicSlug.ts, duplicated for the same reason
+// as slugify() above.
+function topicToSlug(topic) {
+  return topic
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/-+$/, '');
+}
+
+// The topic hubs that exist, which is the topics carried by at least one
+// transcript of a published episode: the same rule as getAllTopics() in
+// lib/topics.ts, which is what decides whether /topics/<slug>/llms.txt
+// serves or 404s. If the feed fetch failed every transcript counts, which
+// can only over-list a topic whose sole episode has not aired yet.
+async function getPublishedTopicSlugs() {
+  const published = await getEpisodeLastmodBySlug();
+  const hasFeed = Object.keys(published).length > 0;
+  const dir = path.join(__dirname, 'content', 'transcripts');
+  const slugs = new Set();
+  if (!fs.existsSync(dir)) return [];
+  for (const file of fs.readdirSync(dir)) {
+    if (!file.endsWith('.json')) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+      const episodeSlug = data.slug || file.replace(/\.json$/, '');
+      if (hasFeed && !published[episodeSlug]) continue;
+      for (const topic of data.topics || []) slugs.add(topicToSlug(String(topic)));
+    } catch {
+      // One unreadable transcript drops its topics from a comment, nothing more.
+    }
+  }
+  return [...slugs].filter(Boolean).sort();
+}
+
 // Real per-edition lastmod, read straight off the markdown frontmatter.
 // Unlike the episode dates above this needs no network call — the content
 // is on disk — so it's a plain sync read rather than a cached async fetch.
@@ -246,16 +283,31 @@ module.exports = {
     // sitemap above (it is not an indexable HTML page), so robots.txt is
     // the only machine-readable place left to announce it. The convention
     // has no dedicated directive, hence a comment.
-    transformRobotsTxt: async (_config, robotsTxt) =>
-      `${robotsTxt}# LLM-readable index of this site:\n` +
-      `# ${siteUrl}/llms.txt (curated: topic hubs + recent episodes)\n` +
-      `# ${siteUrl}/llms-full.txt (full catalogue with summaries, takeaways and FAQ)\n` +
-      // The per topic indexes and the Markdown page variants are linked from
-      // the pages and from llms.txt; named here too so a crawler that only
-      // reads robots.txt learns the convention.
-      `# ${siteUrl}/topics/<slug>/llms.txt (one topic's episodes and essays)\n` +
-      `# ${siteUrl}/answers (AI-written Q&A column, cites the episodes it draws from)\n` +
-      `# Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL\n`,
+    //
+    // Every per topic index is listed by its real URL. This used to be one
+    // `/topics/<slug>/llms.txt` line, and an external audit read it through a
+    // tool that stripped `<slug>` as an HTML tag, then reported the resulting
+    // `/topics//llms.txt` as a 404. Nothing in this file may use an angle
+    // bracket placeholder; scripts/verify-site.mjs check 14 fails on one.
+    transformRobotsTxt: async (_config, robotsTxt) => {
+      const topicSlugs = await getPublishedTopicSlugs();
+      return (
+        `${robotsTxt}# LLM-readable index of this site:
+` +
+        `# ${siteUrl}/llms.txt (curated: topic hubs + recent episodes)
+` +
+        `# ${siteUrl}/llms-full.txt (full catalogue with summaries, takeaways and FAQ)
+` +
+        `# ${siteUrl}/answers (AI-written Q&A column, cites the episodes it draws from)
+` +
+        `# Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL
+` +
+        `# Per topic indexes (one topic's episodes, essays, answers and AI written brief):
+` +
+        topicSlugs.map((slug) => `# ${siteUrl}/topics/${slug}/llms.txt
+`).join('')
+      );
+    },
   },
   // Real per-episode lastmod (from the RSS pubDate) instead of the
   // build-timestamp default — Google discounts lastmod that doesn't

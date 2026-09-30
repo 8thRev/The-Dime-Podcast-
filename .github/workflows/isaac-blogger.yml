@@ -17,6 +17,14 @@ on:
         description: 'Posts to write this run.'
         required: false
         default: '1'
+      max_briefs:
+        description: 'Topic briefs to write this run (0 to skip). Topics with no brief go first, then the stalest.'
+        required: false
+        default: '4'
+      topic:
+        description: 'Write the brief for this topic regardless of staleness, e.g. "Taxation & 280E". Leave blank for the normal run.'
+        required: false
+        default: ''
 
 # contents: write to push the branch, pull-requests: write to open the PR.
 # Deliberately not a push to main: unlike a transcript, a column post is an
@@ -45,7 +53,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r bot/requirements.txt
 
-      - name: Write the post
+      - name: Write the post and topic briefs
         id: write
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -56,58 +64,89 @@ jobs:
           GSC_SITE_URL: ${{ secrets.GSC_SITE_URL }}
           ISAAC_FORCE_QUESTION: ${{ github.event.inputs.question }}
           ISAAC_MAX_POSTS: ${{ github.event.inputs.max_posts || '1' }}
+          ISAAC_MAX_BRIEFS: ${{ github.event.inputs.max_briefs || '4' }}
+          ISAAC_FORCE_TOPIC: ${{ github.event.inputs.topic }}
         run: |
           cd bot
           python isaac_blogger.py
 
+      # One pull request per run, carrying the post, the topic briefs, or
+      # both. Briefs are AI written analysis under the show's name exactly as
+      # a post is, so they take the same gate rather than going to main.
       - name: Open a pull request
-        if: ${{ steps.write.outputs.post_count != '0' && steps.write.outputs.post_count != '' }}
+        if: ${{ (steps.write.outputs.post_count != '0' && steps.write.outputs.post_count != '') || (steps.write.outputs.brief_count != '0' && steps.write.outputs.brief_count != '') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          POST_COUNT: ${{ steps.write.outputs.post_count }}
           POST_SLUG: ${{ steps.write.outputs.post_slug }}
           POST_TITLE: ${{ steps.write.outputs.post_title }}
           FACT_CHECK: ${{ steps.write.outputs.fact_check }}
+          BRIEF_COUNT: ${{ steps.write.outputs.brief_count }}
+          BRIEF_TOPICS: ${{ steps.write.outputs.brief_topics }}
         run: |
-          BRANCH="answers/${POST_SLUG}"
+          if [ "${POST_COUNT:-0}" != "0" ]; then
+            BRANCH="answers/${POST_SLUG}"
+            TITLE="Answers: ${POST_TITLE}"
+            if [ "${BRIEF_COUNT:-0}" != "0" ]; then TITLE="${TITLE} (+${BRIEF_COUNT} topic briefs)"; fi
+          else
+            BRANCH="answers/topic-briefs-${GITHUB_RUN_ID}"
+            TITLE="Answers: ${BRIEF_COUNT} topic brief(s): ${BRIEF_TOPICS}"
+          fi
           git config user.name "isaac-burner-bot"
           git config user.email "actions@github.com"
           git checkout -b "$BRANCH"
-          git add app/content/answers
-          git commit -m "Answers: ${POST_TITLE}"
+          # Either directory may not exist yet on a run that wrote only the
+          # other, and git add fails on a pathspec that matches nothing.
+          for dir in app/content/answers app/content/topic-briefs; do
+            if [ -d "$dir" ]; then git add "$dir"; fi
+          done
+          git commit -m "$TITLE"
           git push origin "$BRANCH"
           # --body-file rather than --body: a post title routinely contains
           # quotes and apostrophes, and interpolating one into a shell string
           # is how a PR body ends up truncated at the first quote.
           {
-            echo "Draft post for the Answers column, written by bot/isaac_blogger.py."
+            echo "Drafts from Isaac Burner, written by bot/isaac_blogger.py."
             echo
-            echo "**${POST_TITLE}**"
-            echo
-            echo "Preview once Vercel builds: \`/answers/${POST_SLUG}\`"
-            echo
-            echo "Fact check: ${FACT_CHECK}"
-            echo "Every quotation was also matched word for word against a cited transcript. The full claim list is in the run log."
-            echo
-            echo "Before merging, check the things the automated checks cannot:"
-            echo
-            echo "- Is anything true as of the episode but out of date now? The checker only knows what the transcripts say."
-            echo "- Is the position one the show would stand behind?"
-            echo "- Does the short answer read like us?"
-            echo
-            echo "Edit the markdown directly on this branch if it is close, or close the PR if it is not. The question goes back in the pool either way."
+            if [ "${POST_COUNT:-0}" != "0" ]; then
+              echo "## Answers post"
+              echo
+              echo "**${POST_TITLE}**"
+              echo
+              echo "Preview once Vercel builds: \`/answers/${POST_SLUG}\`"
+              echo
+              echo "Fact check: ${FACT_CHECK}"
+              echo "Every quotation was also matched word for word against a cited transcript. The full claim list is in the run log."
+              echo
+              echo "Before merging, check the things the automated checks cannot:"
+              echo
+              echo "- Is anything true as of the episode but out of date now? The checker only knows what the transcripts say."
+              echo "- Is the position one the show would stand behind?"
+              echo "- Does the short answer read like us?"
+              echo
+            fi
+            if [ "${BRIEF_COUNT:-0}" != "0" ]; then
+              echo "## Topic briefs"
+              echo
+              echo "${BRIEF_TOPICS}"
+              echo
+              echo "Each renders only in its topic's \`/topics/<slug>/llms.txt\` on the preview, under an AI disclosure. Each has passed the five section structure check, citation checks, a word for word check of every quotation against the cited transcripts, and a fact check of every claim against the full transcripts of the episodes it cites (claim counts in the run log). Read \`The short version\` and \`Where guests disagree\` first: those are the parts an assistant will quote, and the parts most likely to flatten a real disagreement."
+              echo
+            fi
+            echo "Edit the markdown directly on this branch if it is close, or close the PR if it is not. A closed post's question goes back in the pool, and a closed brief's topic is picked up again next run."
             echo
             echo "Generated with [Claude Code](https://claude.com/claude-code)"
           } > /tmp/pr-body.md
           gh pr create \
-            --title "Answers: ${POST_TITLE}" \
+            --title "$TITLE" \
             --body-file /tmp/pr-body.md \
             --base main \
             --head "$BRANCH"
 
       - name: Report a quiet run
-        if: ${{ steps.write.outputs.post_count == '0' || steps.write.outputs.post_count == '' }}
+        if: ${{ (steps.write.outputs.post_count == '0' || steps.write.outputs.post_count == '') && (steps.write.outputs.brief_count == '0' || steps.write.outputs.brief_count == '') }}
         run: |
-          echo "No post this run. Every candidate question was already answered, could not be grounded in the catalogue, or failed the quote, staleness or fact check gates (reasons in the log)." >> $GITHUB_STEP_SUMMARY
+          echo "Nothing this run. Every candidate question was already answered, could not be grounded, or failed the quote, staleness or fact check gates, and every topic brief is current or failed its gates (reasons in the log)." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload logs on failure
         if: failure()

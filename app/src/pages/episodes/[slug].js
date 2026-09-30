@@ -9,6 +9,8 @@ import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import AIDisclosure from '@/src/components/AIDisclosure';
 import SponsorSlot from '@/src/components/SponsorSlot';
+import { LISTEN_LINKS } from '@/lib/listenLinks';
+import { trackPlatformClick } from '@/lib/platformClicks';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import { showNotesMentionSponsor } from '@/lib/sponsor';
 import { getAllEpisodes, getEpisodeBySlug } from '@/lib/rss';
@@ -139,6 +141,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
   const sponsorInShowNotes = showNotesMentionSponsor(episode.showNotes);
   const schema = createPodcastEpisodeSchema(episode, undefined, {
     aiGenerated: !!transcript,
+    transcript: transcript?.cleaned_transcript,
     entities: transcript?.entities,
     guest: episode.guest ? { name: episode.guest, company: episode.company, companyUrl: episode.companyUrl } : undefined,
   });
@@ -287,6 +290,30 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             src={episode.audioUrl}
             title={episode.title}
           />
+
+          {/* The subscribe path. Until this row the only one was the footer
+              and the homepage hero, so a listener who landed on an episode
+              from search had nowhere on the page itself to follow the show,
+              and the podcast feed was reachable only through a <link> in the
+              head. Tracked as link_location "episode_page", which Part 1 of
+              docs/analytics-spec.md already enumerates for exactly this. */}
+          <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '6px 16px', fontSize: '13px' }}>
+            <span className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              Subscribe
+            </span>
+            {LISTEN_LINKS.map((p) => (
+              <a
+                key={p.label}
+                href={p.href}
+                onClick={() => trackPlatformClick(p.href, 'episode_page', episode.slug)}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'var(--text-accent)', textDecoration: 'none', fontWeight: 600 }}
+              >
+                {p.label}
+              </a>
+            ))}
+          </div>
 
           {episodeVideos.length > 0 && (
             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>

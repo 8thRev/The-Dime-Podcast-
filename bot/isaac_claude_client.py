@@ -23,7 +23,7 @@ import anthropic
 import spend_guard
 
 from config import config
-from isaac_prompts import get_answer_prompt, get_fact_check_prompt
+from isaac_prompts import get_answer_prompt, get_brief_prompt, get_fact_check_prompt
 
 REQUIRED_KEYS = {
     "unanswerable",
@@ -38,6 +38,8 @@ REQUIRED_KEYS = {
     "faq",
     "timeSensitive",
 }
+
+BRIEF_REQUIRED_KEYS = {"insufficient", "body"}
 
 MAX_GENERATION_ATTEMPTS = 2
 
@@ -72,12 +74,25 @@ class IsaacClaudeClient:
         self.client.budget.label = "write"
         return self._call_with_retry(prompt, self.model, self.max_tokens, REQUIRED_KEYS, self.write_options)
 
-    def check_post(self, post: dict, sources: list[dict], today: str) -> tuple[bool, list[dict]]:
+    def generate_brief(self, topic: str, sources: list[dict], min_cited: int, today: str) -> tuple[bool, dict]:
+        """One topic brief. Returns (success, data), data is {} on failure.
+
+        The input is far larger than a post's (every episode on the topic,
+        up to ~150K tokens) and the output is about the same size, so the
+        same non streaming call, effort and token cap serve both."""
+        prompt = get_brief_prompt(topic, sources, min_cited, today, config.ISAAC_BRIEF_MAX_CITED)
+        self.client.budget.label = "brief"
+        return self._call_with_retry(prompt, self.model, self.max_tokens, BRIEF_REQUIRED_KEYS, self.write_options)
+
+    def check_post(
+        self, post: dict, sources: list[dict], today: str, label: str = "fact check", max_tokens: int | None = None
+    ) -> tuple[bool, list[dict]]:
         """Returns (success, claims). A check that failed to run is not a
-        pass: the caller treats (False, []) as a rejection."""
+        pass: the caller treats (False, []) as a rejection. Briefs use it
+        too, as a post with an empty summary and FAQ."""
         prompt = get_fact_check_prompt(post, sources, today)
-        self.client.budget.label = "fact check"
-        success, data = self._call_with_retry(prompt, self.check_model, self.check_max_tokens, {"claims"})
+        self.client.budget.label = label
+        success, data = self._call_with_retry(prompt, self.check_model, max_tokens or self.check_max_tokens, {"claims"})
         if not success or not isinstance(data.get("claims"), list):
             return False, []
         return True, [c for c in data["claims"] if isinstance(c, dict)]

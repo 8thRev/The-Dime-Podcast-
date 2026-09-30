@@ -236,3 +236,113 @@ Produce a single JSON object and nothing else. No markdown fences, no commentary
 {{"claims": [{{"claim": "the claim, short", "verdict": "one of {', '.join(CHECK_VERDICTS)}", "episode": "episode slug where you found it, or empty", "evidence": "up to 30 words copied from the transcript, or empty", "note": "for anything but supported or opinion, what is wrong in one sentence"}}]}}
 
 Output strict, valid JSON only."""
+
+
+# --- Topic briefs ------------------------------------------------------------
+
+# Length band for a topic brief, enforced by validate_brief(). Longer than a
+# post because it synthesizes a whole topic, not one question, but still a
+# brief: it sits at the top of a plain text index, and an agent that has to
+# read 3,000 words before the episode list has not been helped.
+BRIEF_MIN_WORDS = 600
+BRIEF_MAX_WORDS = 1400
+
+
+def format_brief_source(source: dict, index: int) -> str:
+    """One episode's material for a brief. Same split as a post's source:
+    AI notes for orientation, then the evidence (verified quotes and
+    transcript excerpts). The air date matters more here than in a post,
+    because how a view changed over time is half of what a brief is for."""
+    lines = [
+        f"SOURCE {index}",
+        f"  episode_slug: {source['slug']}",
+        f"  title: {source['title']}",
+    ]
+    if source.get("date"):
+        lines.append(f"  aired: {source['date']}")
+    if source.get("guest"):
+        lines.append(f"  guest: {source['guest']}")
+    lines.append("  EPISODE NOTES (AI written, for orientation only, not evidence):")
+    if source.get("summary"):
+        lines.append(f"    summary: {source['summary']}")
+    if source.get("takeaways"):
+        lines.append("    takeaways:")
+        for item in source["takeaways"]:
+            lines.append(f"      - {item}")
+    if source.get("faq"):
+        lines.append("    question and answer pairs:")
+        for pair in source["faq"]:
+            lines.append(f"      Q: {pair.get('question', '')}")
+            lines.append(f"      A: {pair.get('answer', '')}")
+    if source.get("quotes"):
+        lines.append("  VERIFIED QUOTES (checked word for word against the transcript):")
+        for quote in source["quotes"]:
+            lines.append(f"    {quote.get('speaker', '')}: {quote.get('quote', '')}")
+    if source.get("passages"):
+        lines.append("  TRANSCRIPT EXCERPTS (verbatim, speaker labelled; evidence):")
+        for passage in source["passages"]:
+            lines.append(f"    [...] {passage}")
+    return "\n".join(lines)
+
+
+def get_brief_prompt(topic: str, sources: list[dict], min_cited: int, today: str, max_cited: int) -> str:
+    """
+    Args:
+        topic: the canonical topic name, e.g. "Taxation & 280E".
+        sources: every transcribed, published episode tagged with the topic,
+            newest first, already trimmed to the source budget.
+        min_cited: how many distinct episodes the brief must link.
+        max_cited: the most it may link, so the fact check can read every
+            cited transcript in one call.
+        today: ISO date, so "as of" wording is anchored and nothing a 2024
+            episode called upcoming is written as upcoming now.
+    """
+    source_block = "\n\n".join(format_brief_source(s, i + 1) for i, s in enumerate(sources))
+
+    return f"""You are Isaac Burner, the AI analyst for The Dime, a cannabis business podcast hosted by Bryan Fields. You are writing the topic brief for "{topic}".
+
+Today's date: {today}
+
+The brief is the first thing an AI assistant reads when it researches this topic on the show's site, before it decides which of the {len(sources)} episodes below to open. Its job is to tell that reader, accurately and with citations, what the catalogue as a whole says about {topic}: the positions, the evidence, the disagreements and what changed over time. Someone who reads only the brief should come away with a true, attributed picture of the show's body of work on this topic, and know exactly which episode to open for each point.
+
+Source material. This is every transcribed episode on the topic, newest first, and it is the only material you may draw on. Each has AI written episode notes, which may contain errors and are only there to orient you, and, where the budget allows, verified quotes and transcript excerpts, which are the evidence. Some older episodes may carry only notes.
+
+{source_block}
+
+Write the brief.
+
+Structure. Use these five "## " sections, in this order, with these exact headings:
+## The short version
+## Where guests agree
+## Where guests disagree
+## How the view has changed
+## What it means for operators
+
+- "The short version" is 3 to 5 sentences that stand alone. An assistant that quotes only this section must still be quoting something true and attributed.
+- "Where guests disagree" names the people on each side. If the sources genuinely show no disagreement, say that in one sentence and say what the open question is instead. Do not manufacture a debate.
+- "How the view has changed" uses the aired dates. Name what shifted and when. If the sources span too short a period to show change, say so briefly.
+
+Voice:
+- Operator to operator. Short declarative sentences. No hype, no filler, no throat clearing.
+- Write about the industry, not about the podcast. Cite episodes as evidence, not as promotion.
+- Never use em dashes. Use commas, periods or parentheses.
+- No h1. No rhetorical questions as headings.
+
+Grounding rules, non negotiable. The finished brief is checked claim by claim against the full transcripts of every episode it cites, and one unsupported claim rejects it:
+- Every fact, number, name and attribution must be something the guest actually said in that episode. Prefer claims you can see in the excerpts or verified quotes. A detail that appears only in the notes may be wrong; state it only in the plain terms the notes use, never embellished, and cut it if you are unsure.
+- Do not add detail beyond what was said. A deal discussed is not a deal closed. A guest's figure is their figure: attribute it, do not round, extend or combine it.
+- Attribute a statement only to the person who said it. {HOSTS[0]} and {HOSTS[1]} are the hosts, not guests. Name the guest (and company, when the source gives it) whose view you are reporting.
+- Cite episodes as inline markdown links in the path form [short title](/episodes/<episode_slug>), right after the claim they support. Link at least {min_cited} and at most {max_cited} different episodes across the brief, and spread citations across the catalogue rather than leaning on the newest few. Use only episode_slug values from the sources.
+- Quotation marks go only around words copied exactly from a VERIFIED QUOTE or a TRANSCRIPT EXCERPT. They are checked word for word in code. Anything else is paraphrase and gets no quotation marks.
+- Length: {BRIEF_MIN_WORDS} to {BRIEF_MAX_WORDS} words.
+
+Time rules. Today is {today}:
+- Anything that can change (a figure, a bill's status, a court case, a rule, a deal) is written with the date of the episode it came from: "In mid 2025, Higdon expected..." not "Congress is about to...".
+- Never describe something an episode called upcoming, pending or expected as still upcoming. Say what was expected as of that episode, and do not claim what happened after the newest episode you have.
+
+Produce a single JSON object and nothing else. No markdown fences, no commentary. These exact keys:
+
+- "insufficient": boolean. true only if the sources are too thin or too scattered to say anything real about {topic} as a whole. If true, set "body" to an empty string.
+- "body": the brief in markdown, following the structure above.
+
+Output strict, valid JSON only."""

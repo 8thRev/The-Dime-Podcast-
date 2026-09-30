@@ -53,17 +53,20 @@ export const SITE_URL = 'https://www.dimepodcast.com';
 // scripts/verify-site.mjs check 14 asserts the resulting size either way.
 //
 // The spec asks for 25 recent episodes (docs/analytics-spec.md Gap 1). Both
-// caps below are departures from it. The 12-edition cap: that spec predates
+// caps below are departures from it. The 8-edition cap: that spec predates
 // the First Principles archive, and all 32 editions cost 13.7KB of a 20KB
-// budget on their own. The 15-episode cap: the agent actions and sponsorship
-// facts sections added 4.5KB to an index that was already at 18.0KB, and at
-// about 400 bytes an episode line the recent list is the only section with
-// slack. It is also the least valuable one to an agent, which can read the
-// same 25 and 300 more in /llms-full.txt and per topic. The complete list of
-// both is in /llms-full.txt, and /newsletter is linked here as the
-// human-facing archive.
+// budget on their own. It was 12 until every topic line gained its own
+// llms.txt URL (see topicsSection), which costs ~1.5KB and is worth more to
+// an agent than four more essays: each topic index lists all of that topic's
+// editions. The 15-episode cap: the agent actions and sponsorship facts
+// sections added 4.5KB to an index that was already at 18.0KB, and at about
+// 400 bytes an episode line the recent list is the only section with slack.
+// It is also the least valuable one to an agent, which can read the same 25
+// and 300 more in /llms-full.txt and per topic. The complete list of both is
+// in /llms-full.txt, and /newsletter is linked here as the human-facing
+// archive.
 const RECENT_EPISODE_COUNT = 15;
-const RECENT_EDITION_COUNT = 12;
+const RECENT_EDITION_COUNT = 8;
 
 // A curated index wants one-line descriptions. The AI episode summaries
 // average 947 characters — a paragraph, and 23KB across 25 episodes on its
@@ -87,14 +90,31 @@ export function oneLine(text) {
 // rather than repeating a second URL on every line: at 18KB of a 20KB budget
 // there is no room for 37 extra links, and the rule is what an agent needs.
 // The per topic index does spell them out; it is small enough to afford it.
-const MARKDOWN_RULE = [
-  'Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL',
-  `(for example ${SITE_URL}/episodes/<slug>.md). Per topic index: ${SITE_URL}/topics/<slug>/llms.txt`,
-];
+//
+// The example is a real, resolving URL, never a `<slug>` placeholder. An
+// external audit read this file through a tool that stripped `<slug>` as an
+// HTML tag and reported `/episodes/.md` and `/topics//llms.txt` as broken
+// links, which is what any HTML-sanitizing consumer will see. A real URL
+// survives every renderer and is itself fetchable.
+function markdownRule(exampleEpisodeSlug) {
+  const example = exampleEpisodeSlug
+    ? ` (for example ${SITE_URL}/episodes/${exampleEpisodeSlug}.md)`
+    : '';
+  return [`Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL${example}.`];
+}
 
 const markdownUrl = (url) => `${url}.md`;
 
-function header(episodes) {
+// `transcribed` is how many of those episodes have an AI transcript, and
+// with it a summary, takeaways and FAQ. Stated because it is the honest
+// denominator for everything topic shaped below: topic counts only cover
+// transcribed episodes, and an agent comparing 71 on a topic hub against 305
+// here should not have to guess why they differ.
+function header(episodes, transcribed) {
+  const coverage =
+    transcribed != null && transcribed < episodes.length
+      ? ` ${transcribed} have an AI transcript, summary and FAQ, and those are the ones grouped by topic.`
+      : '';
   return [
     '# The Dime Podcast',
     '',
@@ -105,9 +125,13 @@ function header(episodes) {
     // actually goes on to list. Elsewhere on the site that distinction is
     // cosmetic; here it is a factual claim inside a document written to be
     // ingested verbatim, sitting directly above the list that contradicts it.
-    `${episodes.length} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.`,
+    `${episodes.length} episodes. Conversations with cannabis founders, executives, operators, and investors on capital, regulation, and operations.${coverage}`,
     '',
   ];
+}
+
+function countTranscribed(episodes, getTranscript) {
+  return episodes.filter((ep) => getTranscript(ep.slug)?.summary).length;
 }
 
 function siteLinks() {
@@ -194,10 +218,21 @@ function answersSection(answers, { markdown = false, pointer = false } = {}) {
   return lines;
 }
 
+// Each topic line carries its own llms.txt URL, spelled out, rather than a
+// `/topics/<slug>/llms.txt` pattern described once: see markdownRule for what
+// happened to the pattern. Twenty-odd real URLs is also the only form a
+// crawler that follows links rather than reading prose will ever discover.
 function topicsSection(topics) {
-  const lines = ['## Topics', '', `Full topic index: ${SITE_URL}/topics`, ''];
+  const lines = [
+    '## Topics',
+    '',
+    `Full topic index: ${SITE_URL}/topics`,
+    "Each topic has its own llms.txt: that topic's episodes, essays and answers, with an AI written brief when one exists.",
+    '',
+  ];
   for (const t of topics) {
-    lines.push(`- [${t.topic}](${SITE_URL}/topics/${t.slug}): ${t.count} episode${t.count === 1 ? '' : 's'}`);
+    const hub = `${SITE_URL}/topics/${t.slug}`;
+    lines.push(`- [${t.topic}](${hub}): ${t.count} episode${t.count === 1 ? '' : 's'}. Index: ${hub}/llms.txt`);
   }
   lines.push('');
   return lines;
@@ -208,7 +243,7 @@ function topicsSection(topics) {
 // the answer-shaped blocks most readily lifted into an LLM answer and also
 // the reason the full document is three orders of magnitude larger.
 // `markdown: true` adds the episode's .md URL under the line (see
-// MARKDOWN_RULE for why the site index does not).
+// markdownRule for why the site index does not).
 export function episodeLines(ep, getTranscript, depth, { markdown = false } = {}) {
   const url = `${SITE_URL}/episodes/${ep.slug}`;
   const transcript = getTranscript(ep.slug);
@@ -313,12 +348,12 @@ function sponsorFactsSection() {
 /** The curated index served at /llms.txt. */
 export function buildLlmsIndex(episodes, topics, editions, answers, getTranscript) {
   const lines = [
-    ...header(episodes),
+    ...header(episodes, countTranscribed(episodes, getTranscript)),
     // Stated before any list, not in a footer: a consumer that truncates this
     // document still learns the full catalogue exists and where it is.
     'This file is a curated index. The complete catalogue — every episode with',
     `its summary, key takeaways and FAQ — is at ${SITE_URL}/llms-full.txt`,
-    ...MARKDOWN_RULE,
+    ...markdownRule(episodes[0]?.slug),
     '',
     ...siteLinks(),
     ...agentActionsSection(),
@@ -344,9 +379,9 @@ export function buildLlmsIndex(episodes, topics, editions, answers, getTranscrip
 /** The complete catalogue served at /llms-full.txt. */
 export function buildLlmsFull(episodes, topics, editions, answers, getTranscript) {
   const lines = [
-    ...header(episodes),
+    ...header(episodes, countTranscribed(episodes, getTranscript)),
     `This is the complete catalogue. The curated index is at ${SITE_URL}/llms.txt`,
-    ...MARKDOWN_RULE,
+    ...markdownRule(episodes[0]?.slug),
     '',
     ...siteLinks(),
     ...agentActionsSection(),
@@ -368,6 +403,38 @@ export function buildLlmsFull(episodes, topics, editions, answers, getTranscript
   return lines.join('\n');
 }
 
+// The AI written topic brief (lib/topicBriefs.ts), placed after First
+// Principles and before the Answers column for the same reason that column
+// sits where it does: the human written section above says "Not
+// AI-generated", so an AI section directly under it has to say what it is in
+// its own first line, and the byline has to carry the disclosure with it
+// (see CLAUDE.md on the Isaac Burner byline).
+//
+// The body is stored with root relative /episodes/<slug> links, which is what
+// the reviewer clicks through in the pull request preview. They are made
+// absolute here because a plain text document has no base URL, and a
+// relative link in it is not a link to any consumer.
+export function briefSection(brief, topic, { transcribedCount } = {}) {
+  if (!brief) return [];
+  const n = brief.sourceEpisodes.length;
+  const coverage =
+    transcribedCount != null && transcribedCount > n
+      ? ` The topic has gained ${transcribedCount - n} transcribed episode${transcribedCount - n === 1 ? '' : 's'} since; those are listed below but not yet in the brief.`
+      : '';
+  const body = brief.body.replace(/\]\((\/[^)\s]*)\)/g, `](${SITE_URL}$1)`);
+  return [
+    `## What the catalogue says about ${topic} (AI written brief)`,
+    '',
+    `Written by ${ANSWERS_AUTHOR}, an AI analyst, from the AI summaries, takeaways, FAQ and quotes of ${n} episode${n === 1 ? '' : 's'} on this topic.` +
+      ' Reviewed before publishing. It may contain errors: every claim links the episode it comes from, and the episode is the source.' +
+      coverage,
+    ...(brief.date ? [`Updated: ${brief.date}`] : []),
+    '',
+    body,
+    '',
+  ];
+}
+
 /**
  * One topic's index, served at /topics/<slug>/llms.txt. Same shape as the
  * site index (header, written analysis, then episodes with one-line
@@ -376,8 +443,9 @@ export function buildLlmsFull(episodes, topics, editions, answers, getTranscript
  * pages to fetch. `episodes` and `editions` are the hub page's own lists
  * (lib/topics getEpisodesByTopicSlug, lib/newsletter getEditionsForTopic), so
  * the index and the page cannot disagree about what the topic contains.
+ * `brief` is the topic's AI written synthesis (lib/topicBriefs), or null.
  */
-export function buildTopicLlms({ topic, slug, episodes, editions, answers = [], getTranscript }) {
+export function buildTopicLlms({ topic, slug, episodes, editions, answers = [], brief = null, getTranscript }) {
   const hubUrl = `${SITE_URL}/topics/${slug}`;
   const lines = [
     `# The Dime Podcast: ${topic}`,
@@ -387,9 +455,10 @@ export function buildTopicLlms({ topic, slug, episodes, editions, answers = [], 
     `${episodes.length} episode${episodes.length === 1 ? '' : 's'} on ${topic}. Hub page: ${hubUrl}`,
     `This page as Markdown: ${markdownUrl(hubUrl)}`,
     `Site index: ${SITE_URL}/llms.txt. Complete catalogue: ${SITE_URL}/llms-full.txt`,
-    ...MARKDOWN_RULE,
+    ...markdownRule(episodes[0]?.slug),
     '',
     ...editionsSection(editions, undefined, { markdown: true }),
+    ...briefSection(brief, topic, { transcribedCount: episodes.length }),
     ...answersSection(answers, { markdown: true }),
     '## Episodes',
     '',
