@@ -3,8 +3,8 @@ title: Why Is Raising Capital So Hard for Cannabis Companies?
 metaTitle: Why Is Cannabis Capital So Hard to Raise?
 slug: why-is-it-hard-to-raise-cannabis-capital
 date: '2026-09-30'
-description: Cannabis capital is scarce because of a small investor pool, debt-only financing, and years of inflated projections that burned trust.
-summary: Cannabis capital is scarce because the investor pool is tiny, federal illegality forces companies into debt instead of equity, and years of inflated projections burned the investors who did show up. Fix the story you tell before you fix the pitch.
+description: Cannabis capital is scarce because the investor pool is tiny, most money has come as debt, and inflated projections burned the investors who did show up.
+summary: Three things stack up. The investor pool is a fraction of comparable sectors, most of the money that did come in was debt tied to physical assets, and years of inflated projections cost the industry credibility. Seth Yakatan sees access to US public equity markets as the unlock.
 episodes:
 - seth-yakatan-are-you-ready-for-the-next-wave-of-ma-in-cannabis
 - hard-questions-for-cannabis-founders-tony-schor-on-creative-capital-and-ma-strategies
@@ -15,11 +15,11 @@ topics:
 - M&A
 faq:
 - question: What would actually fix cannabis capital access?
-  answer: Seth Yakatan argues access to U.S. public equity markets, most likely triggered by rescheduling or federal legalization, is the true catalyst, since it would open cannabis to CPG, alcohol, tobacco, and pharma capital that currently cannot invest at all.
-- question: Is debt financing really that much worse than equity for cannabis operators?
-  answer: Debt has to be repaid on fixed terms regardless of performance, while equity shares risk with investors. Tony Schor notes that 98% of the roughly $890 million raised in cannabis has been debt, which makes capital scarcer and pricier and pushes operators toward partnerships instead of expansion.
-- question: How should a cannabis company approach fundraising differently today?
-  answer: AnnaRae Grabstein advises grounding every projection in real cost data rather than aspirational market share assumptions, and focusing on deepening relationships with existing reliable customers before chasing growth in new states.
+  answer: Seth Yakatan said in 2024 that the catalyzing change is access to public equity in the US capital markets, on Nasdaq or NYSE. He wasn't sure whether that comes with Schedule III or full federal legalization.
+- question: Why has so much cannabis money come in as debt?
+  answer: Yakatan said most of the initial money was real estate secured loans or collateralized paper, so a physical asset made raising easier. In late 2024 Tony Schor said very little of the capital raised had been equity, which is part of why deals take so long.
+- question: How should a cannabis company approach fundraising now?
+  answer: AnnaRae Grabstein said in 2025 that companies missing their financial models need to get out of denial, right size the company and the plan, and validate their instincts with data. Schor's advice was to start raising locally, in your own town and state, before going outside that network.
 sourceQuery: manual:Why is it so hard for cannabis companies to raise capital?
 ---
 
@@ -27,16 +27,16 @@ Capital is hard to raise in cannabis because three problems stack on top of each
 
 ## The investor pool is a fraction of comparable industries
 
-Seth Yakatan puts a number on it. The cannabis-focused investor universe is roughly 100 people. Biotech, a comparably risky and regulation-heavy sector, has about 1,100. That is not a rounding error, it is an order of magnitude. Fewer investors means less competition for deals, less price discovery, and far less patience for a pre-revenue startup with no physical asset behind it. In [Seth Yakatan: Are you Ready for the Next Wave of M&A in Cannabis](/episodes/seth-yakatan-are-you-ready-for-the-next-wave-of-ma-in-cannabis), Yakatan notes that asset-backed businesses, real estate, cultivation, have historically found it easier to raise than asset-light brands, because a smaller pool of capital gravitates toward things it can collateralize.
+Seth Yakatan put a number on it in 2024: "the biotech universe of investors is maybe 1,100, and the cannabis universe of investors is maybe 100." That is an order of magnitude. In [Seth Yakatan: Are you Ready for the Next Wave of M&A in Cannabis](/episodes/seth-yakatan-are-you-ready-for-the-next-wave-of-ma-in-cannabis), he said what has worked is having a physical asset: most of the initial money into cannabis was some type of real estate secured loan or collateralized paper. He also said companies above about $10 million in revenue find it much easier to raise, because they have proven their model or seem more viable.
 
 ## Federal illegality pushes everyone toward debt
 
-Tony Schor's number is the starker one. Of the roughly $890 million raised in cannabis to date, about 98% has been debt, not equity. That is not a preference, it is a constraint. Federal illegality keeps cannabis companies off public exchanges and out of the traditional banking system, so operators end up financing growth with expensive, inflexible debt instead of equity that shares the risk. Schor lays this out in [Hard Questions for Cannabis Founders: Tony Schor on Creative Capital and M&A Strategies](/episodes/hard-questions-for-cannabis-founders-tony-schor-on-creative-capital-and-ma-strategies), and it's why he points founders toward partnerships and licensing deals instead of cash-heavy expansion. Yakatan's view is that the real unlock is access to U.S. public equity markets, likely triggered by rescheduling or federal reform, which would open the door to CPG, alcohol, tobacco, and pharma capital that simply cannot participate today.
+With US exchanges closed, Yakatan said almost every cannabis company has had to list on a junior exchange or reverse into a vehicle, largely through Canadian public equity markets, which he called robust but immature and inefficient. Tony Schor made the same point from the deal side in late 2024, in [Hard Questions for Cannabis Founders: Tony Schor on Creative Capital and M&A Strategies](/episodes/hard-questions-for-cannabis-founders-tony-schor-on-creative-capital-and-ma-strategies): public markets are limited, very little of the capital raised has been equity, and a lot of acquisitions come with debt attached, which is part of why deals take so long. He said creative ways to secure capital often come through partnerships. Yakatan's view of the unlock is access to public equity on Nasdaq or NYSE, whether that comes with Schedule III or full federal legalization.
 
 ## The industry burned its own credibility
 
-A smaller pool and a debt-only market would be survivable if the money that did come in got treated carefully. It often wasn't. AnnaRae Grabstein calls the sector's early fundraising story "financial pornography," the habit of building pro formas around guaranteed double-digit market share in states nobody had actually operated in. Investors who got burned once are harder to bring back a second time. In [Why Cannabis Companies Must Face Reality, Make Hard Choices, and Follow the Data ft. AnnaRae Grabstein](/episodes/why-cannabis-companies-must-face-reality-make-hard-choices-and-follow-the-data-ft-annarae-grabstein), she argues that facing real cost data and abandoning inflated growth assumptions is the actual precondition for winning trust back, not a nicer slide deck.
+A small pool and a debt heavy market would be survivable if the money that did come in had been handled carefully. Often it wasn't. In [Why Cannabis Companies Must Face Reality, Make Hard Choices, and Follow the Data ft. AnnaRae Grabstein](/episodes/why-cannabis-companies-must-face-reality-make-hard-choices-and-follow-the-data-ft-annarae-grabstein), host Bryan Fields called it "financial pornography" in the projections cannabis companies created, models that assumed any company could walk into a market like Illinois and take 10% share. Grabstein's answer was that companies not fulfilling their financial models need to get out of denial, accept the realities of the market, and right size the company and the plan.
 
 ## What this means if you're raising right now
 
-Don't compete for the same 100 checks with a growth story dressed up like the last decade's pro formas. Build toward the models that have actually proven they can generate cash with the capital available: efficient-scale cultivation, cultivation paired with a real brand, or asset-light structures that use manufacturing agreements instead of owning facilities. Partner before you borrow. And when you do pitch, lead with real unit economics, not projected ones. The investors left standing in this sector have seen the inflated version already. They are not funding it twice.
+Do not compete for the same hundred checks with a growth story built like the last decade's pro formas. Show a model that functions: Yakatan counted six or seven models with the capacity to generate positive net operating income before interest and taxes. Validate your instincts with data, as Grabstein put it. Partner before you borrow. And follow Schor's order of operations: start raising locally, in your own town and state, before going outside that network. The investors left in this sector have seen the inflated version already.
