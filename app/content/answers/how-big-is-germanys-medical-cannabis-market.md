@@ -1,10 +1,10 @@
 ---
-title: How Big Is Germany's Medical Cannabis Market Right Now?
+title: How Big Is Germany's Medical Cannabis Market?
 metaTitle: How Big Is Germany's Medical Market?
 slug: how-big-is-germanys-medical-cannabis-market
 date: '2026-09-30'
-description: Germany's medical cannabis market is roughly €2.5B and doubling fast. Here's the patient math, the supply chain, and who's positioned to win.
-summary: Germany's medical cannabis market was roughly €2.5 billion as of 2025 and is on pace to nearly double within a couple of years, with patient counts moving from about 800,000 toward 1.8 million. Canadian producers already supply 46% of it, and the patient base still has enormous room to grow against Germany's 83 million population.
+description: As of mid 2026, Organigram's CEO put Germany's medical cannabis market at about €2.5B, with around 800,000 patients and room to roughly double.
+summary: As of mid 2026, Organigram CEO James Yamanaka put Germany's medical cannabis market at about €2.5 billion, driven by roughly 800,000 patients, and expected it to reach around €4.8 billion within two years. He also said Canadian companies supply about 46% of it.
 episodes:
 - stop-ignoring-germanys-massive-opportunity-europe-is-coming-ft-jamie-pearson
 - germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka
@@ -14,29 +14,29 @@ topics:
 - Medical & Research
 - Supply Chain & Distribution
 faq:
-- question: Who actually supplies Germany's medical cannabis market today?
-  answer: Canadian producers, not German ones. James Yamanaka of Organigram says Canadian companies supply about 46% of Germany's cannabis market and around 60% of the flower moving through Europe, largely because US companies are federally blocked from exporting there.
+- question: Who actually supplies Germany's medical cannabis market?
+  answer: Largely Canadian producers. In mid 2026, James Yamanaka of Organigram said about 46% of the German market is supplied by Canadian companies because US companies can't export there, and that roughly 60% of the flower moving through Europe is Canadian.
 - question: Can US cannabis companies sell directly into Germany?
-  answer: No. Jamie Pearson notes nothing enters legally without a pharmaceutical license or hemp-derived status, and Yamanaka confirms US export is blocked by federal law. The workaround has been Canadian producers and acquisitions like Organigram's purchase of Sanity Group.
+  answer: Not under current federal law. Yamanaka said US companies can't supply the German market, and Jamie Pearson noted that German cultivation has to be EU-GMP certified pharmaceutical grade, a bar he said much US product would not pass.
 - question: Will Germany's recreational cannabis market open up too?
-  answer: It's stalled for now. Jamie Pearson explains the governing coalition collapsed before the fourth pillar of Germany's cannabis law, full commercial recreational sales, could move forward, leaving it pending on election outcomes, though all major parties reportedly support some form of legalization.
-- question: Why is Germany's medical market growing so much faster than expected?
-  answer: Germany reclassified cannabis as a non-narcotic, so any doctor can prescribe it and it's covered by public and private insurance, according to Jamie Pearson. That removed the two biggest friction points, doctor gatekeeping and out-of-pocket cost, that limit medical programs elsewhere.
+  answer: As of February 2025, Jamie Pearson said the fourth component of the law, a full recreational retail market, was waiting on a new government after the coalition collapsed. He said all the parties want cannabis in some form. What has happened since is beyond what the episode covers.
+- question: Why did Germany's medical market grow so fast?
+  answer: Pearson points to Germany taking cannabis off the narcotics list. Any doctor can prescribe it, telemedicine services deliver it, and public or private insurance pays for it, which removes the doctor gatekeeping and cost barriers that limit medical programs elsewhere.
 sourceQuery: manual:How big is the German medical cannabis market?
 ---
 
-Germany flipped a switch and the market responded immediately. [Jamie Pearson](/episodes/stop-ignoring-germanys-massive-opportunity-europe-is-coming-ft-jamie-pearson), president of New Holland Group, points to the reclassification of cannabis as a non-narcotic as the actual mechanism behind the growth. Once that happened, any doctor could prescribe it like a normal medication, and Germany's insurance system, public and private, started covering it. Pearson puts it plainly: "The fact that cannabis is a non-narcotic in Germany means that the medical program has predictably exploded." That's not marketing language. That's a regulatory switch that made cannabis functionally free for patients compared to buying illicit product or joining a capped grow cooperative.
+Germany's medical market is big because of one regulatory change. [Jamie Pearson](/episodes/stop-ignoring-germanys-massive-opportunity-europe-is-coming-ft-jamie-pearson), president of New Holland Group, points to Germany taking cannabis off the narcotics list as the mechanism behind the growth. After that, any doctor could prescribe it like a normal medication, and state health insurance or private insurance pays for it. In his words from February 2025, "cannabis is a non-narcotic in Germany, and the medical program has predictably exploded." That is not marketing language. It is what happens when you remove doctor gatekeeping and out of pocket cost at the same time.
 
-## The market is already real money and it's doubling
+## The market is already real money
 
-Organigram CEO James Yamanaka gives the clearest current numbers in [Germany Is the Engine](/episodes/germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka). Germany's medical cannabis market ran about €2.5 billion as of 2025, with patient counts around 800,000 out of a population of 83 to 84 million. Organigram's own math projects that market nearly doubling to roughly €4.8 billion within a couple of years, with patients climbing toward 1.8 million. That's not speculative upside. That's a company that just bought Sanity Group, a German medical cannabis distributor, building its acquisition thesis on those numbers.
+Organigram CEO James Yamanaka gives the most recent numbers, in [Germany Is the Engine](/episodes/germany-is-the-engine-what-bat-knows-that-cannabis-doesnt-ft-james-yamanaka), published in June 2026. He put the market at about €2.5 billion, driven by roughly 800,000 patients out of a population of 83 to 84 million, and said that from the trends he was seeing it should be around €4.8 billion in two years. Even that, he noted, would mean only about 1.8 million patients. He also said Sanity Group's revenues and profits grew 100%.
 
-Equity analyst Pablo Zuanic frames the same opportunity from a different angle in [his episode](/episodes/pablo-zuanic-on-cannabis-stocks-institutional-strategies-for-retail-investors). He notes Germany's program still only reaches around 0.2% of the population, versus 3.5-4% in mature US medical states like Florida and Pennsylvania. If Germany's adoption rate simply catches up to what American medical states already do, Zuanic says the market could grow roughly 20x. Both views point the same direction: this is a market still in its early innings, not one that's topped out.
+The gap between those numbers and the country's size is the opportunity. Back in March 2024, before Germany's April 2024 law change took effect, equity analyst Pablo Zuanic put the program at roughly 0.2% of the population, against 3.5% in Florida and 4% in Pennsylvania, and said going to 4% would mean a market 20 times bigger ([his episode](/episodes/pablo-zuanic-on-cannabis-stocks-institutional-strategies-for-retail-investors)). Yamanaka's 2026 patient count, about 800,000, is already roughly 1% of the population. Some of that gap has closed. Most of it has not.
 
-## Supply is a Canadian story, not a German one
+## Supply is a Canadian story
 
-Here's the part operators miss. Germany doesn't grow its own supply, at least not yet at scale. Yamanaka states that Canadian producers currently supply 46% of Germany's cannabis market, and roughly 60% of the flower moving through Europe overall. That's because US companies are legally blocked from exporting due to federal restrictions, leaving Canadian LPs as the default global supplier. Germany did remove its old rule limiting domestic cultivation to four licensed companies, opening the door to any EU-GMP certified facility, but that shift takes years to translate into real production capacity.
+Here is the part US operators miss. In mid 2026 Yamanaka said about 46% of the German market is supplied by Canadian companies because US companies can't do it, and that probably 60% of the European industry is Canadian flower. Germany has opened its own cultivation: Pearson explains that the original medical law allowed only four companies to grow a limited amount in country, and the new law lifted that restriction, so anybody can grow in Germany as long as it is EU-GMP certified pharmaceutical grade cannabis. That is a high bar, and Pearson says much US grown product would not pass it.
 
 ## What this means for operators
 
-If you're a US operator watching Germany from the sidelines, direct export isn't available to you under current federal law. The access point runs through Canada, either by building supply relationships there or by owning a Canadian producer outright, which is exactly the bet Organigram made with Sanity Group. If you're an investor, the companies already positioned in Germany, Curaleaf, Tilray, Aurora, Organigram, are the ones capturing a market that's compounding while most of the US industry is still arguing about rescheduling.
+If you are a US operator watching Germany, direct export is not available to you under current federal law. The access point runs through Canada, through supply relationships or ownership there, and through EU-GMP standards that most US facilities were never built to. Zuanic named Tilray, Aurora and Kiff as big participants as of early 2024, with Curaleaf the only MSO exporting from Canada into Germany under its own brands. The companies that did the compliance work early are the ones selling into a market that was still growing fast as of mid 2026.
