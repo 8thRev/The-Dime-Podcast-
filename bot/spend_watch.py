@@ -32,7 +32,10 @@ from spend_guard import PRICES, FALLBACK_PRICE, WEB_SEARCH_USD
 USAGE_URL = "https://api.anthropic.com/v1/organizations/usage_report/messages"
 DAILY_LIMIT_USD = float(os.getenv("SPEND_DAILY_LIMIT_USD", "4"))
 DURATION_MULTIPLE = 5
-MIN_ALERT_SECONDS = 300
+# A Daily run with a guest to research legitimately takes 5 to 7 minutes against
+# a 30 second median (no-op days), so the floor sits above that. Sep 16, the
+# run that burned $7.25, took 24.5 minutes.
+MIN_ALERT_SECONDS = 900
 
 
 def result_usd(r: dict) -> float:
@@ -126,7 +129,9 @@ def main() -> int:
         costs = daily_cost_by_key(fetch_usage(admin, today - timedelta(days=1), today + timedelta(days=1)))
         problems += cost_anomalies(costs)
     else:
-        problems.append("ANTHROPIC_ADMIN_KEY is not set, so the per key spend check did not run")
+        # Setup not finished, not a spend anomaly: warn, do not fail the run,
+        # so a real alert is never drowned out by a daily red X.
+        print("::warning title=Spend Watch::ANTHROPIC_ADMIN_KEY is not set, so the per key spend check did not run")
 
     repo, token = os.getenv("GITHUB_REPOSITORY", ""), os.getenv("GITHUB_TOKEN", "")
     if repo and token:
