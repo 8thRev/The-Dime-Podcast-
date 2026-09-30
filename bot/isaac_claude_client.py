@@ -49,6 +49,11 @@ class IsaacClaudeClient:
         self.client = spend_guard.make_client("isaac")
         self.model = config.ANTHROPIC_MODEL
         self.max_tokens = config.ISAAC_MAX_TOKENS
+        # Sonnet 5 thinks by default at effort "high", and thinking counts
+        # against max_tokens. With the grounding rules the first live run
+        # (Sep 30, 2026) spent all 8,000 tokens thinking and never wrote the
+        # JSON. Set explicitly so a model default can't change the bill.
+        self.write_options = {"output_config": {"effort": config.ISAAC_EFFORT}}
         self.check_model = config.ISAAC_CHECK_MODEL
         self.check_max_tokens = config.ISAAC_CHECK_MAX_TOKENS
 
@@ -65,7 +70,7 @@ class IsaacClaudeClient:
             question, question_origin, sources, answered_questions, today, config.ISAAC_MAX_SOURCE_AGE_MONTHS
         )
         self.client.budget.label = "write"
-        return self._call_with_retry(prompt, self.model, self.max_tokens, REQUIRED_KEYS)
+        return self._call_with_retry(prompt, self.model, self.max_tokens, REQUIRED_KEYS, self.write_options)
 
     def check_post(self, post: dict, sources: list[dict], today: str) -> tuple[bool, list[dict]]:
         """Returns (success, claims). A check that failed to run is not a
@@ -77,9 +82,13 @@ class IsaacClaudeClient:
             return False, []
         return True, [c for c in data["claims"] if isinstance(c, dict)]
 
-    def _call_with_retry(self, prompt: str, model: str, max_tokens: int, required: set[str]) -> tuple[bool, dict]:
+    def _call_with_retry(
+        self, prompt: str, model: str, max_tokens: int, required: set[str], options: dict | None = None
+    ) -> tuple[bool, dict]:
+        """options: extra request fields. Only the writer sends any: Haiku
+        4.5, the checker, rejects the effort parameter."""
         for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
-            success, data, retryable = self._generate_once(prompt, model, max_tokens, required, attempt)
+            success, data, retryable = self._generate_once(prompt, model, max_tokens, required, attempt, options or {})
             if success:
                 return True, data
             if not retryable:
@@ -87,7 +96,7 @@ class IsaacClaudeClient:
         return False, {}
 
     def _generate_once(
-        self, prompt: str, model: str, max_tokens: int, required: set[str], attempt: int
+        self, prompt: str, model: str, max_tokens: int, required: set[str], attempt: int, options: dict
     ) -> tuple[bool, dict, bool]:
         retry_suffix = f" (attempt {attempt}/{MAX_GENERATION_ATTEMPTS})"
         try:
@@ -95,13 +104,15 @@ class IsaacClaudeClient:
                 model=model,
                 max_tokens=max_tokens,
                 messages=[{"role": "user", "content": prompt}],
+                **options,
             )
 
             if message.stop_reason == "max_tokens":
                 print(
                     f"Error: Claude hit the max_tokens cap ({max_tokens}) before finishing. "
-                    "Raise ISAAC_MAX_TOKENS or ISAAC_CHECK_MAX_TOKENS rather than treating "
-                    "this as a JSON formatting bug."
+                    "Thinking counts against the cap: lower ISAAC_EFFORT or raise "
+                    "ISAAC_MAX_TOKENS / ISAAC_CHECK_MAX_TOKENS rather than treating this "
+                    "as a JSON formatting bug."
                 )
                 return False, {}, False
 
