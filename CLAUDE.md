@@ -7,11 +7,14 @@ This repo has two parts:
   the hand-written "First Principles" newsletter archive (`app/lib/newsletter.ts`,
   markdown in `app/content/newsletter/*.md`).
 
-  Note the split in `app/content/`, which is three-way and load-bearing:
+  Note the split in `app/content/`, which is four-way and load-bearing:
   `transcripts/*.json` is AI-generated from audio and always renders behind an
   `<AIDisclosure>` banner; `newsletter/*.md` is human-written and deliberately
   never does; `answers/*.md` is the AI-written Answers column, which has its
-  own URL and date like an edition and a disclosure banner like a transcript.
+  own URL and date like an edition and a disclosure banner like a transcript;
+  `topic-briefs/*.md` is Isaac's AI-written synthesis of one topic, rendered
+  only into `/topics/<slug>/llms.txt` (no HTML page) under the same byline and
+  disclosure (`briefSection()` in `app/lib/llms.js`).
 
   The Answers column is bylined "Isaac Burner, AI analyst for The Dime". That
   byline is only defensible because the disclosure travels with it on every
@@ -23,12 +26,19 @@ This repo has two parts:
 - `bot/` — Python automation, two separate pipelines:
   - Guest research bot (daily via GitHub Actions, Trello → Claude → Word doc → email) — see [README.md](README.md).
   - Transcript pipeline (YouTube captions → Claude → episode page content, written to `app/content/transcripts/*.json`) — runs via [.github/workflows/transcript-pipeline.yml](.github/workflows/transcript-pipeline.yml), matching logic in `bot/simplecast_feed.py`.
-  - Isaac Burner, the Answers column (Search Console question → episode transcripts as grounding → Claude → `app/content/answers/*.md`). Written by `bot/isaac_blogger.py`, twice weekly via [.github/workflows/isaac-blogger.yml](.github/workflows/isaac-blogger.yml).
+  - Isaac Burner, the Answers column (Search Console question → episode transcripts as grounding → Claude → `app/content/answers/*.md`, plus topic briefs → `app/content/topic-briefs/*.md`). Written by `bot/isaac_blogger.py`, twice weekly via [.github/workflows/isaac-blogger.yml](.github/workflows/isaac-blogger.yml).
 
     This one opens a **pull request**, it does not push to main. The transcript
     pipeline commits directly because a transcript is a mechanical rendering of
     audio that already exists. A column post is an opinion published under the
     show's name, so it gets a human gate. Keep it that way.
+
+    Each run also writes up to `ISAAC_MAX_BRIEFS` topic briefs from every
+    transcribed episode on a topic, into the same pull request.
+    `validate_brief()` is their first gate, same principle as below, and a
+    brief then gets the same Haiku fact check as a post, against the full
+    transcripts of every episode it cites (at most `ISAAC_BRIEF_MAX_CITED`, so
+    the check fits in one call).
 
     `validate_post()` in that file rejects a post before it is written: off-taxonomy
     topics, a cited episode slug that was not in the source material, an episode

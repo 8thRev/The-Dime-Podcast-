@@ -188,6 +188,57 @@ class Config:
     # answer produces no post rather than a made up one.
     ISAAC_FORCE_QUESTION: str = os.getenv("ISAAC_FORCE_QUESTION", "")
 
+    # Topic briefs: the second thing Isaac writes each run. One brief per
+    # topic hub, synthesized from every transcribed episode on that topic and
+    # rendered only into /topics/<slug>/llms.txt (app/lib/topicBriefs.ts).
+    #
+    # Unlike posts, several per run is fine and intended. The supply is a
+    # fixed taxonomy of 20 topics rather than searched questions, a brief is
+    # not an HTML page competing in search, and a brief goes stale on its own
+    # as new episodes land. Four per run at two runs a week covers every
+    # topic in under three weeks, then settles into refreshing only the
+    # topics that gained episodes.
+    ISAAC_MAX_BRIEFS: int = int(os.getenv("ISAAC_MAX_BRIEFS", "4"))
+
+    # A topic with fewer transcribed episodes than this gets no brief: two
+    # episodes is a comparison, not a body of evidence, and the topic index
+    # already lists them in full.
+    ISAAC_BRIEF_MIN_EPISODES: int = int(os.getenv("ISAAC_BRIEF_MIN_EPISODES", "4"))
+
+    # How many new transcribed episodes a topic needs since its last brief
+    # before the brief is rewritten. The topic index says how many episodes
+    # a brief does not cover yet, so a gap of one is visible, not wrong.
+    ISAAC_BRIEF_REFRESH_AFTER: int = int(os.getenv("ISAAC_BRIEF_REFRESH_AFTER", "3"))
+
+    # Character budget for one brief's source material. Every episode on the
+    # topic is always included; this only decides how much of each. The
+    # largest topic today is ~420K characters with every field (~105K
+    # tokens), inside the budget, so nothing is trimmed until a topic grows
+    # past it, and then the oldest episodes lose quotes, then FAQ, then
+    # takeaways, never their summary.
+    ISAAC_BRIEF_SOURCE_CHARS: int = int(os.getenv("ISAAC_BRIEF_SOURCE_CHARS", "600000"))
+
+    # Transcript excerpts per episode in a brief's source material, picked
+    # by the topic's own terms. Two, not a post's five: a topic has up to 70
+    # episodes, and these are the first thing trimmed after the AI notes.
+    ISAAC_BRIEF_PASSAGES_PER_SOURCE: int = int(os.getenv("ISAAC_BRIEF_PASSAGES_PER_SOURCE", "2"))
+
+    # A brief is fact checked against the full transcript of every episode
+    # it cites, in one Haiku call with a 200K token context. At a median
+    # 30,000 characters a transcript, 18 citations is about 135K tokens, so
+    # that is the cap, and a brief whose cited transcripts still come to
+    # more than ISAAC_BRIEF_CHECK_MAX_CHARS (about 160K tokens) is not
+    # written rather than written unchecked. The check returns one verdict
+    # per claim, and a 1,400 word brief has several dozen, hence the larger
+    # output cap than a post's check.
+    ISAAC_BRIEF_MAX_CITED: int = int(os.getenv("ISAAC_BRIEF_MAX_CITED", "18"))
+    ISAAC_BRIEF_CHECK_MAX_CHARS: int = int(os.getenv("ISAAC_BRIEF_CHECK_MAX_CHARS", "640000"))
+    ISAAC_BRIEF_CHECK_MAX_TOKENS: int = int(os.getenv("ISAAC_BRIEF_CHECK_MAX_TOKENS", "16000"))
+
+    # Manual override: write the brief for this topic (the display name, e.g.
+    # "Taxation & 280E") regardless of staleness. From workflow_dispatch.
+    ISAAC_FORCE_TOPIC: str = os.getenv("ISAAC_FORCE_TOPIC", "")
+
     @classmethod
     def validate_isaac_config(cls) -> tuple[bool, list[str]]:
         """Validate config required by the Isaac Burner column.

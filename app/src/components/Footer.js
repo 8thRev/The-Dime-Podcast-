@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { PODCAST_RATING } from '@/lib/ratings';
 import { trackPlatformClick } from '@/lib/platformClicks';
+import { LISTEN_LINKS } from '@/lib/listenLinks';
 
 const footerLinkStyle = {
   background: 'none',
@@ -18,12 +19,6 @@ const footerLinkStyle = {
   transition: 'color .15s',
   textDecoration: 'none',
 };
-
-const LISTEN_LINKS = [
-  { label: 'Apple Podcasts', href: 'https://podcasts.apple.com/us/podcast/the-dime/id1540199573' },
-  { label: 'Spotify', href: 'https://open.spotify.com/show/05y791a4A1vzTZ6DCZQHFz' },
-  { label: 'YouTube', href: 'https://www.youtube.com/@theDime_Cannabis' },
-];
 
 // The show's own accounts. Kept in step with createOrganizationSchema()'s
 // sameAs in lib/schema.ts — every URL here was checked live.

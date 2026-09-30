@@ -2,6 +2,7 @@
 // Helpers for generating JSON-LD schema markup
 
 import { SPONSOR_NAME, SPONSOR_URL, SPONSOR_ORG_ID } from "./sponsor";
+import { PODCAST_FEED_URL, APPLE_PODCASTS_URL, SPOTIFY_URL, YOUTUBE_URL } from "./listenLinks";
 
 export interface SchemaMarkup {
   "@context": string;
@@ -10,6 +11,20 @@ export interface SchemaMarkup {
 }
 
 const SUFFIX = " — The Dime Podcast";
+
+// The show as one entity. The series node on the homepage and the
+// partOfSeries reference on every episode page share this @id, so a
+// consumer resolves every episode to the same PodcastSeries rather than one
+// look-alike per page, and webFeed on both is the machine-readable subscribe path.
+const SERIES_ID = "https://www.dimepodcast.com/#podcast";
+const SERIES_NAME = "The Dime";
+// Was `${siteUrl}/logo.png`, which has never existed — a 404 here
+// invalidates the whole node for Google's podcast rich results. The show's
+// real cover art is square and 2047x2047 as delivered (the 3000x3000 in
+// the URL is a Simplecast path segment; the CDN caps below it), comfortably
+// over the 1400x1400 minimum, and is the artwork every directory shows.
+const PODCAST_IMAGE =
+  "https://image.simplecastcdn.com/images/1a0a47e2-85d2-449a-9d9b-559883abfdcb/9dcf3518-cd67-4e0f-9f5c-c21c9ce295e3/3000x3000/dime-cover-art-new-v2.jpg";
 
 // Cuts to the last whole word before maxLength and appends an ellipsis,
 // so titles/descriptions never end mid-word — used everywhere a
@@ -67,30 +82,58 @@ export function createPodcastEpisodeSchema(
     durationISO?: string;
     audioUrl: string;
     id: string;
+    num?: string;
   },
   siteUrl: string = "https://www.dimepodcast.com",
   options: {
     aiGenerated?: boolean;
+    /** The cleaned AI transcript, when the episode has one. */
+    transcript?: string;
     entities?: { companies: string[]; people: string[] };
     guest?: { name: string; company?: string; companyUrl?: string };
   } = {}
 ): SchemaMarkup {
+  const url = `${siteUrl}/episodes/${episode.slug}`;
+  const duration = episode.durationISO || episode.duration;
+  const episodeNumber = parseInt(episode.num || "", 10);
+  const audio: Record<string, unknown> = {
+    "@type": "AudioObject",
+    url: episode.audioUrl,
+    encodingFormat: "audio/mpeg",
+    duration,
+  };
+  // The transcript belongs on the AudioObject: schema.org defines
+  // `transcript` on media objects, not on the episode. It is the same cleaned
+  // text the page renders visibly below the fold, so this states nothing
+  // the page does not, and it is covered by the AI `disclaimer` below.
+  if (options.transcript) {
+    audio.transcript = options.transcript;
+  }
+
   const schema: SchemaMarkup = {
     "@context": "https://schema.org",
     "@type": "PodcastEpisode",
+    "@id": url,
     name: episode.title,
     description: episode.description,
-    url: `${siteUrl}/episodes/${episode.slug}`,
+    url,
     datePublished: episode.dateISO,
+    ...(Number.isFinite(episodeNumber) && episodeNumber > 0 ? { episodeNumber } : {}),
+    ...(episode.durationISO ? { duration: episode.durationISO } : {}),
+    inLanguage: "en",
+    image: PODCAST_IMAGE,
+    partOfSeries: {
+      "@type": "PodcastSeries",
+      "@id": SERIES_ID,
+      name: SERIES_NAME,
+      url: siteUrl,
+      webFeed: PODCAST_FEED_URL,
+    },
     author: {
       "@type": "Person",
       name: "Bryan Fields",
     },
-    audio: {
-      "@type": "AudioObject",
-      url: episode.audioUrl,
-      duration: episode.durationISO || episode.duration,
-    },
+    audio,
     potentialAction: {
       "@type": "ListenAction",
       target: `https://player.simplecast.com/${episode.id}`,
@@ -407,20 +450,19 @@ export function createPodcastSchema(
   const schema: SchemaMarkup = {
     "@context": "https://schema.org",
     "@type": "PodcastSeries",
-    name: "The Dime",
+    "@id": SERIES_ID,
+    name: SERIES_NAME,
     url: siteUrl,
     description: "Cannabis business intelligence. Strategy conversations for operators, not observers.",
+    inLanguage: "en",
+    webFeed: PODCAST_FEED_URL,
+    // The listening apps, as the same show (lib/listenLinks.ts).
+    sameAs: [APPLE_PODCASTS_URL, SPOTIFY_URL, YOUTUBE_URL],
     author: {
       "@type": "Organization",
       name: "The Dime Podcast",
     },
-    // Was `${siteUrl}/logo.png`, which has never existed — a 404 here
-    // invalidates the whole node for Google's podcast rich results. The show's
-    // real cover art is square and 2047x2047 as delivered (the 3000x3000 in
-    // the URL is a Simplecast path segment; the CDN caps below it), comfortably
-    // over the 1400x1400 minimum, and is the artwork every directory shows.
-    image:
-      "https://image.simplecastcdn.com/images/1a0a47e2-85d2-449a-9d9b-559883abfdcb/9dcf3518-cd67-4e0f-9f5c-c21c9ce295e3/3000x3000/dime-cover-art-new-v2.jpg",
+    image: PODCAST_IMAGE,
   };
 
   if (rating) {

@@ -34,7 +34,7 @@ const TOPICS = [
   'Debt Walls', 'Cash Flow', 'Operational Frameworks', 'Hemp vs Cannabis',
 ];
 
-export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
+export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber, latestVideos }) {
   const topicItems = [...TOPICS, ...TOPICS];
   const schema = createPodcastSchema('https://www.dimepodcast.com', PODCAST_RATING);
   const websiteSchema = createWebsiteSchema('https://www.dimepodcast.com');
@@ -121,7 +121,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 
       <SeoHead
         title="The Dime Podcast — Cannabis Business Intelligence"
-        description={`Strategy conversations for cannabis operators, not observers. ${episodeCount}+ episodes with founders, executives, and investors shaping the cannabis industry.`}
+        description={`Strategy conversations for cannabis operators, not observers. ${episodeCount} episodes with founders, executives, and investors shaping the cannabis industry.`}
         path="/"
         fullTitleProvided
       />
@@ -146,7 +146,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
         <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
           <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
-              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>LATEST · EP. {episodeCount}</span>
+              <span className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.2em', fontWeight: 700 }}>LATEST · EP. {latestEpisodeNumber}</span>
               <span className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '.2em', fontWeight: 700, marginLeft: 12 }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
             </div>
 
@@ -179,7 +179,7 @@ export default function Home({ latestEpisodes, episodeCount, latestVideos }) {
 
 <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }} className="fade-in">
               <Link href={`/episodes/${latestEpisodes[0]?.slug || '#'}`} className="btn-teal" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                Listen · Ep. {latestEpisodes[0]?.num || episodeCount}
+                Listen · Ep. {latestEpisodes[0]?.num || latestEpisodeNumber}
               </Link>
               <Link href="/episodes" className="btn-outline" style={{ textDecoration: 'none', display: 'inline-block', background: 'transparent', borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}>
                 Browse All Episodes →
@@ -332,12 +332,21 @@ export async function getStaticProps() {
   const episodes = await getAllEpisodes();
   const videos = await getAllVideos();
 
-  const episodeCount = getLatestEpisodeNumber(episodes);
+  // Two different numbers, kept apart on purpose. episodeCount is how many
+  // episodes exist and is what every "N episodes" claim uses, so this page,
+  // /episodes, /llms.txt and /llms-full.txt all state the same figure.
+  // latestEpisodeNumber is Simplecast's itunes:episode on the newest one,
+  // which runs ahead of the count because the numbering has gaps, and is
+  // only ever shown as an "Ep. N" label. Using it as a count is how the site
+  // said 307 while llms.txt said 305.
+  const episodeCount = episodes.length;
+  const latestEpisodeNumber = getLatestEpisodeNumber(episodes);
 
   return {
     props: {
       latestEpisodes: episodes.slice(0, 10),
       episodeCount,
+      latestEpisodeNumber,
       latestVideos: videos.slice(0, 8),
     },
     revalidate: 3600,

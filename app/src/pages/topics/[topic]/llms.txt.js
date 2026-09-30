@@ -4,7 +4,9 @@
 // 800KB+ of /llms-full.txt. Built by buildTopicLlms in lib/llms.js from the
 // same episode, edition and answer line builders as /llms.txt, and from the
 // hub page's own loaders (getEpisodesByTopicSlug, getEditionsForTopic,
-// getAnswersForTopic), so it cannot drift from any of them.
+// getAnswersForTopic), so it cannot drift from any of them. Also carries the
+// topic's AI written brief (lib/topicBriefs.ts) when Isaac has written one;
+// this file is the only place a brief renders.
 //
 // Same request-time shape as src/pages/llms.txt.js, and for the same reason:
 // a static path segment (`llms.txt`) under a dynamic one is a valid page
@@ -15,6 +17,7 @@ import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getEpisodesByTopicSlug } from '@/lib/topics';
 import { getEditionsForTopic } from '@/lib/newsletter';
 import { getAnswersForTopic } from '@/lib/answers';
+import { getTopicBrief } from '@/lib/topicBriefs';
 import { buildTopicLlms } from '@/lib/llms';
 
 export async function getServerSideProps({ params, res }) {
@@ -32,6 +35,7 @@ export async function getServerSideProps({ params, res }) {
       episodes: result.episodes,
       editions: getEditionsForTopic(params.topic),
       answers: getAnswersForTopic(params.topic),
+      brief: getTopicBrief(params.topic),
       getTranscript: getTranscriptBySlug,
     })
   );

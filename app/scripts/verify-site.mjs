@@ -588,7 +588,41 @@ else {
   const s = (await status(sitemapRef.replace(SITE_URL, BASE))).status;
   if (s !== 200) fail('14 endpoints', `robots.txt Sitemap: ${sitemapRef} returned ${s}`);
 }
-log(`[14] endpoints: ${endpoints.length} checked`);
+
+// The agent-facing text files must only advertise URLs that resolve. Both
+// ways this broke in production: `/topics/<slug>/llms.txt` and
+// `/episodes/<slug>.md` placeholders, which a sanitizing reader strips to
+// `/topics//llms.txt` and `/episodes/.md` and then reports as 404s; and a
+// per topic index advertised for a hub that does not exist. So: no angle
+// bracket placeholder after a slash in any of them, and every per topic
+// llms.txt that robots.txt names returns 200.
+const PLACEHOLDER = /\/<[^>\s]+>/;
+const llmsFull = await getPage('/llms-full.txt');
+for (const [path, body] of [['/robots.txt', robots], ['/llms.txt', llmsIndex.body], ['/llms-full.txt', llmsFull.body]]) {
+  const hit = body.match(PLACEHOLDER);
+  if (hit) fail('14 endpoints', `${path} contains the placeholder URL segment "${hit[0]}"; use a real slug (see markdownRule in lib/llms.js)`);
+}
+const advertisedTopicIndexes = [...robots.matchAll(/^#\s*https?:\/\/\S+?(\/topics\/[a-z0-9-]+\/llms\.txt)\s*$/gm)].map((m) => m[1]);
+if (advertisedTopicIndexes.length === 0) fail('14 endpoints', 'robots.txt lists no per topic llms.txt (next-sitemap.config.js transformRobotsTxt)');
+for (const path of advertisedTopicIndexes) {
+  const s = (await status(path)).status;
+  if (s !== 200) fail('14 endpoints', `robots.txt advertises ${path}, which returned ${s}`);
+}
+
+// One episode count, everywhere it is stated. The HTML pages once counted by
+// the highest Simplecast episode number (307) while llms.txt counted the list
+// (305), and an audit read the disagreement as the index being stale. Both
+// now use episodes.length; this is what keeps them from drifting apart again.
+const llmsCount = llmsIndex.body.match(/^(\d+) episodes\./m)?.[1];
+// React separates a text node from an interpolated value with `<!-- -->`
+// in server HTML, so the markers are optional on both sides of the number.
+const archiveCount = (await getPage('/episodes')).body.match(/Archive · (?:<!-- -->)?(\d+)(?:<!-- -->)? Episodes/)?.[1];
+if (!llmsCount || !archiveCount) {
+  fail('14 endpoints', `could not read the episode count from ${llmsCount ? '/episodes' : '/llms.txt'}`);
+} else if (llmsCount !== archiveCount) {
+  fail('14 endpoints', `/llms.txt says ${llmsCount} episodes, /episodes says ${archiveCount}`);
+}
+log(`[14] endpoints: ${endpoints.length} checked, ${advertisedTopicIndexes.length} advertised topic indexes resolve`);
 
 // --- Check 16: is the running site built from the commit we think it is? -----
 

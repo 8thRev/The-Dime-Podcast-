@@ -5,7 +5,7 @@ import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
-import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
+import { getAllEpisodes } from '@/lib/rss';
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { createCollectionPageSchema } from '@/lib/schema';
 import { useSearchTracking, trackSearchResultClick } from '@/lib/useSearchTracking';
@@ -13,7 +13,9 @@ import { useSearchTracking, trackSearchResultClick } from '@/lib/useSearchTracki
 export default function Episodes({ allEpisodes }) {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const episodeCount = getLatestEpisodeNumber(allEpisodes);
+  // A count, so the length of the list, not the highest episode number:
+  // see getStaticProps in src/pages/index.js for why those differ.
+  const episodeCount = allEpisodes.length;
 
   // Seed the search box from the ?q= param so the SearchAction JSON-LD
   // (lib/schema.ts) resolves to a real, shareable, crawlable result page.
