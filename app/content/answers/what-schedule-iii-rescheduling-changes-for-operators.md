@@ -3,8 +3,8 @@ title: What Does Schedule III Rescheduling Actually Change for Operators?
 metaTitle: What Does Schedule III Change?
 slug: what-schedule-iii-rescheduling-changes-for-operators
 date: '2026-09-30'
-description: Schedule III ends 280E and opens research access, but banking, interstate commerce, and a federal framework still don't exist. Here's what actually changes.
-summary: Schedule III kills 280E and could lift profitability up to 30%, and it opens research and GMP pathways for supply chain operators. It does not fix banking, does not create interstate commerce for marijuana, and does not build a federal regulatory framework.
+description: Schedule III would end 280E and loosen research limits. It would not fix banking, interstate commerce or a federal framework, and it still needs rules.
+summary: The biggest change Schedule III brings is tax. Moving off Schedule I or II ends 280E, which Jon Purow put at up to a 30% profitability boost. It does not deliver banking, interstate commerce for marijuana or a federal regulatory framework, and as of the December 2025 executive order it still needed rulemaking.
 episodes:
 - emergency-ny-update-unknown-impact-of-cannabis-rescheduling-ip-protection-ft-jon-purow
 - schedule-iii-changes-everything-this-is-just-the-beginning
@@ -16,28 +16,30 @@ topics:
 - Banking & Payments
 faq:
 - question: Does Schedule III fix cannabis banking access?
-  answer: No. David Mangone and Erin Moffet of The Liaison Group note that rescheduling removes the 280E tax burden but does not create federal banking access, which still requires separate legislation like SAFE Banking.
+  answer: No. Erin Moffet of The Liaison Group said in 2024 that rescheduling doesn't provide banking access, and that safe banking still needs to pass on its own.
 - question: Can marijuana be shipped across state lines after Schedule III?
-  answer: No. Hemp-derived CBD can already move interstate, but marijuana and medical marijuana products remain restricted, giving federally licensed producers an advantage over state-licensed operators.
+  answer: Not on that basis alone. In December 2025, Matt of RHO Advisory said hemp products can already move interstate but the marijuana side can't, and he didn't expect medical licenses to get leeway either.
 - question: Who has to prepare the most for Schedule III compliance?
-  answer: Supply chain operators, meaning cultivators, extractors, and purification businesses, face the biggest decisions because new GMP standards like 21 CFR Part 211 will hit them before they hit brands.
-- question: Will Schedule III create new IP lawsuits against existing cannabis brands?
-  answer: Jon Purow doesn't expect it to. He argues rescheduling loosens restrictions rather than tightening them, and companies pursuing the FDA medical pathway are more likely to seek their own drug patents than attack the existing state-licensed market.
+  answer: Supply chain operators. Zach Edge said growers, extraction and purification operators have the most to work through, because the rulemaking affects them most, and that no state program fully meets the 21 CFR Part 211 pharmaceutical GMP standard.
+- question: Will Schedule III create IP lawsuits against existing cannabis brands?
+  answer: Jon Purow didn't think so in 2023. Asked whether a small operator making a near identical product would face patent claims, he said he didn't think they were at real risk.
 sourceQuery: manual:What does Schedule III rescheduling change for cannabis businesses?
 ---
 
-The single biggest change is tax, not legality. Jon Purow of Greenspoon Marder puts it plainly in [Emergency NY Update, Unknown Impact of Cannabis Rescheduling & IP Protection ft. Jon Purow](/episodes/emergency-ny-update-unknown-impact-of-cannabis-rescheduling-ip-protection-ft-jon-purow): eliminating 280E could boost industry profitability by up to 30 percent, and he calls that a bigger deal than SAFE Banking passing. That's the number operators should anchor on. Everything else is slower and messier.
+The single biggest change is tax, not legality. Jon Purow of Greenspoon Marder made the case in 2023, in [Emergency NY Update, Unknown Impact of Cannabis Rescheduling & IP Protection ft. Jon Purow](/episodes/emergency-ny-update-unknown-impact-of-cannabis-rescheduling-ip-protection-ft-jon-purow): under Schedule III, 280E no longer applies, operators can deduct normal business expenses, and he put that at potentially up to a 30% profitability boost. That is the number operators should anchor on. Everything else is slower and messier.
 
-## The tax fix is real, the legal status is not
+## Signed is not the same as done
 
-Schedule III does not deschedule cannabis. It does not make marijuana legal in states where it's currently prohibited, and it does not open interstate commerce for marijuana products. Hemp-derived CBD can already move across state lines, but marijuana and even medical marijuana licenses are unlikely to get that leeway, which gives federally licensed producers an edge over state-licensed ones, according to the breakdown in [Schedule III Changes Everything, This Is Just the Beginning](/episodes/schedule-iii-changes-everything-this-is-just-the-beginning) with Zach Edge and Matthew Moore of RHO Advisory and Madron Process Development. Matt is direct about where things actually stand: "This is really just the start, in my opinion. None of this has actual rules in it yet, it's all guidance for other people to come up with rules." The executive order started a process at DOJ, FDA, DEA, and HHS. It didn't finish one.
+The executive order came in December 2025, and the Dime covered it that day in [Schedule III Changes Everything, This Is Just the Beginning](/episodes/schedule-iii-changes-everything-this-is-just-the-beginning) with Zach Edge and Matt of RHO Advisory and Madron Process Development. Matt was direct about what it did and did not do: "None of this has actual rules in it yet, it's all guidance for other people to come up with rules." He said it has to go through rulemaking at DOJ, FDA, DEA and HHS. What the episode described was the start of a process, not a finished one, and operators should check where that rulemaking stands before planning around it.
+
+It also does not open interstate commerce for marijuana. Matt said hemp products can already move interstate, but the marijuana side can't, and he didn't expect medical licenses to get leeway there either. If they did, he said, FDA approved players might push to stop it, because interstate operation as a federally licensed facility is one of their advantages over state licensed operators.
 
 ## Supply chain operators carry the compliance weight
 
-Brands aren't where the pressure lands first. Cultivators, extractors, and purification operators are the ones facing GMP standards like 21 CFR Part 211, the pharmaceutical manufacturing code covering QC, QA, and track-and-trace. No state program currently meets that bar. Compounding pharmacies, which already operate under FDA and DEA compliance for other prescription substances, are positioned to move faster than cannabis operators building this from scratch. If you run cultivation, extraction, or processing, this is the part of Schedule III that turns into a capital decision, not a policy headline.
+Brands are not where the pressure lands first. Zach said supply chain operators, meaning growers and extraction and purification operators, have the most to work through, because the rulemaking affects them most. The order discusses GMP manufacturing, and 21 CFR Part 211 is specific about what pharmaceutical GMP requires. Zach said state programs approximate it to varying degrees but none fully meet it, particularly in QC and QA, track and trace, and downstream monitoring. Matt called compounding pharmacies probably the number one new entrants. The same episode described removing quotas and relaxing research access as a route to much better data.
 
 ## What Schedule III doesn't touch
 
-David Mangone and Erin Moffet of The Liaison Group, who lobby for the National Cannabis Roundtable, are blunt about the limits in [Behind the Scenes of Cannabis Lobbying: How it REALLY Works ft. The Liaison Group](/episodes/behind-the-scenes-of-cannabis-lobbying-how-it-really-works-ft-the-liaison-group). Rescheduling removes the 280E tax burden and improves research access by removing quota restrictions on Schedule I research facilities. It does not create federal banking access, it does not resolve criminal justice issues tied to prior cannabis convictions, and it does not build a federal regulatory framework for the state markets that already exist. Banking access still needs separate legislation. A federal framework still needs separate legislation.
+Erin Moffet of The Liaison Group laid out the limits in 2024 in [Behind the Scenes of Cannabis Lobbying](/episodes/behind-the-scenes-of-cannabis-lobbying-how-it-really-works-ft-the-liaison-group). Rescheduling doesn't provide banking access, so safe banking is still needed. Moving from Schedule I to Schedule III doesn't even change how most people are charged, so criminal justice reform is still needed. And it doesn't address regulatory structure, how to maintain a safe, regulated market.
 
-For an operator, the practical read is this: budget for the tax relief, because that's coming regardless of how slow rulemaking moves. Don't assume banking, interstate shipping, or a national license structure arrive on the same timeline. Those are different fights, and right now, nobody's won them yet.
+For an operator, the practical read is this. Model the 280E relief, but do not book it until the rules are final and in effect. Do not assume banking, interstate shipping or a national license structure arrive on the same timeline. Those are separate fights, and none of them is won by the order alone.
