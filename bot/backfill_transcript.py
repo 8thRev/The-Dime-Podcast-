@@ -27,6 +27,7 @@ from pathlib import Path
 import simplecast_feed
 from config import config
 from transcript_claude_client import TranscriptClaudeClient
+from verbatim import verified_quotes
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "app" / "content" / "transcripts"
 
@@ -120,6 +121,7 @@ def main() -> int:
     if not success:
         print("ERROR: Claude failed to produce usable artifacts.")
         return 1
+    artifacts["quotes"] = verified_quotes(artifacts)
 
     record = {
         "slug": args.slug,

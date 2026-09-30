@@ -25,6 +25,7 @@ import simplecast_feed
 from config import config
 from srt_utils import srt_to_text
 from transcript_claude_client import TranscriptClaudeClient
+from verbatim import verified_quotes
 from youtube_client import YouTubeClient
 
 OUTPUT_DIR = Path(__file__).resolve().parent.parent / "app" / "content" / "transcripts"
@@ -160,6 +161,7 @@ def main() -> int:
             continue
 
         consecutive_failures = 0
+        artifacts["quotes"] = verified_quotes(artifacts)
         record = {
             "slug": slug,
             "source": "youtube_captions",

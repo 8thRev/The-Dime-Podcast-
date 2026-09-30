@@ -56,19 +56,7 @@
   "quotes": [
     {
       "speaker": "Matt Karnes",
-      "quote": "The first outcome is the folks that are on the boat and they're not getting off that boat, and that boat is going down. They're going down with the ship."
-    },
-    {
-      "speaker": "Matt Karnes",
       "quote": "It's kicking the canna down the road."
-    },
-    {
-      "speaker": "Matt Karnes",
-      "quote": "There's no reason why the US shouldn't be the leader in cannabis."
-    },
-    {
-      "speaker": "Matt Karnes",
-      "quote": "I just think we're really at an inflection point for a lot of good things to happen."
     },
     {
       "speaker": "Bryan Fields",
@@ -83,7 +71,17 @@
     "M&A"
   ],
   "entities": {
-    "companies": ["Cowen", "Bear Stearns", "Stonehaven", "TerrAscend", "Ascend Wellness Holdings", "Glass House Farms"],
-    "people": ["Donald Trump", "Mike Tyson"]
+    "companies": [
+      "Cowen",
+      "Bear Stearns",
+      "Stonehaven",
+      "TerrAscend",
+      "Ascend Wellness Holdings",
+      "Glass House Farms"
+    ],
+    "people": [
+      "Donald Trump",
+      "Mike Tyson"
+    ]
   }
 }

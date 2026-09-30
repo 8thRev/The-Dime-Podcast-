@@ -68,10 +68,6 @@
     },
     {
       "speaker": "AnnaRae Grabstein",
-      "quote": "You can't just keep burning money forever. There are definitely groups that aren't [facing reality], but they're learning the hard way. And if you're going to survive, this is the way to do it."
-    },
-    {
-      "speaker": "AnnaRae Grabstein",
       "quote": "Qualitative due diligence is really doing a deep dive into understanding all the aspects of a company that aren't on a spreadsheet, starting there at a high level, and then using the spreadsheet to basically prove what you understood on a qualitative level."
     },
     {
@@ -87,7 +83,16 @@
     "Data & Technology"
   ],
   "entities": {
-    "companies": ["Wolf Meyer", "High Spirits", "Walmart"],
-    "people": ["Ben Larson", "Scott Galloway", "Sarah Blakely", "Josh Shapiro"]
+    "companies": [
+      "Wolf Meyer",
+      "High Spirits",
+      "Walmart"
+    ],
+    "people": [
+      "Ben Larson",
+      "Scott Galloway",
+      "Sarah Blakely",
+      "Josh Shapiro"
+    ]
   }
 }

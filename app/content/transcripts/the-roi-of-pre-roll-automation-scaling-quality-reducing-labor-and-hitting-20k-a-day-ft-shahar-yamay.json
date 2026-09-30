@@ -52,11 +52,7 @@
   "quotes": [
     {
       "speaker": "Shahar Yamay",
-      "quote": "I think the best quality for an engineer is to be open-minded and not be in love with your product."
-    },
-    {
-      "speaker": "Shahar Yamay",
-      "quote": "Above 30,000 units a month, it's a no-brainer... I'd say 30 to 50K a month is a good starting point."
+      "quote": "Above 30,000 units a month, it's a no-brainer — though it really depends on a lot of variables. I'd say 30 to 50K a month is a good starting point."
     },
     {
       "speaker": "Shahar Yamay",
@@ -71,9 +67,23 @@
       "quote": "That's the biggest challenge — earning the trust that a company will actually be there for you."
     }
   ],
-  "topics": ["Cultivation & Extraction", "Supply Chain & Distribution", "Labor & Workforce", "Data & Technology", "Branding & Marketing"],
+  "topics": [
+    "Cultivation & Extraction",
+    "Supply Chain & Distribution",
+    "Labor & Workforce",
+    "Data & Technology",
+    "Branding & Marketing"
+  ],
   "entities": {
-    "companies": ["Festi Tech", "Coca-Cola", "Pepsi", "Dyson"],
-    "people": ["Kellan Finney", "Jesse"]
+    "companies": [
+      "Festi Tech",
+      "Coca-Cola",
+      "Pepsi",
+      "Dyson"
+    ],
+    "people": [
+      "Kellan Finney",
+      "Jesse"
+    ]
   }
 }
