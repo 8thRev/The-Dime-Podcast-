@@ -23,7 +23,7 @@ import anthropic
 import spend_guard
 
 from config import config
-from isaac_prompts import get_answer_prompt, get_brief_prompt, get_fact_check_prompt
+from isaac_prompts import CHECK_VERDICTS, get_answer_prompt, get_brief_prompt, get_fact_check_prompt
 
 REQUIRED_KEYS = {
     "unanswerable",
@@ -41,6 +41,59 @@ REQUIRED_KEYS = {
 
 BRIEF_REQUIRED_KEYS = {"insufficient", "body"}
 
+
+def _object(properties: dict) -> dict:
+    """A closed JSON schema object with every property required."""
+    return {
+        "type": "object",
+        "properties": properties,
+        "required": list(properties),
+        "additionalProperties": False,
+    }
+
+
+_STRING = {"type": "string"}
+_STRINGS = {"type": "array", "items": _STRING}
+
+# Structured outputs (output_config.format) for all three calls. The prompts
+# already ask for strict JSON, but a brief's markdown body is long and full of
+# guest quotations, and on the first live brief run (Sep 30, 2026) both
+# attempts came back with an unescaped quote mid string: $0.15, no brief. A
+# schema makes the API emit valid JSON rather than asking the model to.
+POST_SCHEMA = _object(
+    {
+        "unanswerable": {"type": "boolean"},
+        "unanswerableReason": _STRING,
+        "timeSensitive": {"type": "boolean"},
+        "title": _STRING,
+        "metaTitle": _STRING,
+        "slug": _STRING,
+        "summary": _STRING,
+        "description": _STRING,
+        "body": _STRING,
+        "topics": _STRINGS,
+        "episodes": _STRINGS,
+        "faq": {"type": "array", "items": _object({"question": _STRING, "answer": _STRING})},
+    }
+)
+BRIEF_SCHEMA = _object({"insufficient": {"type": "boolean"}, "body": _STRING})
+CHECK_SCHEMA = _object(
+    {
+        "claims": {
+            "type": "array",
+            "items": _object(
+                {
+                    "claim": _STRING,
+                    "verdict": {"type": "string", "enum": list(CHECK_VERDICTS)},
+                    "episode": _STRING,
+                    "evidence": _STRING,
+                    "note": _STRING,
+                }
+            ),
+        }
+    }
+)
+
 MAX_GENERATION_ATTEMPTS = 2
 
 
@@ -55,7 +108,7 @@ class IsaacClaudeClient:
         # against max_tokens. With the grounding rules the first live run
         # (Sep 30, 2026) spent all 8,000 tokens thinking and never wrote the
         # JSON. Set explicitly so a model default can't change the bill.
-        self.write_options = {"output_config": {"effort": config.ISAAC_EFFORT}}
+        self.write_effort = config.ISAAC_EFFORT
         self.check_model = config.ISAAC_CHECK_MODEL
         self.check_max_tokens = config.ISAAC_CHECK_MAX_TOKENS
 
@@ -72,7 +125,9 @@ class IsaacClaudeClient:
             question, question_origin, sources, answered_questions, today, config.ISAAC_MAX_SOURCE_AGE_MONTHS
         )
         self.client.budget.label = "write"
-        return self._call_with_retry(prompt, self.model, self.max_tokens, REQUIRED_KEYS, self.write_options)
+        return self._call_with_retry(
+            prompt, self.model, self.max_tokens, REQUIRED_KEYS, POST_SCHEMA, effort=self.write_effort
+        )
 
     def generate_brief(self, topic: str, sources: list[dict], min_cited: int, today: str) -> tuple[bool, dict]:
         """One topic brief. Returns (success, data), data is {} on failure.
@@ -82,7 +137,9 @@ class IsaacClaudeClient:
         same non streaming call, effort and token cap serve both."""
         prompt = get_brief_prompt(topic, sources, min_cited, today, config.ISAAC_BRIEF_MAX_CITED)
         self.client.budget.label = "brief"
-        return self._call_with_retry(prompt, self.model, self.max_tokens, BRIEF_REQUIRED_KEYS, self.write_options)
+        return self._call_with_retry(
+            prompt, self.model, self.max_tokens, BRIEF_REQUIRED_KEYS, BRIEF_SCHEMA, effort=self.write_effort
+        )
 
     def check_post(
         self, post: dict, sources: list[dict], today: str, label: str = "fact check", max_tokens: int | None = None
@@ -92,18 +149,30 @@ class IsaacClaudeClient:
         too, as a post with an empty summary and FAQ."""
         prompt = get_fact_check_prompt(post, sources, today)
         self.client.budget.label = label
-        success, data = self._call_with_retry(prompt, self.check_model, max_tokens or self.check_max_tokens, {"claims"})
+        success, data = self._call_with_retry(
+            prompt, self.check_model, max_tokens or self.check_max_tokens, {"claims"}, CHECK_SCHEMA
+        )
         if not success or not isinstance(data.get("claims"), list):
             return False, []
         return True, [c for c in data["claims"] if isinstance(c, dict)]
 
     def _call_with_retry(
-        self, prompt: str, model: str, max_tokens: int, required: set[str], options: dict | None = None
+        self,
+        prompt: str,
+        model: str,
+        max_tokens: int,
+        required: set[str],
+        schema: dict,
+        effort: str | None = None,
     ) -> tuple[bool, dict]:
-        """options: extra request fields. Only the writer sends any: Haiku
-        4.5, the checker, rejects the effort parameter."""
+        """effort is sent only for the writers: Haiku 4.5, the checker,
+        rejects the effort parameter."""
+        output_config = {"format": {"type": "json_schema", "schema": schema}}
+        if effort:
+            output_config["effort"] = effort
+        options = {"output_config": output_config}
         for attempt in range(1, MAX_GENERATION_ATTEMPTS + 1):
-            success, data, retryable = self._generate_once(prompt, model, max_tokens, required, attempt, options or {})
+            success, data, retryable = self._generate_once(prompt, model, max_tokens, required, attempt, options)
             if success:
                 return True, data
             if not retryable:
