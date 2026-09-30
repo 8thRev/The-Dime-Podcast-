@@ -122,10 +122,29 @@ class Config:
 
     # Isaac Burner column (bot/isaac_blogger.py). Small budget by design: a
     # post is 350 to 700 words plus a short FAQ, an order of magnitude under
-    # a cleaned transcript, and the prompt carries only the summary,
-    # takeaways, FAQ and quotes of a handful of episodes rather than any
-    # full transcript.
+    # a cleaned transcript, and the writer's prompt carries a few thousand
+    # characters of transcript excerpts per episode rather than any full
+    # transcript.
     ISAAC_MAX_TOKENS: int = int(os.getenv("ISAAC_MAX_TOKENS", "8000"))
+
+    # The fact check pass reads the full transcripts of every cited episode
+    # (about 7,500 tokens each) and returns one verdict per claim. Haiku,
+    # because it is lookup and comparison rather than writing, and because
+    # on Sonnet the check alone would cost more than the post it checks.
+    ISAAC_CHECK_MODEL: str = os.getenv("ISAAC_CHECK_MODEL", "claude-haiku-4-5")
+    ISAAC_CHECK_MAX_TOKENS: int = int(os.getenv("ISAAC_CHECK_MAX_TOKENS", "8000"))
+
+    # Transcript excerpts per source in the writer's prompt, and their size.
+    # Five of about 900 characters is enough to carry the facts a post
+    # uses, and keeps three sources near 3,500 tokens.
+    ISAAC_PASSAGES_PER_SOURCE: int = int(os.getenv("ISAAC_PASSAGES_PER_SOURCE", "5"))
+    ISAAC_PASSAGE_CHARS: int = int(os.getenv("ISAAC_PASSAGE_CHARS", "900"))
+
+    # A post whose answer depends on something still pending (a bill, a
+    # rule, a lawsuit, a deal) is rejected when its newest cited episode is
+    # older than this. The Sep 30, 2026 SB3 post described a July 2025
+    # special session as upcoming, from a June 2025 episode.
+    ISAAC_MAX_SOURCE_AGE_MONTHS: int = int(os.getenv("ISAAC_MAX_SOURCE_AGE_MONTHS", "6"))
 
     # Posts per run. One is the intended cadence. The column's value is that
     # every post answers a question someone actually searched and cites real
