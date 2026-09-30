@@ -36,6 +36,16 @@ This repo has two parts:
     band. Add checks there rather than relying on the reviewer, who is reading for
     voice and accuracy.
 
+    After it, three accuracy gates: `unverified_quotes()` (every quotation word
+    for word in a cited transcript), `stale_reason()` (a post about something
+    still pending is refused when its newest episode is over
+    `ISAAC_MAX_SOURCE_AGE_MONTHS` old), and a fact check call on Haiku that
+    reads the full cited transcripts and rejects the post on any unsupported,
+    misattributed or stale claim. The writer sees transcript excerpts as
+    evidence; the summary, takeaways and FAQ in a transcript file are AI notes
+    and are labelled as orientation only. Do not loosen any of these to get a
+    post through: each one was added because a reviewed post got that wrong.
+
 ## Analytics
 
 Event tracking follows [docs/analytics-spec.md](docs/analytics-spec.md).

@@ -66,6 +66,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           POST_SLUG: ${{ steps.write.outputs.post_slug }}
           POST_TITLE: ${{ steps.write.outputs.post_title }}
+          FACT_CHECK: ${{ steps.write.outputs.fact_check }}
         run: |
           BRANCH="answers/${POST_SLUG}"
           git config user.name "isaac-burner-bot"
@@ -84,9 +85,12 @@ jobs:
             echo
             echo "Preview once Vercel builds: \`/answers/${POST_SLUG}\`"
             echo
-            echo "Before merging, check the three things the validator cannot:"
+            echo "Fact check: ${FACT_CHECK}"
+            echo "Every quotation was also matched word for word against a cited transcript. The full claim list is in the run log."
             echo
-            echo "- Does every claim actually match what the guest said, not just what the summary implies?"
+            echo "Before merging, check the things the automated checks cannot:"
+            echo
+            echo "- Is anything true as of the episode but out of date now? The checker only knows what the transcripts say."
             echo "- Is the position one the show would stand behind?"
             echo "- Does the short answer read like us?"
             echo
@@ -103,7 +107,7 @@ jobs:
       - name: Report a quiet run
         if: ${{ steps.write.outputs.post_count == '0' || steps.write.outputs.post_count == '' }}
         run: |
-          echo "No post this run. Every candidate question was already answered or could not be grounded in the catalogue." >> $GITHUB_STEP_SUMMARY
+          echo "No post this run. Every candidate question was already answered, could not be grounded in the catalogue, or failed the quote, staleness or fact check gates (reasons in the log)." >> $GITHUB_STEP_SUMMARY
 
       - name: Upload logs on failure
         if: failure()
