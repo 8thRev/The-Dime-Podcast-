@@ -16,7 +16,7 @@ faq:
 - question: How many dispensaries can one company operate in Ohio?
   answer: Up to eight per company, against a statewide legislative cap of 400 dispensaries, according to Caroline Henry of Buckeye Relief. That keeps any single operator from dominating shelf space or pricing statewide.
 - question: Did Ohio's slow rollout hurt its cannabis market?
-  answer: Caroline Henry argues the caps and phased rulemaking were deliberate tradeoffs to avoid Michigan's oversupply and pricing collapse, not signs of a broken market. Cultivators are only now expanding square footage now that Ohio's unregulated intoxicating hemp loophole has closed.
+  answer: Caroline Henry argues the caps and phased rulemaking were deliberate tradeoffs to avoid Michigan's oversupply and pricing collapse, not signs of a broken market. As of June 2026, she said cultivators were only then really expanding, partly because they had waited to see what happened with unregulated hemp, and that with that loophole closed they were growing without jumping straight to the max.
 - question: Is it still possible to get a new dispensary license in Ohio?
   answer: Yes. Caroline Henry said roughly 90 more dispensary licenses remain available beyond the roughly 310 expected once Issue 2 licenses are fully operational, awarded through an application and lottery-style process when the state sees demand.
 sourceQuery: manual:Why is Ohio's cannabis market built differently?
@@ -38,7 +38,7 @@ Ohio didn't wait for a complete adult-use framework before letting adult-use con
 
 The caps aren't a moat for incumbents either. Henry noted that once the additional dispensary licenses awarded under Issue 2 are fully operational, Ohio lands around 310 dispensaries, leaving roughly 90 more the state can open through an application and lottery-style process. Eight dispensaries per company is a small share of a 400-cap market, so there's real room for new entrants if the Division of Cannabis Control sees demand. That's structurally different from a market where a handful of MSOs can buy up unlimited licenses and squeeze out smaller operators.
 
-Jared Maloof of Standard Wellness, who helped build one of Ohio's early vertically integrated operators, described a market shaped by the same instinct toward control: greenhouses built for winter flower, indoor expansion built deliberately, growth that's slow and scrappy rather than maximal, as detailed in [Built for Consolidation](/episodes/built-for-consolidation-guided-by-icahn-like-discipline-and-poised-for-cannabis-next-iteration-ft-jared-maloof). The state's cap structure rewards that kind of operator, not the one racing to build the most square footage the fastest.
+Jared Maloof of Standard Wellness, whose company he says was the first vertically integrated operator in Ohio, shows what a capped market asks of an operator: you get one cultivation license, so every build decision counts. In [Built for Consolidation](/episodes/built-for-consolidation-guided-by-icahn-like-discipline-and-poised-for-cannabis-next-iteration-ft-jared-maloof) he called it a mistake to put flowering canopy in greenhouses in Ohio. The first harvests came in winter and were excellent, then summer brought 105 degrees inside the greenhouse and a brand that cycled between great winter product and a rough summer. He described Standard Wellness as having always run pretty scrappy. In a market where you cannot simply add another license, fixing a facility decision like that is the only way to grow.
 
 ## What It Means for Operators
 
