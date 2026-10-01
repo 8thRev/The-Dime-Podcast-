@@ -23,7 +23,7 @@ const FORM_HTML = `
 `;
 
 // Overrides Kit's default light-theme form styling to match the site's
-// dark design system, without touching the markup the loader script binds to.
+// design system, without touching the markup the loader script binds to.
 const FORM_STYLE = `
   [data-uid="101112441d"] { max-width: 420px; }
   [data-uid="101112441d"] .formkit-fields { display: flex; flex-direction: column; gap: 12px; }
@@ -32,7 +32,7 @@ const FORM_STYLE = `
     background: var(--navy2);
     border: 1px solid var(--border);
     color: var(--white);
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-body);
     font-size: 13px;
     padding: 14px 16px;
     width: 100%;
@@ -43,7 +43,7 @@ const FORM_STYLE = `
     color: var(--btn-primary-text);
     border: none;
     cursor: pointer;
-    font-family: 'Syne', sans-serif;
+    font-family: var(--font-body);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.15em;

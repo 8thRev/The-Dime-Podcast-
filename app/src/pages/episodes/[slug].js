@@ -216,11 +216,11 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             </span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, lineHeight: 1.2, marginBottom: '24px', fontFamily: "'Syne', sans-serif", color: 'var(--text-headline)' }}>
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, lineHeight: 1.2, marginBottom: '24px', fontFamily: 'var(--font-display)', color: 'var(--text-headline)' }}>
             {episode.title}
           </h1>
 
-          <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 500 }}>
+          <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 500 }}>
             {episode.guest && episode.guest !== 'Guest' ? (
               <Link href={`/guests/${guestToSlug(episode.guest)}`} style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--border-subtle)' }}>
                 {episode.guest}
@@ -359,7 +359,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
               The analysis behind this episode
             </div>
-            <Link href={`/newsletter/${edition.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '19px', fontWeight: 600, lineHeight: 1.3, fontFamily: "'Crimson Pro', Georgia, serif", marginBottom: '8px' }}>
+            <Link href={`/newsletter/${edition.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '19px', fontWeight: 600, lineHeight: 1.3, fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
               {edition.title}
             </Link>
             <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 10px' }}>
@@ -372,7 +372,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
         )}
 
         <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: "'Crimson Pro', Georgia, serif", fontStyle: 'italic', fontWeight: 400 }}>
+          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 400 }}>
             {episode.description}
           </p>
 
@@ -436,12 +436,12 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
                   margin: '0 0 20px 0',
                   fontSize: '17px',
                   fontStyle: 'italic',
-                  fontFamily: "'Crimson Pro', Georgia, serif",
+                  fontFamily: 'var(--font-body)',
                   color: 'var(--text-headline)',
                 }}
               >
                 “{item.quote}”
-                <footer style={{ fontSize: '13px', fontStyle: 'normal', fontFamily: "'Syne', sans-serif", color: 'var(--text-muted)', marginTop: '8px' }}>
+                <footer style={{ fontSize: '13px', fontStyle: 'normal', fontFamily: 'var(--font-display)', color: 'var(--text-muted)', marginTop: '8px' }}>
                   — {item.speaker}
                 </footer>
               </blockquote>
@@ -535,10 +535,10 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
                   onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-surface)')}
                   onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
-                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px', fontFamily: "'Crimson Pro', Georgia, serif", color: 'var(--text-headline)' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px', fontFamily: 'var(--font-body)', color: 'var(--text-headline)' }}>
                     {ep.title}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                     {ep.guest} · {ep.date.split(',')[0]}
                   </div>
                 </Link>

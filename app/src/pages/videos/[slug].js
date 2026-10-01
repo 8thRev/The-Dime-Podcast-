@@ -223,7 +223,7 @@ export default function VideoPage({
             </span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 'normal', lineHeight: 1.2, marginBottom: '24px', fontFamily: 'Georgia, serif' }}>
+          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 'normal', lineHeight: 1.2, marginBottom: '24px', fontFamily: 'var(--font-base)' }}>
             {video.title}
           </h1>
 
@@ -280,14 +280,14 @@ export default function VideoPage({
             >
               Full episode, transcript &amp; show notes →
             </Link>
-            <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontFamily: 'Georgia, serif' }}>
+            <div style={{ marginTop: '6px', fontSize: '13px', color: 'var(--text-secondary)', fontFamily: 'var(--font-base)' }}>
               {linkedEpisode.title}
             </div>
           </section>
         )}
 
         <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'Georgia, serif', whiteSpace: 'pre-wrap' }}>
+          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'var(--font-base)', whiteSpace: 'pre-wrap' }}>
             {video.description}
           </p>
 
@@ -303,7 +303,7 @@ export default function VideoPage({
               background: 'var(--btn-primary-bg)',
               color: 'var(--btn-primary-text)',
               textDecoration: 'none',
-              fontFamily: "'Syne', sans-serif",
+              fontFamily: 'var(--font-display)',
               fontSize: '11px',
               fontWeight: '700',
               letterSpacing: '.14em',
@@ -408,10 +408,10 @@ export default function VideoPage({
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   </div>
-                  <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', fontFamily: 'Georgia, serif', lineHeight: 1.3 }}>
+                  <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', fontFamily: 'var(--font-base)', lineHeight: 1.3 }}>
                     {v.title}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                     {v.date}
                   </div>
                 </Link>

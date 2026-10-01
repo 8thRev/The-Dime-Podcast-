@@ -74,8 +74,8 @@ export default function Header() {
           position: 'sticky',
           top: 0,
           zIndex: 300,
-          background: scrolled ? 'rgba(17,17,17,.98)' : 'transparent',
-          borderBottom: scrolled ? '1px solid #333333' : '1px solid transparent',
+          background: scrolled ? 'var(--nav-bg-scrolled)' : 'transparent',
+          borderBottom: scrolled ? '1px solid var(--border-default)' : '1px solid transparent',
           transition: 'all .3s',
           backdropFilter: 'blur(12px)',
         }}
@@ -92,11 +92,11 @@ export default function Header() {
           }}
         >
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 'clamp(8px, 2vw, 14px)', textDecoration: 'none', flex: 1 }}>
-            <span className="syne header-logo-text" style={{ fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 800, color: '#EEEEEE', letterSpacing: '.14em' }}>
+            <span className="syne header-logo-text" style={{ fontSize: 'clamp(16px, 4vw, 22px)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '.14em' }}>
               THE DIME
             </span>
-            <span className="header-logo-divider" style={{ width: 1, height: 16, background: '#333333' }} />
-            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '8px', color: '#777777', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
+            <span className="header-logo-divider" style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
+            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
               CANNABIS
             </span>
           </Link>
@@ -131,7 +131,7 @@ export default function Header() {
               display: 'none',
               background: 'none',
               border: 'none',
-              color: '#EEEEEE',
+              color: 'var(--text-primary)',
               fontSize: '24px',
               cursor: 'pointer',
               padding: '8px',
@@ -150,8 +150,8 @@ export default function Header() {
               flexDirection: 'column',
               gap: '0',
               padding: '12px',
-              background: 'rgba(24,24,24,.95)',
-              borderTop: '1px solid #333333',
+              background: 'var(--nav-menu-bg)',
+              borderTop: '1px solid var(--border-default)',
             }}
           >
             {NAV.map((nav) => (
@@ -161,11 +161,11 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
                 style={{
                   padding: '12px',
-                  color: '#BBBBBB',
+                  color: 'var(--text-secondary)',
                   textDecoration: 'none',
-                  borderBottom: '1px solid #2A2A2A',
+                  borderBottom: '1px solid var(--border-subtle)',
                   fontSize: '14px',
-                  fontFamily: 'Syne, sans-serif',
+                  fontFamily: 'var(--font-display)',
                 }}
               >
                 {nav.label}

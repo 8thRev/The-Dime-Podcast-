@@ -537,7 +537,7 @@ export async function getAllEpisodes(): Promise<Episode[]> {
         showNotes,
         audioUrl: item.enclosure?.url || "",
         tags: tags.slice(0, 5),
-        playerUrl: `https://player.simplecast.com/${id}?dark=true&color=00C9A7`,
+        playerUrl: `https://player.simplecast.com/${id}?dark=false&color=0D6E9E`,
       };
     });
 

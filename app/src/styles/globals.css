@@ -1,8 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Syne+Mono&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,400;100,600;100,700;125,800&family=Instrument+Serif:ital@0;1&family=Libre+Franklin:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 /* ============================================================
-   THE DIME PODCAST — BRAND DESIGN SYSTEM
-   Mobile-first responsive design
+   THE DIME PODCAST — BRAND DESIGN SYSTEM ("Split", Oct 2026)
+   Paper palette. Instrument Serif for headlines, Libre Franklin for
+   body and UI, IBM Plex Mono for data. The wordmark alone is set in
+   Archivo Expanded so the site, the cover tile and the YouTube
+   thumbnails share one mark. Mobile-first responsive design.
    ============================================================ */
 
 /* Breakpoints */
@@ -41,42 +44,42 @@ html {
   --blue-dark:    #0D6E9E;
 
   /* ----------------------------------------------------------
-     BACKGROUNDS — True black system
+     BACKGROUNDS — Paper system (warm off-white)
   ---------------------------------------------------------- */
-  --bg-true-black:  #0A0A0A;
-  --bg-base:        #111111;
-  --bg-surface:     #181818;
-  --bg-elevated:    #222222;
-  --bg-overlay:     #2A2A2A;
+  --bg-true-black:  #F2EFE9;
+  --bg-base:        #F7F5F0;
+  --bg-surface:     #FFFFFF;
+  --bg-elevated:    #FFFFFF;
+  --bg-overlay:     #ECE8E0;
 
   /* ----------------------------------------------------------
-     COIN / CHROME — Silver metallic accents
+     COIN / CHROME — Warm silver accents
   ---------------------------------------------------------- */
-  --chrome-shadow:  #888888;
-  --chrome-base:    #A0A0A0;
-  --chrome-mid:     #C4C4C4;
-  --chrome-high:    #E8E8E8;
+  --chrome-shadow:  #8A847A;
+  --chrome-base:    #A39D92;
+  --chrome-mid:     #C4BDB0;
+  --chrome-high:    #D9D3C8;
   --chrome-peak:    #F5F3EF;
-  --coin-warm:      #D8D4CC;
+  --coin-warm:      #E6E1D8;
 
   /* ----------------------------------------------------------
      TYPOGRAPHY
   ---------------------------------------------------------- */
-  --text-headline:  #FFFFFF;
-  --text-primary:   #EEEEEE;
-  --text-secondary: #BBBBBB;
-  --text-muted:     #777777;
-  --text-disabled:  #444444;
-  --text-accent:    #3CB8F0;
+  --text-headline:  #15130F;
+  --text-primary:   #2A2723;
+  --text-secondary: #5A554D;
+  --text-muted:     #6E6860;
+  --text-disabled:  #B8B2A8;
+  --text-accent:    #0D6E9E;
 
   /* ----------------------------------------------------------
      BORDERS & LINES
   ---------------------------------------------------------- */
-  --border-subtle:  #2A2A2A;
-  --border-default: #333333;
-  --border-strong:  #444444;
+  --border-subtle:  #E6E1D8;
+  --border-default: #D9D3C8;
+  --border-strong:  #C4BDB0;
   --border-accent:  #1A9ADB;
-  --border-chrome:  #C4C4C4;
+  --border-chrome:  #B8B2A8;
 
   /* ----------------------------------------------------------
      SEMANTIC / STATUS
@@ -89,48 +92,50 @@ html {
   /* ----------------------------------------------------------
      COMPONENT TOKENS
   ---------------------------------------------------------- */
-  --nav-bg:             #111111;
-  --nav-border:         #2A2A2A;
-  --nav-text:           #BBBBBB;
-  --nav-text-hover:     #FFFFFF;
-  --nav-text-active:    #3CB8F0;
-  --nav-logo-color:     #3CB8F0;
+  --nav-bg:             #F7F5F0;
+  --nav-border:         #E6E1D8;
+  --nav-text:           #5A554D;
+  --nav-text-hover:     #15130F;
+  --nav-text-active:    #0D6E9E;
+  --nav-logo-color:     #15130F;
 
-  --btn-primary-bg:         #3CB8F0;
-  --btn-primary-text:       #0A0A0A;
-  --btn-primary-bg-hover:   #6DCFF5;
-  --btn-primary-bg-active:  #1A9ADB;
+  --btn-primary-bg:         #15130F;
+  --btn-primary-text:       #F7F5F0;
+  --btn-primary-bg-hover:   #2A2723;
+  --btn-primary-bg-active:  #000000;
 
-  --btn-ghost-border:       #3CB8F0;
-  --btn-ghost-text:         #3CB8F0;
-  --btn-ghost-bg-hover:     rgba(60, 184, 240, 0.08);
+  --btn-ghost-border:       #C4BDB0;
+  --btn-ghost-text:         #15130F;
+  --btn-ghost-bg-hover:     rgba(21, 19, 15, 0.05);
 
-  --card-bg:            #181818;
-  --card-border:        #2A2A2A;
-  --card-border-hover:  #3CB8F0;
-  --card-text-title:    #FFFFFF;
-  --card-text-meta:     #777777;
-  --card-text-body:     #BBBBBB;
+  --card-bg:            #FFFFFF;
+  --card-border:        #E6E1D8;
+  --card-border-hover:  #1A9ADB;
+  --card-text-title:    #15130F;
+  --card-text-meta:     #6E6860;
+  --card-text-body:     #5A554D;
 
-  --tag-bg:     rgba(60, 184, 240, 0.10);
-  --tag-border: rgba(60, 184, 240, 0.25);
-  --tag-text:   #3CB8F0;
+  --tag-bg:     rgba(13, 110, 158, 0.08);
+  --tag-border: rgba(13, 110, 158, 0.25);
+  --tag-text:   #0D6E9E;
 
-  --divider-chrome:   #C4C4C4;
-  --divider-subtle:   #2A2A2A;
+  --divider-chrome:   #C4BDB0;
+  --divider-subtle:   #E6E1D8;
 
-  --coin-border:        #C4C4C4;
-  --coin-fill:          #D8D4CC;
+  --coin-border:        #C4BDB0;
+  --coin-fill:          #E6E1D8;
   --coin-highlight:     #F5F3EF;
-  --coin-shadow-edge:   #888888;
-  --coin-glow:          rgba(60, 184, 240, 0.15);
+  --coin-shadow-edge:   #8A847A;
+  --coin-glow:          rgba(26, 154, 219, 0.15);
 
   /* ----------------------------------------------------------
      TYPOGRAPHY SCALE
   ---------------------------------------------------------- */
-  --font-display: 'Syne', 'Arial Narrow', sans-serif;
-  --font-body:    'Crimson Pro', Georgia, serif;
-  --font-mono:    'Syne Mono', 'Courier New', monospace;
+  --font-display:  'Instrument Serif', Georgia, serif;
+  --font-wordmark: 'Archivo', 'Arial Narrow', sans-serif;  /* THE DIME only */
+  --font-body:    'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono:    'IBM Plex Mono', 'Courier New', monospace;
+  --font-base:    'Libre Franklin', 'Helvetica Neue', Arial, sans-serif;   /* unclassed body text */
 
   --text-xs:   0.75rem;    /* 12px */
   --text-sm:   0.875rem;   /* 14px */
@@ -166,10 +171,10 @@ html {
   /* ----------------------------------------------------------
      SHADOWS
   ---------------------------------------------------------- */
-  --shadow-coin:    0 0 32px rgba(60, 184, 240, 0.12), 0 8px 24px rgba(0,0,0,0.6);
-  --shadow-card:    0 2px 12px rgba(0,0,0,0.4);
-  --shadow-card-hover: 0 4px 24px rgba(0,0,0,0.6), 0 0 0 1px #3CB8F0;
-  --shadow-btn:     0 0 16px rgba(60, 184, 240, 0.25);
+  --shadow-coin:    0 0 32px rgba(26, 154, 219, 0.12), 0 8px 24px rgba(20, 18, 14, 0.10);
+  --shadow-card:    0 2px 12px rgba(20, 18, 14, 0.06);
+  --shadow-card-hover: 0 4px 24px rgba(20, 18, 14, 0.10), 0 0 0 1px #1A9ADB;
+  --shadow-btn:     0 4px 16px rgba(21, 19, 15, 0.18);
 
   /* ----------------------------------------------------------
      TRANSITIONS
@@ -181,16 +186,25 @@ html {
   /* ----------------------------------------------------------
      LEGACY ALIASES — kept for backward compatibility
   ---------------------------------------------------------- */
-  --navy2:  #181818;
-  --border: #333333;
-  --white:  #EEEEEE;
-  --faint:  #2A2A2A;
+  --navy2:  #FFFFFF;
+  --border: #D9D3C8;
+  --white:  #2A2723;
+  --faint:  #E6E1D8;
+
+  /* ----------------------------------------------------------
+     COMPONENT HOOKS — places that used to hard-code a value.
+  ---------------------------------------------------------- */
+  --accent-display:   #0D6E9E;  /* big type only: hero word, stat numbers */
+  --watermark-stroke: #E3DED5;  /* outlined DIME behind the hero */
+  --card-bg-hover:    #F3F8FC;
+  --nav-bg-scrolled:  rgba(247, 245, 240, 0.96);
+  --nav-menu-bg:      rgba(255, 255, 255, 0.98);
 }
 
 body {
   background: var(--bg-base);
   color: var(--text-primary);
-  font-family: Georgia, serif;
+  font-family: var(--font-base);
   overflow-x: hidden;
 }
 
@@ -201,15 +215,15 @@ body {
 
 /* Typography Classes */
 .syne {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
 }
 
 .mono {
-  font-family: 'Syne Mono', monospace;
+  font-family: var(--font-mono);
 }
 
 .crimson {
-  font-family: 'Crimson Pro', Georgia, serif;
+  font-family: var(--font-body);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -231,7 +245,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose-body h2 {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   line-height: 1.25;
@@ -239,7 +253,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose-body h3 {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 19px;
   font-weight: 700;
   line-height: 1.3;
@@ -306,7 +320,7 @@ a:hover {
   background: none;
   border: none;
   cursor: pointer;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.15em;
@@ -328,7 +342,7 @@ a:hover {
   color: var(--btn-primary-text);
   border: none;
   cursor: pointer;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.15em;
@@ -356,7 +370,7 @@ a:hover {
   border: 1px solid var(--btn-ghost-border);
   color: var(--btn-ghost-text);
   cursor: pointer;
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.15em;
@@ -433,19 +447,6 @@ a:hover {
   background: var(--border-default);
 }
 
-/* Grain Overlay */
-.grain {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  opacity: 0.02;
-  z-index: 999;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 /* Animations */
 @keyframes fadeUp {
   from {
@@ -468,7 +469,7 @@ textarea {
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   color: var(--text-primary);
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: 13px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
@@ -650,7 +651,7 @@ textarea::placeholder {
 }
 
 .ticker-name {
-  font-family: 'Syne', sans-serif;
+  font-family: var(--font-display);
   font-size: clamp(13px, 3.5vw, 18px);
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -664,7 +665,7 @@ textarea::placeholder {
 }
 
 .ticker-separator {
-  font-family: 'Syne Mono', monospace;
+  font-family: var(--font-mono);
   font-size: clamp(10px, 2vw, 12px);
   color: var(--text-muted);
   flex-shrink: 0;
@@ -677,4 +678,113 @@ textarea::placeholder {
   .ticker-separator {
     font-size: 9px;
   }
+}
+
+/* ============================================================
+   TYPE RULES
+   Instrument Serif ships one weight, so headings never go bold.
+   Labels never go below 12px. The !important rules override sizes and
+   weights that pages still set inline; those inline values are the
+   next cleanup, after which these can go.
+   ============================================================ */
+.syne,
+h1, h2, h3 {
+  font-weight: 400 !important;
+  letter-spacing: -0.01em !important;
+}
+
+.mono,
+.nav-link,
+.tag {
+  font-size: max(12px, 1em) !important;
+  letter-spacing: 0.08em !important;
+}
+
+.header-tagline {
+  font-size: 11px !important;
+}
+
+.crimson {
+  font-weight: 400 !important;
+}
+
+.nav-link,
+.btn-teal,
+.btn-primary,
+.btn-outline,
+.btn-ghost,
+.tag,
+.ticker-name {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+
+.btn-teal,
+.btn-primary,
+.btn-outline,
+.btn-ghost {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+.hero-title {
+  line-height: 0.98 !important;
+  max-width: 14ch !important;
+}
+
+.hero-title span {
+  font-style: italic;
+}
+
+/* The wordmark is a logo, not a heading. */
+.header-logo-text,
+.footer-logo-text {
+  font-family: var(--font-wordmark) !important;
+  font-variation-settings: 'wdth' 125;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  font-size: clamp(15px, 3.4vw, 19px) !important;
+}
+
+/* Listen chips: the platform links in the hero. */
+.listen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  padding: 11px 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--tag-border);
+  background: var(--tag-bg);
+  color: var(--text-accent);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.listen-chip svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.listen-chip:hover {
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.listen-chip.is-primary {
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+  color: #FFFFFF;
+}
+
+.listen-chip.is-primary:hover {
+  background: var(--blue-dark);
+  border-color: var(--blue-dark);
 }

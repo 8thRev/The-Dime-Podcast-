@@ -57,7 +57,7 @@ export default function Videos({ allVideos }) {
             placeholder="Search title, topic..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', outline: 'none' }}
+            style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: 'var(--font-display)', fontSize: '13px', padding: '14px 16px', outline: 'none' }}
           />
         </div>
 
