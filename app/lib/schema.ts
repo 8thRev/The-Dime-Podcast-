@@ -2,6 +2,7 @@
 // Helpers for generating JSON-LD schema markup
 
 import { SPONSOR_NAME, SPONSOR_URL, SPONSOR_ORG_ID } from "./sponsor";
+import { withoutUtm } from "./utm";
 import { PODCAST_FEED_URL, APPLE_PODCASTS_URL, SPOTIFY_URL, YOUTUBE_URL } from "./listenLinks";
 
 export interface SchemaMarkup {
@@ -90,7 +91,7 @@ export function createPodcastEpisodeSchema(
     /** The cleaned AI transcript, when the episode has one. */
     transcript?: string;
     entities?: { companies: string[]; people: string[] };
-    guest?: { name: string; company?: string; companyUrl?: string };
+    guest?: { name: string; slug: string; company?: string; companyUrl?: string };
   } = {}
 ): SchemaMarkup {
   const url = `${siteUrl}/episodes/${episode.slug}`;
@@ -159,7 +160,7 @@ export function createPodcastEpisodeSchema(
   // represented, leaving the guest (the actual search-query-worthy name)
   // invisible to entity-based search/LLM grounding.
   if (options.guest?.name) {
-    schema.contributor = personNode(options.guest.name, options.guest.company, options.guest.companyUrl);
+    schema.contributor = personNode(options.guest, siteUrl);
   }
 
   // Entity-level signal for search/LLM retrieval — other companies and
@@ -175,29 +176,49 @@ export function createPodcastEpisodeSchema(
   return schema;
 }
 
+// slug is the /guests/<slug> page. Absent for a person with no guest page
+// (the hosts on /about), who then gets no @id or url rather than a broken one.
+type GuestPerson = { name: string; slug?: string; company?: string; companyUrl?: string };
+
+// The guest's one identifier across the site. The episode's contributor and
+// the guest page's Person both carry it, so a parser reading either resolves
+// the same entity instead of two look-alike name strings.
+export function guestPersonId(slug: string, siteUrl: string = "https://www.dimepodcast.com"): string {
+  return `${siteUrl}/guests/${slug}#person`;
+}
+
 // Nested Person fragment (no @context — only for embedding inside another
 // schema node, e.g. PodcastEpisode.contributor).
-function personNode(name: string, company?: string, companyUrl?: string): Record<string, unknown> {
-  const node: Record<string, unknown> = { "@type": "Person", name };
-  if (company) {
+//
+// worksFor is emitted only for a curated company (GUEST_COMPANY_MAP in
+// lib/rss.ts), never for the show notes' guest link, and its url is stripped
+// of campaign params: in JSON-LD the URL is a fact about the organisation,
+// not a click to attribute.
+function personNode(person: GuestPerson, siteUrl: string): Record<string, unknown> {
+  const node: Record<string, unknown> = { "@type": "Person", name: person.name };
+  if (person.slug) {
+    node["@id"] = guestPersonId(person.slug, siteUrl);
+    node.url = `${siteUrl}/guests/${person.slug}`;
+  }
+  if (person.company) {
+    const orgUrl = withoutUtm(person.companyUrl);
     node.worksFor = {
       "@type": "Organization",
-      name: company,
-      ...(companyUrl ? { url: companyUrl } : {}),
+      name: person.company,
+      ...(orgUrl ? { url: orgUrl } : {}),
     };
   }
   return node;
 }
 
 // Standalone Person schema, for guest entity pages.
-export function createPersonSchema(person: {
-  name: string;
-  company?: string;
-  companyUrl?: string;
-}): SchemaMarkup {
+export function createPersonSchema(
+  person: GuestPerson,
+  siteUrl: string = "https://www.dimepodcast.com"
+): SchemaMarkup {
   return {
     "@context": "https://schema.org",
-    ...personNode(person.name, person.company, person.companyUrl),
+    ...personNode(person, siteUrl),
   } as SchemaMarkup;
 }
 

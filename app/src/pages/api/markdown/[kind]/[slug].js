@@ -36,89 +36,9 @@
 //   effect is that this handler's own path is not a second indexable copy
 //   of the same text.
 
-import { getEpisodeBySlug } from '@/lib/rss';
-import { getTranscriptBySlug } from '@/lib/transcripts';
-import { getGuestBySlug } from '@/lib/guests';
-import { getEditionBySlug, getEditionForEpisode, getEditionsForGuest, getEditionsForTopic } from '@/lib/newsletter';
-import { getAnswerBySlug } from '@/lib/answers';
-import { getEpisodesByTopicSlug } from '@/lib/topics';
-import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
-import { getAllVideos } from '@/lib/youtube';
-import {
-  buildEpisodeMarkdown,
-  buildGuestMarkdown,
-  buildEditionMarkdown,
-  buildAnswerMarkdown,
-  buildTopicMarkdown,
-} from '@/lib/markdown';
+import { buildMarkdownDoc } from '@/lib/markdownDocs';
 
 const CACHE_CONTROL = 's-maxage=3600, stale-while-revalidate';
-
-// Each builder returns the document, null for "no such page", or
-// { redirect } when the slug is an episode's retired truncated form (the HTML
-// page 301s those to the full slug; the .md does the same so the two never
-// answer differently for one slug).
-const BUILDERS = {
-  episodes: async (slug) => {
-    const episode = await getEpisodeBySlug(slug);
-    if (!episode) return null;
-    if (episode.legacySlug && slug === episode.legacySlug) {
-      return { redirect: `/episodes/${episode.slug}.md` };
-    }
-    const transcript = getTranscriptBySlug(episode.slug);
-    const videoIds = getVideoIdsForEpisode(episode.slug);
-    let videos = [];
-    if (videoIds.length > 0) {
-      const byId = new Map((await getAllVideos()).map((v) => [v.id, v]));
-      videos = videoIds.map((id) => byId.get(id)).filter(Boolean);
-    }
-    return buildEpisodeMarkdown({ episode, transcript, videos, edition: getEditionForEpisode(episode.slug) });
-  },
-
-  guests: async (slug) => {
-    const result = await getGuestBySlug(slug);
-    if (!result) return null;
-    return buildGuestMarkdown({
-      guest: result.guest,
-      episodes: result.episodes,
-      editions: getEditionsForGuest(slug),
-      getTranscript: getTranscriptBySlug,
-    });
-  },
-
-  newsletter: async (slug) => {
-    const edition = getEditionBySlug(slug);
-    if (!edition) return null;
-    const episode = edition.episodeSlug ? await getEpisodeBySlug(edition.episodeSlug) : null;
-    return buildEditionMarkdown({ edition, episode });
-  },
-
-  answers: async (slug) => {
-    const post = getAnswerBySlug(slug);
-    if (!post) return null;
-    // Same build-time resolution the HTML page does, and the same silent
-    // drop for a slug that is not in the feed, so the two renderings cite
-    // exactly the same episodes.
-    const episodes = [];
-    for (const episodeSlug of post.episodes) {
-      const match = await getEpisodeBySlug(episodeSlug);
-      if (match) episodes.push(match);
-    }
-    return buildAnswerMarkdown({ post, episodes });
-  },
-
-  topics: async (slug) => {
-    const result = await getEpisodesByTopicSlug(slug);
-    if (!result) return null;
-    return buildTopicMarkdown({
-      topic: result.topic,
-      slug,
-      episodes: result.episodes,
-      editions: getEditionsForTopic(slug),
-      getTranscript: getTranscriptBySlug,
-    });
-  },
-};
 
 function notFound(res) {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -134,13 +54,7 @@ export default async function handler(req, res) {
   }
 
   const { kind, slug } = req.query;
-  const build = Object.prototype.hasOwnProperty.call(BUILDERS, kind) ? BUILDERS[kind] : null;
-  if (!build || typeof slug !== 'string' || !slug) {
-    notFound(res);
-    return;
-  }
-
-  const result = await build(slug);
+  const result = await buildMarkdownDoc(kind, slug);
   if (!result) {
     notFound(res);
     return;

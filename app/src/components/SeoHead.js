@@ -31,7 +31,9 @@ export default function SeoHead({
   noindex = false,
   // Set true on the four content page kinds that have a Markdown variant at
   // `${path}.md` (episodes, guests, newsletter editions, topic hubs; see
-  // lib/markdown.js), so the page head advertises it to agents.
+  // lib/markdown.js), so the page head advertises it to agents. A string is
+  // used as the href instead, for a page whose Markdown twin is not simply
+  // `${path}.md` (the /episodes search: /episodes.md?q=...).
   markdownAlternate = false,
   // Set true when `title` already IS the full page title (e.g. the
   // homepage's "The Dime Podcast — Cannabis Business Intelligence"), so
@@ -48,7 +50,13 @@ export default function SeoHead({
       <title>{fullTitle}</title>
       <meta name="description" content={desc} />
       <link rel="canonical" href={canonical} />
-      {markdownAlternate && <link rel="alternate" type="text/markdown" href={`${canonical}.md`} />}
+      {markdownAlternate && (
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href={typeof markdownAlternate === 'string' ? markdownAlternate : `${canonical}.md`}
+        />
+      )}
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={desc} />
       <meta property="og:type" content={ogType} />

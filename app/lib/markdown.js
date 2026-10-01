@@ -26,6 +26,7 @@ import { SITE_URL, oneLine, episodeLines } from './llms';
 import { topicToSlug } from './topicSlug';
 import { COLUMN_AUTHOR, COLUMN_AUTHOR_ROLE } from './answersColumn';
 import { guestToSlug } from './guests';
+import { withoutUtm, decodeHrefEntities } from './utm';
 
 const AI_NOTE = '> AI generated from the episode audio by the transcript pipeline. May contain errors.';
 const ANSWERS_NOTE =
@@ -93,8 +94,12 @@ export function htmlToMarkdown(html) {
     .replace(/<(strong|b)>([\s\S]*?)<\/\1>/gi, '**$2**')
     .replace(/<(em|i)>([\s\S]*?)<\/\1>/gi, '*$2*')
     .replace(/<a\s[^>]*href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi, (m, href, label) => {
+      // Campaign params come off: the HTML page tags show-notes links for
+      // click attribution (lib/utm.ts), but an agent reading the .md is
+      // quoting the URL, not clicking it.
+      const url = withoutUtm(decodeHrefEntities(href));
       const clean = label.replace(/<[^>]+>/g, '').trim();
-      return clean ? `[${clean}](${href})` : href;
+      return clean ? `[${clean}](${url})` : url;
     })
     .replace(/<[^>]+>/g, '');
   return decodeEntities(text)
@@ -193,8 +198,14 @@ export function buildGuestMarkdown({ guest, episodes, editions = [], getTranscri
     '',
     `- Canonical: ${url}`,
   ];
+  // Company comes only from GUEST_COMPANY_MAP (lib/rss.ts). The show notes'
+  // guest link is stated as a link, never as an employer, and both drop their
+  // campaign params: an agent reads these URLs as facts, not clicks.
   if (guest.company) {
-    lines.push(`- Company: ${guest.company}${guest.companyUrl ? ` (${guest.companyUrl})` : ''}`);
+    const companyUrl = withoutUtm(guest.companyUrl);
+    lines.push(`- Company: ${guest.company}${companyUrl ? ` (${companyUrl})` : ''}`);
+  } else if (guest.guestLink) {
+    lines.push(`- Link from the show notes: ${withoutUtm(guest.guestLink)}`);
   }
   lines.push(`- Episodes: ${guest.episodeCount}`, '', `## Episodes with ${guest.name}`, '');
   // Not episodeLines from lib/llms.js: that format leads with the guest's

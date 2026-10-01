@@ -17,7 +17,9 @@
 // degrades to a prefilled draft rather than swallowing the applicant.
 
 import { sendMail } from '@/lib/sendMail';
-import { isFilteredSubmission } from '@/lib/formSpam';
+import { reply } from '@/lib/inquiryReply';
+import { isHoneypotFilled, fastFillFlag } from '@/lib/formSpam';
+import { GUEST_INQUIRY_FIELDS, validateInquiry, invalidFieldsBody } from '@/lib/inquiryFields';
 
 // FROM_ADDRESS must be an address the configured transport is allowed to send
 // as: on Google Workspace SMTP that means the authenticated user or one of its
@@ -39,15 +41,10 @@ const FROM_ADDRESS =
   process.env.GUEST_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime <info@dimepodcast.com>';
 const TO_ADDRESS = process.env.GUEST_TO_ADDRESS || 'guests@dimepodcast.com';
 
-// Keep in sync with FORM_FIELDS in src/pages/guests.js. Larger than the
-// client's maxLength on purpose: the client caps what a person can type, this
-// caps what an attacker can post, and a mismatch that truncates a legitimate
-// application is worse than storing a few hundred extra characters.
-const MAX_LEN = { name: 200, companyTitle: 300, email: 320, pitch: 4000, links: 2000 };
+// Field rules, limits included, live in lib/inquiryFields.js, shared with the
+// form page and with the limits llms.txt documents for agents.
 
-function clean(value, max) {
-  return typeof value === 'string' ? value.trim().slice(0, max) : '';
-}
+const REPLY_CONTEXT = { page: '/guests', email: 'guests@dimepodcast.com' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -57,25 +54,23 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
 
-  // Honeypot and fill-time check — see lib/formSpam.js for why the field is
+  // Honeypot check. See lib/formSpam.js for why the field is
   // not called `website` any more. 200 so a naive bot believes it succeeded
   // and doesn't retry; `filtered` lets the client skip its analytics event
   // rather than counting bots as applications. Same accepted trade as the
   // sponsorship route: this is a cheap filter for unsophisticated spam, not a
   // defence against a targeted attacker, and rate limiting is still the
   // missing control.
-  if (isFilteredSubmission(body)) return res.status(200).json({ ok: true, filtered: true });
+  if (isHoneypotFilled(body)) return reply(req, res, 200, { ok: true, filtered: true }, REPLY_CONTEXT);
 
-  const name = clean(body.name, MAX_LEN.name);
-  const companyTitle = clean(body.companyTitle, MAX_LEN.companyTitle);
-  const email = clean(body.email, MAX_LEN.email);
-  const pitch = clean(body.pitch, MAX_LEN.pitch);
-  const links = clean(body.links, MAX_LEN.links);
-
-  // `links` is the one optional field, matching the form.
-  if (!name || !companyTitle || !email || !pitch || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return res.status(400).json({ error: 'Missing or invalid required fields' });
-  }
+  // Over-length is a 400 naming the field, not a silent cut: the sender has
+  // to learn what did not arrive.
+  const { values, errors } = validateInquiry(body, GUEST_INQUIRY_FIELDS);
+  if (errors.length) return reply(req, res, 400, invalidFieldsBody(errors), REPLY_CONTEXT);
+  const { name, companyTitle, email, pitch, links } = values;
+  // Too fast for a person is not discarded any more, only flagged for the
+  // reader; see lib/formSpam.js.
+  const flag = fastFillFlag(body);
 
   const result = await sendMail(
     {
@@ -83,7 +78,7 @@ export default async function handler(req, res) {
       to: TO_ADDRESS,
       // So hitting Reply in the inbox answers the applicant directly.
       replyTo: email,
-      subject: `Guest application: ${name}`,
+      subject: `${flag}Guest application: ${name}`,
       text: [
         `Name:              ${name}`,
         `Company and title: ${companyTitle}`,
@@ -104,11 +99,11 @@ export default async function handler(req, res) {
   // transport that failed, which is a 502: one is a deployment that was never
   // finished, the other is an outage worth alerting on.
   if (!result.configured) {
-    return res.status(503).json({ error: 'Mail transport not configured' });
+    return reply(req, res, 503, { error: 'Mail transport not configured' }, REPLY_CONTEXT);
   }
   if (!result.ok) {
-    return res.status(502).json({ error: 'Send failed' });
+    return reply(req, res, 502, { error: 'Send failed' }, REPLY_CONTEXT);
   }
 
-  return res.status(200).json({ ok: true });
+  return reply(req, res, 200, { ok: true }, REPLY_CONTEXT);
 }

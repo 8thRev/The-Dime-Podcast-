@@ -16,6 +16,7 @@ import { getAllEditions } from '@/lib/newsletter';
 import { getVideoIdsForEpisode } from '@/lib/videoEpisodeMap';
 import { getAllTranscriptSlugs } from '@/lib/transcripts';
 import { HONEYPOT_FIELD, HONEYPOT_LABEL, FILL_TIME_FIELD } from '@/lib/formSpam';
+import { SPONSOR_INQUIRY_FIELDS } from '@/lib/inquiryFields';
 import {
   ASSETS_PER_EPISODE,
   ASSETS_PER_EPISODE_MAX,
@@ -337,14 +338,14 @@ const FAQ = [
 ];
 
 const FORM_FIELDS = [
-// maxLength mirrors MAX_LEN in src/pages/api/sponsor-inquiry.js. Without it
-// the server truncates silently and the sender never learns what was cut.
-  { name: 'name', label: 'Name', type: 'text', span: 1, required: true, maxLength: 200 },
-  { name: 'company', label: 'Company', type: 'text', span: 1, required: true, maxLength: 200 },
-  { name: 'email', label: 'Email', type: 'email', span: 2, required: true, maxLength: 320 },
+// maxLength is SPONSOR_INQUIRY_FIELDS (lib/inquiryFields.js), the limits the
+// route enforces with a 400 that names the field.
+  { name: 'name', label: 'Name', type: 'text', span: 1, required: true, maxLength: SPONSOR_INQUIRY_FIELDS.name.max },
+  { name: 'company', label: 'Company', type: 'text', span: 1, required: true, maxLength: SPONSOR_INQUIRY_FIELDS.company.max },
+  { name: 'email', label: 'Email', type: 'email', span: 2, required: true, maxLength: SPONSOR_INQUIRY_FIELDS.email.max },
   {
     name: 'targetCustomer',
-    maxLength: 4000,
+    maxLength: SPONSOR_INQUIRY_FIELDS.targetCustomer.max,
     label: 'Who are you trying to reach?',
     hint: 'Optional — one line is fine',
     type: 'textarea',
@@ -353,7 +354,7 @@ const FORM_FIELDS = [
   },
   {
     name: 'campaignGoal',
-    maxLength: 4000,
+    maxLength: SPONSOR_INQUIRY_FIELDS.campaignGoal.max,
     label: 'What should they do after they hear it?',
     hint: 'Optional',
     type: 'textarea',
@@ -524,10 +525,21 @@ function Quote({ person, paragraphs, accent = false, caption }) {
   );
 }
 
+// One entry of the route's 400 `fields` array, in the form's own words.
+function describeInvalidField({ field, problem, max }) {
+  const label = FORM_FIELDS.find((f) => f.name === field)?.label || field;
+  if (problem === 'missing') return `${label} (required)`;
+  if (problem === 'too_long') return `${label} (at most ${max} characters)`;
+  if (problem === 'invalid_email') return `${label} (not a valid email address)`;
+  return label;
+}
+
 export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
   const HERO_STATS = heroStats(libraryEpisodes, libraryHours);
   const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | invalid | fallback
+  // Field names the route rejected, from its 400 `fields` array.
+  const [invalidFields, setInvalidFields] = useState([]);
   const [formStarted, setFormStarted] = useState(false);
   // Set on mount so the fill-time check measures from when the form became
   // usable. See lib/formSpam.js.
@@ -570,6 +582,8 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       trackSponsorFormStart();
     }
     setForm((f) => ({ ...f, [name]: value }));
+    // An edited field is no longer the one the server rejected.
+    setInvalidFields((list) => (list.some((f) => f.field === name) ? list.filter((f) => f.field !== name) : list));
   }
 
   // Opening the user's mail client is the fallback, not the happy path — see
@@ -606,10 +620,15 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       // Falling back to mailto here would hand the user a prefilled draft
       // containing the same bad address and tell them nothing.
       if (res.status === 400) {
+        // The route names each rejected field and why; say which, rather
+        // than guessing it was the email address.
+        const data = await res.json().catch(() => ({}));
+        setInvalidFields(Array.isArray(data.fields) ? data.fields : []);
         setStatus('invalid');
         track('sponsor_form_invalid');
         return;
       }
+      setInvalidFields([]);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json().catch(() => ({}));
       setStatus('sent');
@@ -1603,7 +1622,11 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
           are, you&apos;ll get the plan and the next open slot.
         </p>
         <div className="sp-form-layout">
-          <form onSubmit={handleSubmit}>
+          {/* method and action are for a submit before hydration or with JS
+              failed: without them the browser sent a GET to this page with
+              every field, email included, in the query string, which the
+              page_view in _app.js then forwarded to GA. */}
+          <form method="post" action="/api/sponsor-inquiry" onSubmit={handleSubmit}>
             <div className="sp-form-grid" style={{ marginBottom: 28 }}>
               {FORM_FIELDS.map((field) => (
                 <label
@@ -1618,9 +1641,9 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                     )}
                   </span>
                   {field.type === 'textarea' ? (
-                    <textarea name={field.name} value={form[field.name]} onChange={handleChange} required={field.required} maxLength={field.maxLength} rows={3} />
+                    <textarea name={field.name} value={form[field.name]} onChange={handleChange} required={field.required} maxLength={field.maxLength} rows={3} aria-invalid={invalidFields.some((f) => f.field === field.name) || undefined} />
                   ) : (
-                    <input type={field.type} name={field.name} value={form[field.name]} onChange={handleChange} required={field.required} maxLength={field.maxLength} />
+                    <input type={field.type} name={field.name} value={form[field.name]} onChange={handleChange} required={field.required} maxLength={field.maxLength} aria-invalid={invalidFields.some((f) => f.field === field.name) || undefined} />
                   )}
                 </label>
               ))}
@@ -1649,8 +1672,10 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                 </p>
               )}
               {status === 'invalid' && (
-                <p className="crimson" style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
-                  That didn&apos;t go through — please check the email address and try again.
+                <p role="alert" className="crimson" style={{ fontSize: '15px', color: 'var(--text-primary)', lineHeight: 1.7, margin: 0 }}>
+                  {invalidFields.length
+                    ? `That didn't go through. Please check: ${invalidFields.map(describeInvalidField).join('; ')}.`
+                    : <>That didn&apos;t go through — please check the email address and try again.</>}
                 </p>
               )}
               {status === 'fallback' && (

@@ -37,6 +37,19 @@ const nextConfig = {
       './content/videos.json',
       './content/video-episode-map.json',
     ],
+    // Episode search (/episodes?q= and /episodes.md?q=) and the MCP endpoint
+    // read transcript summaries and topics per request, and the MCP tools
+    // return the same Markdown documents as the .md route above.
+    '/episodes/search': ['./content/transcripts/**'],
+    '/api/markdown/episode-search': ['./content/transcripts/**'],
+    '/api/mcp': [
+      './content/transcripts/**',
+      './content/newsletter/**',
+      './content/answers/**',
+      './content/topic-briefs/**',
+      './content/videos.json',
+      './content/video-episode-map.json',
+    ],
     '/topics/[topic]/llms.txt': [
       './content/transcripts/**',
       './content/newsletter/**',
@@ -113,6 +126,14 @@ const nextConfig = {
         destination: '/:kind/:slug.md',
         statusCode: 302,
       },
+      // The archive and its search. The query string is carried over, so
+      // /episodes?q=280e asked for as Markdown lands on /episodes.md?q=280e.
+      {
+        source: '/episodes',
+        has: [{ type: 'header', key: 'accept', value: '.*text/markdown.*' }],
+        destination: '/episodes.md',
+        statusCode: 302,
+      },
     ];
 
     return [...hostRedirects, ...slugRedirects, ...feedAliases, ...markdownNegotiation];
@@ -126,12 +147,38 @@ const nextConfig = {
   // static files and before dynamic routes, so `/episodes/<slug>.md` reaches
   // the handler rather than `/episodes/[slug]` with a ".md" slug.
   async rewrites() {
-    return [
-      {
-        source: '/:kind(episodes|guests|newsletter|topics|answers)/:slug.md',
-        destination: '/api/markdown/:kind/:slug',
-      },
-    ];
+    return {
+      // /episodes is a static page, so a search on it has to be routed
+      // before the filesystem is consulted or the cached static copy wins.
+      // Any request carrying q goes to the server rendered result page
+      // (src/pages/episodes/search.js); /episodes without q is untouched.
+      beforeFiles: [
+        {
+          source: '/episodes',
+          has: [{ type: 'query', key: 'q' }],
+          destination: '/episodes/search',
+        },
+      ],
+      afterFiles: [
+        {
+          source: '/:kind(episodes|guests|newsletter|topics|answers)/:slug.md',
+          destination: '/api/markdown/:kind/:slug',
+        },
+        // The archive index and its search as Markdown. See
+        // src/pages/api/markdown/episode-search.js.
+        {
+          source: '/episodes.md',
+          destination: '/api/markdown/episode-search',
+        },
+        // Public path for the MCP server. robots.txt disallows /api, and
+        // this is a URL people paste into an MCP client config, so it gets
+        // a short name of its own. See src/pages/api/mcp.js.
+        {
+          source: '/mcp',
+          destination: '/api/mcp',
+        },
+      ],
+    };
   },
 
   async headers() {

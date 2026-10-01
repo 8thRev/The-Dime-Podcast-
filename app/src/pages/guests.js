@@ -8,6 +8,7 @@ import { getAllGuests, guestToSlug } from '@/lib/guests';
 import { getAllEpisodes } from '@/lib/rss';
 import { trackGuestFormStart, trackGuestInquirySubmit } from '@/lib/guestFunnel';
 import { HONEYPOT_FIELD, HONEYPOT_LABEL, FILL_TIME_FIELD } from '@/lib/formSpam';
+import { GUEST_INQUIRY_FIELDS } from '@/lib/inquiryFields';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -60,40 +61,32 @@ const GUESTS_TICKER = [
 // The application form. Same shape as the sponsorship form's FORM_FIELDS
 // (src/pages/sponsorship.js) so the two stay recognisably one pattern.
 //
-// maxLength is set here rather than copied from that form, which carries none:
-// these are the first limits on the site.
+// maxLength is GUEST_INQUIRY_FIELDS (lib/inquiryFields.js), the same limits
+// the route enforces and llms.txt documents. It used to be lower here (a
+// 1,000 character pitch against the route's 4,000), so an agent following
+// the documented limits through this form was cut off by it.
 //
-// The normal path POSTs to /api/guest-inquiry, where length is bounded again
-// server-side, so these are a courtesy to the person typing rather than a
-// security control.
-//
-// They matter on the fallback path. When the route cannot send, the page hands
-// the application to a mailto: draft, and Windows shell handlers cap the URL
-// around 2,048 characters. Measured against the body built below:
-//
-//   1,000-char pitch, ordinary name/company/email/links   1,618  ok
-//   1,000-char pitch + 500-char links                     2,196  over
-//   every field at its maximum                            2,753  over
-//   1,000 accented or CJK characters in the pitch alone    6,258  well over
-//
-// So a maxed-out application that falls back can open a draft truncated
-// mid-sentence. Shrinking the pitch box to fit would trade a rare truncation on
-// a rare path for permanently refusing the considered answer this field asks
-// for; keeping the server route healthy is the actual fix.
+// The lower limits were there for the mailto fallback: when the route cannot
+// send, the page hands the application to a mailto: draft, and Windows shell
+// handlers cap the URL around 2,048 characters, so a long application that
+// falls back can open a truncated draft. That path only runs when mail
+// delivery is down, and the fallback message also gives the address to write
+// to directly. Refusing every long pitch to protect a rare outage path was
+// the wrong way round.
 //
 // The attribute is not a guard on its own: a password manager, autofill or a
 // mobile IME can set a value past it programmatically. validate() re-checks
 // every length below, which is what actually enforces these client-side.
 const FORM_FIELDS = [
-  { name: 'name', label: 'Full Name', type: 'text', required: true, maxLength: 100 },
-  { name: 'companyTitle', label: 'Company and Title', type: 'text', required: true, maxLength: 120 },
-  { name: 'email', label: 'Email Address', type: 'email', required: true, maxLength: 254 },
+  { name: 'name', label: 'Full Name', type: 'text', required: true, maxLength: GUEST_INQUIRY_FIELDS.name.max },
+  { name: 'companyTitle', label: 'Company and Title', type: 'text', required: true, maxLength: GUEST_INQUIRY_FIELDS.companyTitle.max },
+  { name: 'email', label: 'Email Address', type: 'email', required: true, maxLength: GUEST_INQUIRY_FIELDS.email.max },
   {
     name: 'pitch',
     label: 'What would you say to a room of cannabis operators and executives? 2-3 sentences.',
     type: 'textarea',
     required: true,
-    maxLength: 1000,
+    maxLength: GUEST_INQUIRY_FIELDS.pitch.max,
     rows: 4,
   },
   {
@@ -101,7 +94,7 @@ const FORM_FIELDS = [
     label: 'Links: LinkedIn, recent press, company website',
     type: 'textarea',
     required: false,
-    maxLength: 500,
+    maxLength: GUEST_INQUIRY_FIELDS.links.max,
     rows: 2,
   },
 ];
@@ -246,6 +239,19 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
       // Falling back to mailto here would hand the applicant a prefilled draft
       // carrying the same bad address and tell them nothing.
       if (res.status === 400) {
+        // The route names each rejected field. Client validation mirrors it,
+        // so this only fires when the two disagree; show it on the field
+        // rather than as a bare "invalid".
+        const data = await res.json().catch(() => ({}));
+        if (Array.isArray(data.fields)) {
+          const messages = { missing: 'This field is required.', invalid_email: 'Enter a valid email address.', not_a_string: 'Please re-enter this field.' };
+          setErrors(Object.fromEntries(data.fields.map((f) => [
+            f.field,
+            f.problem === 'too_long' ? `Please keep this to at most ${f.max} characters.` : messages[f.problem] || 'Please check this field.',
+          ])));
+          const first = FORM_FIELDS.find((f) => data.fields.some((e) => e.field === f.name));
+          if (first) document.getElementById(`guest-${first.name}`)?.focus();
+        }
         setStatus('invalid');
         return;
       }
@@ -351,7 +357,13 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
           Submit Your Application
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60 }}>
+          {/* method and action cover a submit before hydration or with JS
+              failed: without them the browser sent a GET to this page with
+              every field, email included, in the query string, which the
+              page_view in _app.js then forwarded to GA. */}
           <form
+            method="post"
+            action="/api/guest-inquiry"
             onSubmit={handleSubmit}
             onFocus={trackGuestFormStart}
             noValidate

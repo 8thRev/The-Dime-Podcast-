@@ -40,6 +40,7 @@ export async function getStaticProps({ params }) {
 export default function GuestPage({ guest, episodes, editions = [] }) {
   const personSchema = createPersonSchema({
     name: guest.name,
+    slug: guest.slug,
     company: guest.company || undefined,
     companyUrl: guest.companyUrl || undefined,
   });
@@ -82,7 +83,7 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
             <h1 className="syne" style={{ fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 1 }}>
               {guest.name}
             </h1>
-            {guest.company && (
+            {guest.company ? (
               <div className="mono" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 8 }}>
                 {guest.companyUrl ? (
                   <a href={guest.companyUrl} rel="noopener" target="_blank" style={{ color: 'inherit', textDecoration: 'underline' }}>
@@ -92,7 +93,16 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
                   guest.company
                 )}
               </div>
-            )}
+            ) : guest.guestLink ? (
+              // Shown as the link it is, not as an employer: see
+              // GUEST_COMPANY_MAP in lib/rss.ts.
+              <div className="mono" style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 8 }}>
+                {'Show notes link: '}
+                <a href={guest.guestLink} rel="noopener" target="_blank" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                  {guest.guestLinkLabel}
+                </a>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

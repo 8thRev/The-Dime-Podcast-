@@ -20,7 +20,9 @@
 // already points there, so it needs no new vendor and no new DNS.
 
 import { sendMail } from '@/lib/sendMail';
-import { isFilteredSubmission } from '@/lib/formSpam';
+import { reply } from '@/lib/inquiryReply';
+import { isHoneypotFilled, fastFillFlag } from '@/lib/formSpam';
+import { SPONSOR_INQUIRY_FIELDS, validateInquiry, invalidFieldsBody } from '@/lib/inquiryFields';
 
 // FROM_ADDRESS must be an address the configured transport is allowed to send
 // as. Falls back to EMAIL_FROM, the variable bot/config.py already uses with
@@ -30,12 +32,10 @@ const FROM_ADDRESS =
   process.env.SPONSOR_FROM_ADDRESS || process.env.EMAIL_FROM || 'The Dime <info@dimepodcast.com>';
 const TO_ADDRESS = process.env.SPONSOR_TO_ADDRESS || 'sponsorship@dimepodcast.com';
 
-// Keep in sync with FORM_FIELDS in src/pages/sponsorship.js.
-const MAX_LEN = { name: 200, company: 200, email: 320, targetCustomer: 4000, campaignGoal: 4000 };
+// Field rules, limits included, live in lib/inquiryFields.js, shared with the
+// form page and with the limits llms.txt documents for agents.
 
-function clean(value, max) {
-  return typeof value === 'string' ? value.trim().slice(0, max) : '';
-}
+const REPLY_CONTEXT = { page: '/sponsorship', email: 'sponsorship@dimepodcast.com' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -45,9 +45,9 @@ export default async function handler(req, res) {
 
   const body = req.body || {};
 
-  // Honeypot and fill-time check — see lib/formSpam.js for why the field is
-  // not called `website` any more, and why neither check may catch a person
-  // or an agent submitting on someone's behalf.
+  // Honeypot check. See lib/formSpam.js for why the field is not called
+  // `website` any more, and why it must not catch a person or an agent
+  // submitting on someone's behalf.
   // 200 so a naive bot believes it succeeded. `filtered` is there so the
   // client can skip its analytics event and not count bots as leads.
   //
@@ -55,17 +55,16 @@ export default async function handler(req, res) {
   // an accepted trade — the honeypot is a cheap filter for unsophisticated
   // spam, not a defence against a targeted attacker. Rate limiting is the
   // control that matters here and is not yet in place.
-  if (isFilteredSubmission(body)) return res.status(200).json({ ok: true, filtered: true });
+  if (isHoneypotFilled(body)) return reply(req, res, 200, { ok: true, filtered: true }, REPLY_CONTEXT);
 
-  const name = clean(body.name, MAX_LEN.name);
-  const company = clean(body.company, MAX_LEN.company);
-  const email = clean(body.email, MAX_LEN.email);
-  const targetCustomer = clean(body.targetCustomer, MAX_LEN.targetCustomer);
-  const campaignGoal = clean(body.campaignGoal, MAX_LEN.campaignGoal);
-
-  if (!name || !company || !email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-    return res.status(400).json({ error: 'Missing or invalid required fields' });
-  }
+  // Over-length is a 400 naming the field, not a silent cut: the sender has
+  // to learn what did not arrive.
+  const { values, errors } = validateInquiry(body, SPONSOR_INQUIRY_FIELDS);
+  if (errors.length) return reply(req, res, 400, invalidFieldsBody(errors), REPLY_CONTEXT);
+  const { name, company, email, targetCustomer, campaignGoal } = values;
+  // Too fast for a person is not discarded any more, only flagged for the
+  // reader; see lib/formSpam.js.
+  const flag = fastFillFlag(body);
 
   const result = await sendMail(
     {
@@ -73,7 +72,7 @@ export default async function handler(req, res) {
       to: TO_ADDRESS,
       // So hitting Reply in the inbox answers the prospect directly.
       replyTo: email,
-      subject: `Sponsorship inquiry: ${company}`,
+      subject: `${flag}Sponsorship inquiry: ${company}`,
       text: [
         `Name:    ${name}`,
         `Company: ${company}`,
@@ -93,11 +92,11 @@ export default async function handler(req, res) {
   // than reporting a success we can't back up. sendMail logs the reason on a
   // real failure; the client only needs to know it should fall back.
   if (!result.configured) {
-    return res.status(503).json({ error: 'Mail transport not configured' });
+    return reply(req, res, 503, { error: 'Mail transport not configured' }, REPLY_CONTEXT);
   }
   if (!result.ok) {
-    return res.status(502).json({ error: 'Send failed' });
+    return reply(req, res, 502, { error: 'Send failed' }, REPLY_CONTEXT);
   }
 
-  return res.status(200).json({ ok: true });
+  return reply(req, res, 200, { ok: true }, REPLY_CONTEXT);
 }

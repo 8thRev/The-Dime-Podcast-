@@ -159,7 +159,14 @@ const sitemapPaths = sitemapLocs.map((l) => normalise(l.replace(SITE_URL, '')) |
 
 // --- Sample selection -------------------------------------------------------
 
-const STATIC_SAMPLE = ['/', '/episodes', '/guests', '/topics', '/videos', '/newsletter', '/answers', '/about', '/sponsorship', '/privacy', '/terms'];
+const STATIC_SAMPLE = ['/', '/episodes', '/episodes?q=280e', '/guests', '/topics', '/videos', '/newsletter', '/answers', '/about', '/sponsorship', '/privacy', '/terms'];
+
+// Page files that are only ever reached through a rewrite in next.config.js,
+// mapped to the public URL that reaches them. The file's own path is not a
+// URL anyone is sent to, so check 15 counts the route as covered when its
+// public URL is sampled. /episodes?q= is a noindex result page canonicalled
+// to /episodes, which check 10 accepts because it compares paths.
+const REWRITTEN_ROUTE_SAMPLES = { '/episodes/search': '/episodes?q=280e' };
 const DYNAMIC_PREFIXES = ['/episodes/', '/guests/', '/topics/', '/videos/', '/newsletter/', '/answers/'];
 const dynamicSample = DYNAMIC_PREFIXES.map((prefix) => sitemapPaths.find((p) => p.startsWith(prefix))).filter(Boolean);
 
@@ -190,6 +197,7 @@ const sampleUrls = [...htmlSample, ...NON_HTML_ENDPOINTS, ...MARKDOWN_SAMPLE, ..
 const routes = walk(PAGES_DIR).map(fileToRoute).filter(Boolean);
 const uncovered = routes.filter((route) => {
   const re = routeToRegExp(route);
+  if (REWRITTEN_ROUTE_SAMPLES[route] && sampleUrls.includes(REWRITTEN_ROUTE_SAMPLES[route])) return false;
   return !sampleUrls.some((u) => re.test(u));
 });
 for (const route of uncovered) {
@@ -512,6 +520,9 @@ const endpoints = [
   ['/rss.xml', 'application/rss+xml'],
   ['/newsletter/rss.xml', 'application/rss+xml'],
   ...MARKDOWN_SAMPLE.map((p) => [p, 'text/markdown']),
+  // The archive and its search as Markdown (src/pages/api/markdown/episode-search.js).
+  ['/episodes.md', 'text/markdown'],
+  ['/episodes.md?q=280e', 'text/markdown'],
   ...TOPIC_LLMS_SAMPLE.map((p) => [p, 'text/plain']),
 ];
 if (MARKDOWN_SAMPLE.length !== MARKDOWN_KINDS.length) {
