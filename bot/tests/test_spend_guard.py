@@ -199,3 +199,10 @@ def test_panel_is_fifteen_questions_one_continuation():
     inner = LoopingClient()
     ai_visibility.ask(GuardedClient(inner, Budget("seo_ai_panel", max_usd=99, max_calls=99)), "claude-sonnet-5", "q")
     assert inner.calls == 2  # first request plus exactly one continuation
+
+
+def test_a_normal_research_day_is_not_flagged():
+    hist = [{"name": "Daily", "number": n, "seconds": 30, "day": date(2026, 9, n)} for n in range(1, 10)]
+    today = date(2026, 9, 30)
+    normal = {"name": "Daily", "number": 248, "seconds": 5.8 * 60, "day": today}  # a real guest, Sep 30
+    assert spend_watch.duration_anomalies(hist + [normal], today) == []
