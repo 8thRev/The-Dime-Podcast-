@@ -77,8 +77,8 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
             gap: clamp(8px, 2vw, 10px) !important;
           }
           .stats-grid {
-            gap: clamp(16px, 3vw, 32px) !important;
-            flex-wrap: wrap;
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: clamp(20px, 4vw, 32px) !important;
           }
           .stat-item {
             padding-right: clamp(12px, 3vw, 24px) !important;
@@ -106,13 +106,27 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
             font-size: 9px !important;
           }
         }
+        .hero-main-grid {
+          grid-template-columns: 1fr;
+        }
+        .hero-aside {
+          padding: 0 clamp(24px, 5vw, 48px) clamp(32px, 5vw, 56px);
+        }
+        @media (min-width: 1024px) {
+          .hero-main-grid {
+            grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.85fr);
+            gap: 48px;
+          }
+          .hero-aside {
+            padding: 64px 48px 64px 0;
+          }
+        }
         .hero-latest-title {
           font-family: var(--font-display);
-          font-size: clamp(22px, 2.6vw, 30px);
+          font-size: clamp(24px, 2.4vw, 32px);
           line-height: 1.15;
           color: var(--text-headline);
           text-decoration: none;
-          max-width: 30ch;
           text-wrap: balance;
           transition: color var(--transition-fast);
         }
@@ -147,19 +161,19 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
         <Ticker items={GUESTS_TICKER} />
 
         {/* MAIN HERO CONTENT */}
-        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr', gap: 0, position: 'relative', zIndex: 2 }}>
-          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--faint)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }} className="fade-in">
-              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 600 }}>CANNABIS BUSINESS INTELLIGENCE</span>
-              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
+        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gap: 0, position: 'relative', zIndex: 2, width: '100%', maxWidth: 1320, margin: '0 auto', alignItems: 'center' }}>
+          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px 16px', flexWrap: 'wrap', marginBottom: 40 }} className="fade-in">
+              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 600, whiteSpace: 'nowrap' }}>CANNABIS BUSINESS INTELLIGENCE</span>
+              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
             </div>
 
-            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '70%' }}>
+            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '100%' }}>
               How the cannabis industry<br />
               <span style={{ color: 'var(--accent-display)' }}>actually</span> works.
             </h1>
 
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '70%', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
+            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '58ch', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
               Conversations with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
             </p>
 
@@ -181,7 +195,7 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
               ))}
             </div>
 
-<div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center', marginBottom: 40 }} className="fade-in">
+<div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }} className="fade-in">
               <a href="#newsletter" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
                 Get the First Principles newsletter
               </a>
@@ -190,9 +204,13 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
               </Link>
             </div>
 
+
+          </div>
+
+          <aside className="hero-aside" aria-label="Latest episode">
             {/* LATEST EPISODE */}
             {latestEpisodes[0] && (
-              <div className="fade-in" style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 28, display: 'grid', gap: 12 }}>
+              <div className="fade-in hero-latest-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: 'clamp(24px, 3vw, 36px)', display: 'grid', gap: 14, boxShadow: 'var(--shadow-card)' }}>
                 <div className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 600, textTransform: 'uppercase' }}>
                   New episode · Ep. {latestEpisodes[0].num}{latestEpisodes[0].duration ? ` · ${latestEpisodes[0].duration}` : ''}
                 </div>
@@ -219,9 +237,7 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
                 </div>
               </div>
             )}
-
-          </div>
-
+          </aside>
         </div>
 
         {/* GUEST VIDEO TESTIMONIALS */}
