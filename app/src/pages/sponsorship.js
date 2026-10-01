@@ -971,7 +971,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       <section style={{ position: 'relative', overflow: 'hidden', background: 'var(--bg-base)', borderBottom: '1px solid var(--border-default)' }}>
         <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3, pointerEvents: 'none' }} />
-        <div className="syne" aria-hidden="true" style={{ position: 'absolute', bottom: -40, right: -20, fontSize: 'clamp(110px,16vw,240px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px #1A2A3A', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
+        <div className="syne" aria-hidden="true" style={{ position: 'absolute', bottom: -40, right: -20, fontSize: 'clamp(110px,16vw,240px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px var(--watermark-stroke)', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
           SPONSOR
         </div>
 
@@ -1632,7 +1632,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                 <label
                   key={field.name}
                   className={field.span === 2 ? 'sp-field-span-2' : undefined}
-                  style={{ fontFamily: "'Syne Mono', monospace", fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'flex', flexDirection: 'column', gap: 8 }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'flex', flexDirection: 'column', gap: 8 }}
                 >
                   <span>
                     {field.label}

@@ -85,7 +85,6 @@ export default function Document() {
         )}
       </Head>
       <body>
-        <div className="grain" />
         <Main />
         <NextScript />
       </body>

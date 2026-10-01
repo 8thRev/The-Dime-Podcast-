@@ -7,10 +7,10 @@ const footerLinkStyle = {
   background: 'none',
   border: 'none',
   cursor: 'pointer',
-  fontFamily: "'Syne', sans-serif",
+  fontFamily: 'var(--font-display)',
   fontSize: 'clamp(10px, 2vw, 12px)',
   fontWeight: 500,
-  color: '#777777',
+  color: 'var(--text-muted)',
   display: 'block',
   padding: 0,
   marginBottom: 12,
@@ -77,15 +77,15 @@ export default function Footer() {
       <footer className="footer-grid" style={{ background: 'var(--bg-surface)' }}>
         {/* About section */}
         <div className="footer-about">
-          <div className="syne" style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 800, color: '#EEEEEE', letterSpacing: '.12em', marginBottom: 14 }}>
+          <div className="syne footer-logo-text" style={{ fontSize: 'clamp(18px, 4vw, 22px)', fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '.12em', marginBottom: 14 }}>
             THE DIME
           </div>
-          <p className="crimson" style={{ fontSize: 'clamp(12px, 2vw, 14px)', color: '#BBBBBB', lineHeight: 1.85, maxWidth: 240, fontWeight: 300, marginBottom: 20 }}>
+          <p className="crimson" style={{ fontSize: 'clamp(12px, 2vw, 14px)', color: 'var(--text-secondary)', lineHeight: 1.85, maxWidth: 240, fontWeight: 300, marginBottom: 20 }}>
             Cannabis business intelligence. Operator to operator.
           </p>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span className="mono" style={{ fontSize: '11px', color: '#3CB8F0' }}>★★★★★</span>
-            <span className="mono" style={{ fontSize: '9px', color: '#777777' }}>{PODCAST_RATING.value} · {PODCAST_RATING.count} RATINGS</span>
+            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-accent)' }}>★★★★★</span>
+            <span className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>{PODCAST_RATING.value} · {PODCAST_RATING.count} RATINGS</span>
           </div>
         </div>
 
@@ -93,7 +93,7 @@ export default function Footer() {
         <div className="footer-columns">
           {/* Navigate */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Navigate
             </div>
             {[
@@ -117,7 +117,7 @@ export default function Footer() {
               places you read rather than browse. Giving them a labelled column
               of their own also means neither is buried seventh in a list. */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Read
             </div>
             {[
@@ -137,7 +137,7 @@ export default function Footer() {
 
           {/* Listen */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Listen
             </div>
             {LISTEN_LINKS.map((p) => (
@@ -156,7 +156,7 @@ export default function Footer() {
 
           {/* Connect */}
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: '#777777', marginBottom: 16, textTransform: 'uppercase' }}>
+            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', color: 'var(--text-muted)', marginBottom: 16, textTransform: 'uppercase' }}>
               Connect
             </div>
             {/* The two written archives deliberately aren't repeated here.
@@ -177,7 +177,7 @@ export default function Footer() {
             <Link href="/privacy" style={{ ...footerLinkStyle, marginBottom: 0 }}>Privacy Policy</Link>
             <Link href="/terms" style={{ ...footerLinkStyle, marginBottom: 0 }}>Terms of Service</Link>
           </div>
-          <div className="mono" style={{ fontSize: '8px', color: '#777777', lineHeight: 1.7, letterSpacing: '.06em' }}>
+          <div className="mono" style={{ fontSize: '8px', color: 'var(--text-muted)', lineHeight: 1.7, letterSpacing: '.06em' }}>
             © {new Date().getFullYear()} THE DIME · ALL RIGHTS RESERVED
           </div>
         </div>

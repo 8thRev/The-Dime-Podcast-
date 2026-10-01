@@ -109,7 +109,7 @@ const FIELD_STYLE = {
   background: 'var(--navy2)',
   border: '1px solid var(--border)',
   color: 'var(--white)',
-  fontFamily: "'Syne', sans-serif",
+  fontFamily: 'var(--font-display)',
   fontSize: '13px',
   padding: '14px 16px',
   width: '100%',
@@ -282,22 +282,22 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
       <Header />
 
       <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 16 }}>
+        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
           Guest Application
         </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(44px,7vw,92px)', fontWeight: 800, color: '#E8E4DC', letterSpacing: '.02em', lineHeight: 0.88, maxWidth: 760, marginBottom: 36 }}>
+        <h1 className="syne" style={{ fontSize: 'clamp(44px,7vw,92px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, maxWidth: 760, marginBottom: 36 }}>
           This is the room<br />
           serious operators<br />
-          <span style={{ color: '#00C9A7' }}>want to be in.</span>
+          <span style={{ color: 'var(--text-accent)' }}>want to be in.</span>
         </h1>
-        <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: '#7A8FA8', maxWidth: 600, fontWeight: 300 }}>
+        <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', maxWidth: 600, fontWeight: 300 }}>
           The Dime listener is an operator, executive, or investor making real decisions in cannabis. They are not looking for inspiration. They are looking for intelligence. If you have something real to say to that room, this is where you say it.
         </p>
       </section>
 
       <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
         <div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 20 }}>
+          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
             Who&apos;s Listening
           </div>
           {[
@@ -308,28 +308,28 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             ['Mindset', 'Survival-focused. Risk-aware. Skeptical of hype. Benchmarking against peers.'],
           ].map(([label, value]) => (
             <div key={label} style={{ padding: '22px 0', borderTop: '1px solid var(--faint)' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 8 }}>
+              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 8 }}>
                 {label}
               </div>
-              <div className="crimson" style={{ fontSize: '15px', color: '#7A8FA8', lineHeight: 1.8, fontWeight: 300 }}>
+              <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.8, fontWeight: 300 }}>
                 {value}
               </div>
             </div>
           ))}
         </div>
         <div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 20 }}>
+          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
             What Works Here
           </div>
-          <div style={{ borderLeft: '2px solid #00C9A7', paddingLeft: 28, marginBottom: 48 }}>
-            <p className="crimson" style={{ fontSize: '15px', color: '#7A8FA8', lineHeight: 1.9, fontWeight: 300, marginBottom: 18 }}>
+          <div style={{ borderLeft: '2px solid var(--text-accent)', paddingLeft: 28, marginBottom: 48 }}>
+            <p className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.9, fontWeight: 300, marginBottom: 18 }}>
               This is not a brand awareness play. The guests who land well on The Dime bring something real: a hard decision they made, a structural insight, a contrarian view on where the market is going.
             </p>
-            <p className="crimson" style={{ fontSize: '15px', color: '#7A8FA8', lineHeight: 1.9, fontWeight: 300 }}>
+            <p className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.9, fontWeight: 300 }}>
               We do not do puff pieces. We do not do product launches dressed as conversations. The room will notice, and it will cost you credibility, not build it.
             </p>
           </div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 16 }}>
+          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
             Past Guests Include
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
@@ -339,11 +339,11 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               return (
                 <div key={g} style={{ fontSize: '12px', fontWeight: 500, padding: '12px 0', borderBottom: '1px solid var(--faint)', letterSpacing: '.02em' }}>
                   {hasProfile ? (
-                    <Link href={`/guests/${slug}`} style={{ color: '#3A4F66', textDecoration: 'none' }}>
+                    <Link href={`/guests/${slug}`} style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
                       {g}
                     </Link>
                   ) : (
-                    <span style={{ color: '#3A4F66' }}>{g}</span>
+                    <span style={{ color: 'var(--text-muted)' }}>{g}</span>
                   )}
                 </div>
               );
@@ -353,7 +353,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
       </section>
 
       <section style={{ padding: '80px 48px' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: '#3A4F66', marginBottom: 32 }}>
+        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 32 }}>
           Submit Your Application
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60 }}>
@@ -389,7 +389,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               };
               const style = {
                 ...FIELD_STYLE,
-                borderColor: error ? '#E06C6C' : 'var(--border)',
+                borderColor: error ? 'var(--color-danger)' : 'var(--border)',
               };
               return (
                 <div key={field.name}>
@@ -407,7 +407,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                       id={`guest-${field.name}-error`}
                       role="alert"
                       className="mono"
-                      style={{ fontSize: '10px', color: '#E06C6C', marginTop: 6, letterSpacing: '.06em' }}
+                      style={{ fontSize: '10px', color: 'var(--color-danger)', marginTop: 6, letterSpacing: '.06em' }}
                     >
                       {error}
                     </div>
@@ -444,20 +444,20 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                 exist, so it gives the address instead of a promise. */}
             <div aria-live="polite" style={{ minHeight: 24 }}>
               {status === 'sent' && (
-                <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.7, fontWeight: 300 }}>
+                <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, fontWeight: 300 }}>
                   Got it. Your application is with us, and we review every one personally.
                 </div>
               )}
               {status === 'invalid' && (
-                <div className="crimson" style={{ fontSize: '14px', color: '#E06C6C', lineHeight: 1.7, fontWeight: 300 }}>
+                <div className="crimson" style={{ fontSize: '14px', color: 'var(--color-danger)', lineHeight: 1.7, fontWeight: 300 }}>
                   That did not go through. Please check the email address and try again.
                 </div>
               )}
               {status === 'fallback' && (
-                <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.7, fontWeight: 300 }}>
+                <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.7, fontWeight: 300 }}>
                   We could not submit that directly, so your email client should be opening with
                   the details filled in. If nothing happened, email them to{' '}
-                  <a href={`mailto:${GUEST_EMAIL}`} style={{ color: '#00C9A7' }}>
+                  <a href={`mailto:${GUEST_EMAIL}`} style={{ color: 'var(--text-accent)' }}>
                     {GUEST_EMAIL}
                   </a>
                   .
@@ -466,7 +466,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             </div>
           </form>
           <div>
-            <div className="mono" style={{ fontSize: '9px', color: '#009E85', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 20 }}>
+            <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 20 }}>
               What Happens Next
             </div>
             {[
@@ -476,10 +476,10 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               ['Distribution', 'Apple Podcasts, Spotify, YouTube, LinkedIn, and the First Principles newsletter.'],
             ].map(([step, detail]) => (
               <div key={step} style={{ marginBottom: 28 }}>
-                <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 6 }}>
+                <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                   {step}
                 </div>
-                <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.82, fontWeight: 300 }}>
+                <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
                   {detail}
                 </div>
               </div>
@@ -490,13 +490,13 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                 never tie a review to being selected: that makes it an
                 incentivized review under Apple's rating guidelines and the
                 FTC review rule (16 CFR 465). */}
-            <div style={{ marginBottom: 28, padding: '18px 20px', border: '1px solid var(--border)', borderLeft: '2px solid #00C9A7' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 6 }}>
+            <div style={{ marginBottom: 28, padding: '18px 20px', border: '1px solid var(--border)', borderLeft: '2px solid var(--text-accent)' }}>
+              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                 Already a Listener?
               </div>
-              <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.82, fontWeight: 300 }}>
+              <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
                 The best guests usually know the show. If you&apos;re already a listener, a rating or review on Apple Podcasts helps more operators find the conversation.{' '}
-                <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" style={{ color: '#00C9A7' }}>
+                <a href="https://podcasts.apple.com/us/podcast/the-dime/id1540199573" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text-accent)' }}>
                   Rate The Dime →
                 </a>
               </div>
@@ -509,12 +509,12 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                 that clears the moment they touch a field again. Someone whose
                 mailto: does nothing needs this in front of them regardless. */}
             <div style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: '#00C9A7', marginBottom: 6 }}>
+              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                 Prefer Email?
               </div>
-              <div className="crimson" style={{ fontSize: '14px', color: '#7A8FA8', lineHeight: 1.82, fontWeight: 300 }}>
+              <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
                 Send the same details to{' '}
-                <a href="mailto:guests@dimepodcast.com" style={{ color: '#00C9A7' }}>
+                <a href="mailto:guests@dimepodcast.com" style={{ color: 'var(--text-accent)' }}>
                   guests@dimepodcast.com
                 </a>
                 .

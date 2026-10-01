@@ -146,7 +146,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
               Written after
             </div>
-            <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '17px', fontWeight: 600, lineHeight: 1.35, fontFamily: "'Crimson Pro', Georgia, serif" }}>
+            <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '17px', fontWeight: 600, lineHeight: 1.35, fontFamily: 'var(--font-body)' }}>
               {episode.title}
             </Link>
             <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>
@@ -170,7 +170,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
 
         <div
           className="prose-body"
-          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: "'Crimson Pro', Georgia, serif" }}
+          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
 

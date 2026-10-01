@@ -169,7 +169,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
 
         <div
           className="prose-body"
-          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: "'Crimson Pro', Georgia, serif" }}
+          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
@@ -180,7 +180,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
             </div>
             {cited.map((episode) => (
               <div key={episode.slug} style={{ marginBottom: '14px' }}>
-                <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '16px', fontWeight: 600, lineHeight: 1.35, fontFamily: "'Crimson Pro', Georgia, serif" }}>
+                <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '16px', fontWeight: 600, lineHeight: 1.35, fontFamily: 'var(--font-body)' }}>
                   {episode.title}
                 </Link>
                 <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px' }}>
