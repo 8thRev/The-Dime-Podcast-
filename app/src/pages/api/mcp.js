@@ -50,12 +50,13 @@ const NO_BATCH_VERSIONS = ['2025-06-18', '2025-11-25'];
 // Per client rate limit, in the Upstash Redis store the agent logging
 // middleware already uses (src/middleware.js). Generous for any real client,
 // which calls a few tools per question; it exists so one caller cannot run the
-// function flat out. The key is an HMAC of the IP under a server secret,
+// function flat out. The key is an HMAC of the IP under MCP_RATE_LIMIT_SECRET,
 // kept for one window and then expired. Keyed rather than a plain hash: an
 // unsalted SHA-256 of an IPv4 address can be reversed by trying all 2^32 in
-// about an hour, so it would still hand the store an address. Without the store's env
-// vars, or if it fails, requests are let through: a limiter outage must not
-// take the catalogue down.
+// about an hour. And its own secret rather than the store token, which the
+// store sees on every call. Without the secret or the store env vars, or if
+// the store fails, requests are let through: a limiter outage must not take
+// the catalogue down.
 const RATE_LIMIT = 60;
 const RATE_WINDOW_SECONDS = 60;
 
@@ -374,13 +375,17 @@ async function readBody(req) {
   return { text: Buffer.concat(chunks).toString('utf8') };
 }
 
-// The platform's own client IP header first: Vercel sets
-// x-vercel-forwarded-for and x-real-ip itself, while x-forwarded-for can carry
-// whatever the client sent ahead of the proxy's entry, which on another host
-// would let a caller rotate it to get a fresh bucket.
+// On Vercel the platform sets x-vercel-forwarded-for and x-real-ip itself,
+// overwriting anything the client sent. Anywhere else those headers are
+// whatever the caller chose, and rotating them would mint a fresh bucket per
+// request, so only the socket address counts.
 function clientIp(req) {
-  const first = (h) => String(req.headers[h] || '').split(',')[0].trim();
-  return first('x-vercel-forwarded-for') || first('x-real-ip') || first('x-forwarded-for') || req.socket?.remoteAddress || 'unknown';
+  if (process.env.VERCEL) {
+    const first = (h) => String(req.headers[h] || '').split(',')[0].trim();
+    const ip = first('x-vercel-forwarded-for') || first('x-real-ip');
+    if (ip) return ip;
+  }
+  return req.socket?.remoteAddress || 'unknown';
 }
 
 function clientKey(req, secret) {
@@ -391,9 +396,9 @@ function clientKey(req, secret) {
 async function overRateLimit(req) {
   const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) return false;
+  const secret = process.env.MCP_RATE_LIMIT_SECRET;
+  if (!url || !token || !secret) return false;
   const windowId = Math.floor(Date.now() / 1000 / RATE_WINDOW_SECONDS);
-  const secret = process.env.MCP_RATE_LIMIT_SECRET || token;
   const key = `mcp:rl:${clientKey(req, secret)}:${windowId}`;
   try {
     const res = await fetch(`${url}/pipeline`, {
@@ -417,13 +422,15 @@ async function overRateLimit(req) {
 // servers on a private address. This one is public and read only, and browser
 // based clients on any site are welcome, including browser extensions and
 // editor webviews (chrome-extension:, vscode-webview:). The policy: absent is
-// fine, any well formed origin is fine, and "null" (a sandboxed frame or a
-// file: page), a file: origin or anything unparseable is refused with 403.
+// fine, any well formed origin (a scheme and a host) is fine, and "null" (a
+// sandboxed frame or a file: page), a file: origin, or anything without a
+// host ("javascript:x", "data:...", garbage) is refused with 403.
 function originAllowed(origin) {
   if (origin === undefined) return true;
   if (origin === 'null') return false;
   try {
-    return new URL(origin).protocol !== 'file:';
+    const url = new URL(origin);
+    return url.protocol !== 'file:' && !!url.host;
   } catch {
     return false;
   }

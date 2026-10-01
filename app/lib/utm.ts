@@ -142,7 +142,7 @@ export function withoutUtm(raw: string | null | undefined): string {
 // before new URL() and re-encoding on the way out keeps the attribute valid —
 // the output of this function goes straight into dangerouslySetInnerHTML.
 export function decodeHrefEntities(href: string): string {
-  return href.replace(/&(?:amp|#38|#x26);/gi, "&");
+  return href.replace(/&(?:amp|#0*38|#x0*26);/gi, "&");
 }
 
 function encodeHrefEntities(href: string): string {

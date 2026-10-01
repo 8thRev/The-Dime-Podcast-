@@ -19,16 +19,18 @@
 
 export const MAX_QUERY_LENGTH = 200;
 
-// Invisible characters go first: zero-width, soft hyphen, and bidi marks
-// and overrides, which could make the echoed query display as something
-// else. Then C0 and C1 control characters (NEL among them) and all
+// Invisible characters go first: every format character (zero-width,
+// soft hyphen, bidi marks and overrides, and the Unicode tag block, which can
+// spell out a hidden instruction to an agent reading the heading), private
+// use, variation selectors and the blank-looking fillers. The goal is that
+// what an agent reads back is what a person would see. Then C0 and C1 control characters (NEL among them) and all
 // whitespace, newlines included, collapse to one space. The query is
 // echoed into the result page and the Markdown heading, and a newline there
 // let a query write its own Markdown block onto a dimepodcast.com URL.
 export function normalizeQuery(raw) {
   if (typeof raw !== 'string') return '';
   return raw
-    .replace(/[\u00ad\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g, '')
+    .replace(/[\p{Cf}\p{Co}\u{E0000}-\u{E007F}\u{FE00}-\u{FE0F}\u115F\u1160\u2800\u3164\uFFA0]/gu, '')
     .replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
     .replace(/\s+/g, ' ')
     .slice(0, MAX_QUERY_LENGTH)

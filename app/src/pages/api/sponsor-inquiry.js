@@ -20,6 +20,7 @@
 // already points there, so it needs no new vendor and no new DNS.
 
 import { sendMail } from '@/lib/sendMail';
+import { reply } from '@/lib/inquiryReply';
 import { isHoneypotFilled, fastFillFlag } from '@/lib/formSpam';
 import { SPONSOR_INQUIRY_FIELDS, validateInquiry, invalidFieldsBody } from '@/lib/inquiryFields';
 
@@ -33,6 +34,8 @@ const TO_ADDRESS = process.env.SPONSOR_TO_ADDRESS || 'sponsorship@dimepodcast.co
 
 // Field rules, limits included, live in lib/inquiryFields.js, shared with the
 // form page and with the limits llms.txt documents for agents.
+
+const REPLY_CONTEXT = { page: '/sponsorship', email: 'sponsorship@dimepodcast.com' };
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -52,12 +55,12 @@ export default async function handler(req, res) {
   // an accepted trade — the honeypot is a cheap filter for unsophisticated
   // spam, not a defence against a targeted attacker. Rate limiting is the
   // control that matters here and is not yet in place.
-  if (isHoneypotFilled(body)) return res.status(200).json({ ok: true, filtered: true });
+  if (isHoneypotFilled(body)) return reply(req, res, 200, { ok: true, filtered: true }, REPLY_CONTEXT);
 
   // Over-length is a 400 naming the field, not a silent cut: the sender has
   // to learn what did not arrive.
   const { values, errors } = validateInquiry(body, SPONSOR_INQUIRY_FIELDS);
-  if (errors.length) return res.status(400).json(invalidFieldsBody(errors));
+  if (errors.length) return reply(req, res, 400, invalidFieldsBody(errors), REPLY_CONTEXT);
   const { name, company, email, targetCustomer, campaignGoal } = values;
   // Too fast for a person is not discarded any more, only flagged for the
   // reader; see lib/formSpam.js.
@@ -89,11 +92,11 @@ export default async function handler(req, res) {
   // than reporting a success we can't back up. sendMail logs the reason on a
   // real failure; the client only needs to know it should fall back.
   if (!result.configured) {
-    return res.status(503).json({ error: 'Mail transport not configured' });
+    return reply(req, res, 503, { error: 'Mail transport not configured' }, REPLY_CONTEXT);
   }
   if (!result.ok) {
-    return res.status(502).json({ error: 'Send failed' });
+    return reply(req, res, 502, { error: 'Send failed' }, REPLY_CONTEXT);
   }
 
-  return res.status(200).json({ ok: true });
+  return reply(req, res, 200, { ok: true }, REPLY_CONTEXT);
 }
