@@ -56,26 +56,28 @@
   "quotes": [
     {
       "speaker": "Bill Morachnick",
-      "quote": "The way we frame it was Charlotte's last option is now many people's first option."
+      "quote": "The way we frame it is: Charlotte's last option is now many people's first option."
     },
     {
       "speaker": "Bill Morachnick",
-      "quote": "I don't know what metaphor you want to use, but I think it's maybe mile one of a 26.2 mile marathon. I think we're just getting started."
+      "quote": "I don't know what metaphor to use, but I think it's maybe mile one of a 26.2-mile marathon. We're just getting started."
     },
     {
       "speaker": "Bill Morachnick",
-      "quote": "I would never say that... I don't know of anyone who's experienced our products and want to move on to something different."
-    },
-    {
-      "speaker": "Bryan Fields",
-      "quote": "This is the breakthrough that you talked about in that funnel requirement, right? Because now you have the trust from someone like a doctor who most people take that word as being of like basically God."
+      "quote": "I would never say that. Look, in my universe, I don't know anyone who's experienced our products and wanted to move on to something different."
     },
     {
       "speaker": "Bill Morachnick",
       "quote": "I wish more people asked me what do you think your products can do for me."
     }
   ],
-  "topics": ["Rescheduling & Federal Policy", "Medical & Research", "Regulatory & Compliance", "State Regulation", "Consumer Trends"],
+  "topics": [
+    "Rescheduling & Federal Policy",
+    "Medical & Research",
+    "Regulatory & Compliance",
+    "State Regulation",
+    "Consumer Trends"
+  ],
   "entities": {
     "companies": [
       "Stanley Brothers",

@@ -54,23 +54,11 @@
   "quotes": [
     {
       "speaker": "Rick Bashkoff",
-      "quote": "We're starting small. We've got customers who trust us — they're coming to us with problems and saying, hey, we use XYZ every day, we don't use this tool, but if you did these three things to it, we think this changes the game for us."
+      "quote": "We're starting small. We've got customers who trust us — they're coming to us with problems and saying, 'Hey, look, we use XYZ every day. We don't use this tool, but if you did these three things to it, we think this changes the game for us.'"
     },
     {
       "speaker": "Rick Bashkoff",
-      "quote": "This industry is not ready for AI until we have structured data that we can actually trust — bad information in, bad information out."
-    },
-    {
-      "speaker": "Rick Bashkoff",
-      "quote": "One of the co-founders of Lit Alerts, our CTO — if we see a bad signal of data, we turn it off."
-    },
-    {
-      "speaker": "Bryan Fields",
-      "quote": "The customer will tell you what is important and what is not — if you're not positioning these assets directly in front of the customer, you might be arguing about something that's irrelevant."
-    },
-    {
-      "speaker": "Rick Bashkoff",
-      "quote": "Grit is at the number one spot in the list, by far — you have to demonstrate that in your career you've gotten around a lot of really tough problems for us to take you seriously as a founder."
+      "quote": "One of the co-founders of Lit Alerts, our CTO, if we see a bad signal in the data, we just turn it off."
     }
   ],
   "topics": [

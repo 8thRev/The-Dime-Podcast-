@@ -64,7 +64,7 @@
     },
     {
       "speaker": "Jesse Redmond",
-      "quote": "I think anything could be cool if you tell the story in the right way. And I think anything could be boring if you tell the story in the wrong way."
+      "quote": "I think anything can be cool if you tell the story in the right way, and anything can be boring if you tell it in the wrong way."
     },
     {
       "speaker": "Jesse Redmond",
@@ -72,14 +72,20 @@
     },
     {
       "speaker": "Jesse Redmond",
-      "quote": "This is no longer a buy-the-basket market. It is a stock picker's market."
+      "quote": "This is no longer a buy-the-basket market. It's a stock picker's market."
     },
     {
       "speaker": "Jesse Redmond",
-      "quote": "I retired from political predictions in December of '22, and that's been a fantastic bet. My life is way less stressful, and wrong way less."
+      "quote": "So I retired from political predictions in December of '22, and that's been a fantastic bet — my life is way less stressful, and I'm wrong a lot less."
     }
   ],
-  "topics": ["Branding & Marketing", "Investor Perspective", "M&A", "Cultivation & Extraction", "Rescheduling & Federal Policy"],
+  "topics": [
+    "Branding & Marketing",
+    "Investor Perspective",
+    "M&A",
+    "Cultivation & Extraction",
+    "Rescheduling & Federal Policy"
+  ],
   "entities": {
     "companies": [
       "Glass House Brands",

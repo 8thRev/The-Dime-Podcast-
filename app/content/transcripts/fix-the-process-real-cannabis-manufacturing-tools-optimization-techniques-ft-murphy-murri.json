@@ -19,7 +19,7 @@
     {
       "question": "Why is moisture content considered such an important data point in cannabis manufacturing?",
       "answer": "Moisture content is easy and cheap to test, isn't mandated by regulators, and correlates with terpene retention, microbial growth risk, solvent cleanliness, and shelf stability. Tracking it from cultivation through packaging gives manufacturers a historical record that helps trace where contamination or quality loss occurred, something that's hard to do with harder-to-measure factors like terpenes or heavy metals."
-      },
+    },
     {
       "question": "What's the difference between compliance data and operational data in cannabis manufacturing?",
       "answer": "Compliance data records what a business is allowed to do and what it has already done, mainly for regulatory reporting, and is typically measured only at the end of a process. Operational data is meant to drive real-time decisions during production. Treating them as the same job leads to teams collecting numbers nobody acts on, rather than data that improves the current batch."
@@ -56,24 +56,23 @@
     },
     {
       "speaker": "Murphy Murri",
-      "quote": "Discomfort of plants is not a category in QuickBooks."
-    },
-    {
-      "speaker": "Murphy Murri",
-      "quote": "That's why my motto is more hash faster. How do you do anything? You make more of it faster."
-    },
-    {
-      "speaker": "Murphy Murri",
-      "quote": "The more binders you have, the more I know that no one's ever read them."
+      "quote": "The more binders you have, the more I know that nobody's ever read them."
     },
     {
       "speaker": "Bryan Fields",
       "quote": "We've got handwritten logs, guys. We write things down on paper, it's fast!"
     }
   ],
-  "topics": ["Cultivation & Extraction", "Data & Technology", "Regulatory & Compliance", "Labor & Workforce"],
+  "topics": [
+    "Cultivation & Extraction",
+    "Data & Technology",
+    "Regulatory & Compliance",
+    "Labor & Workforce"
+  ],
   "entities": {
-    "companies": ["QuickBooks"],
+    "companies": [
+      "QuickBooks"
+    ],
     "people": []
   }
 }

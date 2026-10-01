@@ -67,16 +67,8 @@
       "quote": "Hope is not a viable business strategy."
     },
     {
-      "speaker": "Gibran Washington",
-      "quote": "We don't own a microwave, do you? We don't own remediation equipment. We never will."
-    },
-    {
       "speaker": "Bryan Fields",
-      "quote": "That's one of the reasons they can drive an extra ten minutes to come to your dispensary."
-    },
-    {
-      "speaker": "Gibran Washington",
-      "quote": "Better is better. May the best of you yesterday be the worst of you tomorrow — that's Jay-Z."
+      "quote": "That’s one of the reasons they’ll drive an extra ten minutes to come to your dispensary."
     }
   ],
   "topics": [
@@ -87,7 +79,18 @@
     "MSOs & Multi-State Operators"
   ],
   "entities": {
-    "companies": ["Thomas Jefferson University", "Wegmans", "Publix", "Trulieve", "Cookies"],
-    "people": ["David Clapper", "Dr. Graupf-Worshtra", "Rick Simpson", "Jay-Z (Sean Carter)"]
+    "companies": [
+      "Thomas Jefferson University",
+      "Wegmans",
+      "Publix",
+      "Trulieve",
+      "Cookies"
+    ],
+    "people": [
+      "David Clapper",
+      "Dr. Graupf-Worshtra",
+      "Rick Simpson",
+      "Jay-Z (Sean Carter)"
+    ]
   }
 }

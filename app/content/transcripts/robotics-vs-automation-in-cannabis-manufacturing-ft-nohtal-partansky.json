@@ -53,23 +53,11 @@
   "quotes": [
     {
       "speaker": "Nohtal Partansky",
-      "quote": "A robot will do a set of tasks kind of independently and then have feedback. The feedback is the most important part of it."
-    },
-    {
-      "speaker": "Nohtal Partansky",
-      "quote": "You either have less people that work at your company or you don't have a company, so I think people are kind of over that."
-    },
-    {
-      "speaker": "Nohtal Partansky",
-      "quote": "If you asked people in the 1910s what they wanted, they would say they want a faster horse and buggy. They wouldn't say they wanted a car."
+      "quote": "The biggest difference is that a robot will do a set of tasks somewhat independently and then have feedback — the feedback is the most important part."
     },
     {
       "speaker": "Nohtal Partansky",
       "quote": "No one knows what they're doing, no one has enough money, and no one has enough scale — those are the three things you need to generate any real automated system."
-    },
-    {
-      "speaker": "Nohtal Partansky",
-      "quote": "We want them to be very okay with it breaking down half the time, because it's still five times better than what they were doing before."
     }
   ],
   "topics": [
