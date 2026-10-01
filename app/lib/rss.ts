@@ -30,8 +30,14 @@ export type Episode = {
   num: string;
   title: string;
   guest: string;
+  /** Curated employer from GUEST_COMPANY_MAP, or "". Never derived from a URL. */
   company: string;
+  /** The curated employer's site, UTM tagged for the HTML link. */
   companyUrl: string;
+  /** First link in the show notes' "Guest Links" section, UTM tagged. Not a claim about employment. */
+  guestLink: string;
+  /** That link's hostname ("crescolabs.com"), the only honest label for it. */
+  guestLinkLabel: string;
   date: string;
   dateISO: string;
   duration: string;
@@ -271,32 +277,16 @@ const SKIP_DOMAINS = [
   "simplecast.com", "anchor.fm", "buzzsprout.com",
 ];
 
-// Hosts where the subdomain is the guest's actual identity and the base
-// domain is just the platform ("mitchellosak.substack.com" -> "Mitchellosak").
-// Everything else drops any subdomain and uses the label before the TLD
-// ("en.wikipedia.org" -> "Wikipedia", "scale.williemckenzie.com" -> "Williemckenzie").
-const SUBDOMAIN_IS_BRAND_HOSTS = ["substack.com", "myshopify.com", "wordpress.com", "blogspot.com", "wixsite.com"];
-
-// "organigram.ca" -> "Organigram", "cryocure.com" -> "Cryocure". Multi-word
-// domains with no separator (e.g. "ajnabiosciences.com") stay mashed
-// together — imperfect, but still a correct link with a readable-enough
-// label, which is what matters for an auto-detected fallback.
-function hostnameToCompanyName(hostname: string): string {
-  const labels = hostname.split(".");
-  const platformSuffix = SUBDOMAIN_IS_BRAND_HOSTS.find(
-    (h) => hostname === h || hostname.endsWith("." + h)
-  );
-  const isSubdomainOfPlatform = platformSuffix && labels.length > platformSuffix.split(".").length;
-  const base = isSubdomainOfPlatform
-    ? labels[0]
-    : labels.length >= 2
-      ? labels[labels.length - 2]
-      : labels[0];
-  return base
-    .split(/[-_]/)
-    .filter(Boolean)
-    .map((w) => w[0].toUpperCase() + w.slice(1))
-    .join(" ");
+// The label for an auto-detected guest link is its hostname and nothing
+// more. This used to be turned into a company name by capitalising the
+// domain ("crescolabs.com" -> "Crescolabs", "scale.williemckenzie.com" ->
+// "Williemckenzie"), which published as Person.worksFor on ~126 guest pages:
+// mashed names, personal sites presented as employers, and an old episode's
+// link standing in for a guest's current company. Agents quote worksFor as a
+// fact, so a guessed employer is worse than none. Real employers go in
+// GUEST_COMPANY_MAP; everything else is shown as the link it is.
+function hostnameLabel(hostname: string): string {
+  return hostname.replace(/^www\./, "").toLowerCase();
 }
 
 // Show notes sometimes wrap guest links in an email-tracking redirect
@@ -320,16 +310,18 @@ function unwrapTrackingRedirect(raw: string): string {
   return current;
 }
 
-// Company links are only auto-detected from the show notes' "Guest Links"
+// Guest links are only auto-detected from the show notes' "Guest Links"
 // section (heading text varies a little: "Guest Links:", "Guest Links",
 // "Follow Guest Links"). About half of episodes don't have one — those get
-// no auto-detected company rather than a guessed one. Scanning the *whole*
+// no guest link rather than a guessed one. Scanning the *whole*
 // show notes (the old approach) reliably picked up the "Newton Insights"
 // sponsor read or the "Eighth Revolution" footer link instead, since both
 // appear in every episode's boilerplate and neither is on SKIP_DOMAINS.
-function extractCompanyFromShowNotes(html: string): { company: string; companyUrl: string } {
-  const headingMatch = html.match(/guest\s*links?\s*:?\s*<\/(?:strong|b)>\s*<\/p>/i);
-  if (!headingMatch || headingMatch.index === undefined) return { company: "", companyUrl: "" };
+function extractGuestLinkFromShowNotes(html: string): { url: string; label: string } {
+  // Bold paragraph ("<p><strong>Guest Links:</strong></p>") in the back
+  // catalogue; a real heading ("<h2>Guest Links</h2>") from September 2026.
+  const headingMatch = html.match(/guest\s*links?\s*:?\s*(?:<\/(?:strong|b)>\s*<\/p>|<\/h[1-6]>)/i);
+  if (!headingMatch || headingMatch.index === undefined) return { url: "", label: "" };
 
   const afterHeading = html.slice(headingMatch.index + headingMatch[0].length);
   // The "Our Links" heading text varies ("Our Links:", "Follow us: Our
@@ -362,16 +354,17 @@ function extractCompanyFromShowNotes(html: string): { company: string; companyUr
       const url = new URL(raw);
       const hostname = url.hostname.replace(/^www\./, "");
       if (SKIP_DOMAINS.some((d) => hostname === d || hostname.endsWith("." + d))) continue;
-      return { company: hostnameToCompanyName(hostname), companyUrl: raw };
+      return { url: raw, label: hostnameLabel(hostname) };
     } catch {
       continue;
     }
   }
-  return { company: "", companyUrl: "" };
+  return { url: "", label: "" };
 }
 
-// Manual overrides — takes precedence over auto-detection.
-// Use when the show notes don't link the company or the wrong link is detected.
+// The only source of Episode.company and therefore of Person.worksFor.
+// Add a guest here only with a confirmed current employer; the show notes'
+// guest link is shown as a link either way and is not a substitute.
 const GUEST_COMPANY_MAP: Record<string, { company: string; companyUrl: string }> = {
   "Aubrey Amatelli": { company: "PayRio", companyUrl: "https://www.payrio.co" },
 };
@@ -448,7 +441,7 @@ const DEAD_RETARGET = [
 // Rewrites or strips the anchor, keeping its contents either way, so inline
 // markup inside the link text (the boilerplate wraps it in <strong>) survives.
 //
-// Ordering: this must run *after* extractCompanyFromShowNotes, which uses the
+// Ordering: this must run *after* extractGuestLinkFromShowNotes, which uses the
 // eighthrevolution.com href as the end-boundary of the "Guest Links" section
 // (see the comment there). Removing these anchors first would strip that
 // boundary and break guest-company detection across a large share of episodes.
@@ -486,8 +479,8 @@ export async function getAllEpisodes(): Promise<Episode[]> {
         unescapeMarkdownUnderscores(item["content:encoded"] || item.itunes?.summary || "")
       );
       const companyOverride = GUEST_COMPANY_MAP[guest];
-      const autoDetected = companyOverride ? { company: "", companyUrl: "" } : extractCompanyFromShowNotes(showNotesRaw);
-      const company = companyOverride?.company || autoDetected.company || extractedCompany;
+      const autoLink = companyOverride ? { url: "", label: "" } : extractGuestLinkFromShowNotes(showNotesRaw);
+      const company = companyOverride?.company || extractedCompany;
       const id = extractSimplecastId(item.guid || "", item.link || "");
       const epNum = item.itunes?.episode || String(feed.items.length - index);
       const tags = item.itunes?.keywords?.split(",").map((k) => k.trim()).filter(Boolean) || [];
@@ -502,7 +495,7 @@ export async function getAllEpisodes(): Promise<Episode[]> {
       // params are left alone by withUtm, so tagging an episode in Simplecast
       // later takes precedence instead of being double-tagged.
       //
-      // Ordering matters twice over. extractCompanyFromShowNotes must see the
+      // Ordering matters twice over. extractGuestLinkFromShowNotes must see the
       // untagged HTML (it matches boundary hrefs and returns a URL that would
       // otherwise arrive pre-tagged with the wrong medium), and `description`
       // is derived from the untagged copy so it is structurally impossible for
@@ -518,10 +511,8 @@ export async function getAllEpisodes(): Promise<Episode[]> {
       // The company link is rendered by the episode and guest pages as their
       // own element rather than as part of the notes, so it gets the guest_link
       // campaign to keep it separable from the in-notes links above.
-      const companyUrl = withUtm(
-        companyOverride?.companyUrl || autoDetected.companyUrl || "",
-        { ...UTM.guestLink, content: fullSlug }
-      );
+      const companyUrl = withUtm(companyOverride?.companyUrl || "", { ...UTM.guestLink, content: fullSlug });
+      const guestLink = withUtm(autoLink.url, { ...UTM.guestLink, content: fullSlug });
 
       return {
         id,
@@ -532,6 +523,8 @@ export async function getAllEpisodes(): Promise<Episode[]> {
         guest,
         company,
         companyUrl,
+        guestLink,
+        guestLinkLabel: autoLink.label,
         date: new Date(item.pubDate || "").toLocaleDateString("en-US", {
           month: "short",
           day: "numeric",

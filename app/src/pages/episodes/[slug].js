@@ -143,7 +143,11 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
     aiGenerated: !!transcript,
     transcript: transcript?.cleaned_transcript,
     entities: transcript?.entities,
-    guest: episode.guest ? { name: episode.guest, company: episode.company, companyUrl: episode.companyUrl } : undefined,
+    // "Guest" is extractGuest()'s placeholder for an unparsed title, not a
+    // person, and has no guest page for the Person @id to point at.
+    guest: episode.guest && episode.guest !== 'Guest'
+      ? { name: episode.guest, slug: guestToSlug(episode.guest), company: episode.company, companyUrl: episode.companyUrl }
+      : undefined,
   });
   const faqSchema = transcript?.faq?.length ? createFAQSchema(transcript.faq) : null;
   const breadcrumbSchema = createBreadcrumbSchema([
@@ -224,7 +228,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
             ) : (
               episode.guest
             )}
-            {episode.company && (
+            {episode.company ? (
               <span style={{ color: 'var(--text-muted)' }}>
                 {' / '}
                 {episode.companyUrl ? (
@@ -235,7 +239,16 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
                   episode.company
                 )}
               </span>
-            )}
+            ) : episode.guestLink ? (
+              // The show notes' guest link, labelled as the hostname it is.
+              // Not presented as the guest's company: see GUEST_COMPANY_MAP.
+              <span style={{ color: 'var(--text-muted)' }}>
+                {' / Show notes link: '}
+                <a href={episode.guestLink} rel="noopener" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>
+                  {episode.guestLinkLabel}
+                </a>
+              </span>
+            ) : null}
           </div>
 
           {displayTags.length > 0 && (

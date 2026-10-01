@@ -1,43 +1,64 @@
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
-import { getAllEpisodes } from '@/lib/rss';
-import { getTranscriptBySlug } from '@/lib/transcripts';
+import { getEpisodeIndex } from '@/lib/episodeIndex';
+import { searchEpisodes } from '@/lib/episodeSearch';
 import { createCollectionPageSchema } from '@/lib/schema';
 import { useSearchTracking, trackSearchResultClick } from '@/lib/useSearchTracking';
 
-export default function Episodes({ allEpisodes }) {
+// Also the component behind /episodes?q= (src/pages/episodes/search.js),
+// which renders it on the server with `initialQuery` set, so the result list
+// is in the HTML an agent fetches rather than filtered in the browser.
+export default function Episodes({ allEpisodes, initialQuery = '', searchPage = false }) {
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialQuery);
   // A count, so the length of the list, not the highest episode number:
   // see getStaticProps in src/pages/index.js for why those differ.
   const episodeCount = allEpisodes.length;
 
-  // Seed the search box from the ?q= param so the SearchAction JSON-LD
-  // (lib/schema.ts) resolves to a real, shareable, crawlable result page.
-  // On a statically-optimized page router.query/isReady are unreliable
-  // (isReady can stay false), so read the query straight from the URL on mount.
+  // A request with ?q= is rewritten to the server rendered search page and
+  // arrives with initialQuery already set. This covers the rest: a cached
+  // static copy reached with a query some other way. On a statically
+  // optimized page router.query/isReady are unreliable (isReady can stay
+  // false), so read the query straight from the URL on mount.
   useEffect(() => {
+    if (initialQuery) return;
     const q = new URLSearchParams(window.location.search).get('q') || '';
     if (q) setQuery(q);
-  }, []);
+  }, [initialQuery]);
+
+  // The static page and the search page share this component, so React keeps
+  // `query` across a client navigation between them. Without this, clicking
+  // the header's Episodes link mid-search landed on /episodes with the list
+  // still filtered. Every completed navigation re-reads q from the new URL.
+  useEffect(() => {
+    const onDone = (url) => {
+      setQuery(new URL(url, window.location.origin).searchParams.get('q') || '');
+    };
+    router.events.on('routeChangeComplete', onDone);
+    return () => router.events.off('routeChangeComplete', onDone);
+  }, [router.events]);
 
   const onSearch = (value) => {
     setQuery(value);
     // Keep the URL in sync (replace, not push, so typing doesn't spam history)
     // so any filtered view can be linked to or crawled directly.
     const url = value ? `/episodes?q=${encodeURIComponent(value)}` : '/episodes';
-    router.replace(url, undefined, { shallow: true });
+    // history.replaceState, not router.replace. The router resolves a ?q=
+    // URL through the rewrite in next.config.js to /episodes/search, a
+    // different page, so even a shallow replace became a server render on the
+    // first keystroke. Nothing here needs the router to know: the list is
+    // driven by `query`, and Next's own fields in history.state are kept so
+    // back and forward still route (to the server rendered result page).
+    const state = window.history.state || {};
+    window.history.replaceState({ ...state, url, as: url }, '', url);
   };
 
-  const q = query.trim().toLowerCase();
-  const filtered = q
-    ? allEpisodes.filter((ep) => ep.searchText.includes(q))
-    : allEpisodes;
+  const filtered = searchEpisodes(allEpisodes, query);
 
   // One search event per pause in typing (docs/analytics-spec.md Part 2.4).
   useSearchTracking(query, filtered.length);
@@ -60,6 +81,10 @@ export default function Episodes({ allEpisodes }) {
         title="All Episodes"
         description={`Browse all ${episodeCount} episodes of The Dime. Conversations with cannabis founders, executives, and investors on strategy, capital, and operations.`}
         path="/episodes"
+        // A result page is for whoever asked, not for the index: one per
+        // query would be endless thin near-duplicates of this archive.
+        noindex={searchPage}
+        markdownAlternate={`https://www.dimepodcast.com/episodes.md${query.trim() ? `?q=${encodeURIComponent(query.trim())}` : ''}`}
       />
       <Schema schema={collectionSchema} />
       <Header />
@@ -77,6 +102,12 @@ export default function Episodes({ allEpisodes }) {
             style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: "'Syne', sans-serif", fontSize: '13px', padding: '14px 16px', outline: 'none' }}
           />
         </div>
+
+        {query.trim() && (
+          <p className="mono" role="status" style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '.08em', marginBottom: 8 }}>
+            {filtered.length} of {episodeCount} episodes match &ldquo;{query.trim()}&rdquo;
+          </p>
+        )}
 
         {filtered.map((ep, i) => (
           <Link
@@ -134,43 +165,9 @@ export default function Episodes({ allEpisodes }) {
 }
 
 export async function getStaticProps() {
-  const episodes = await getAllEpisodes();
-
-  // Ship only the fields this list page renders (+ a build-time search string),
-  // not the full episode objects. The RSS episode carries the entire
-  // `showNotes` HTML blob, which the archive list never displays — including it
-  // pushed the page payload past 1.3 MB. The searchText folds in transcript
-  // topics + AI summary so the client filter matches more than title/guest,
-  // without shipping full transcripts to the browser. Most episodes have no
-  // transcript yet (getTranscriptBySlug returns null → RSS fields only).
-  const allEpisodes = episodes.map((ep) => {
-    const transcript = getTranscriptBySlug(ep.slug);
-    const searchText = [
-      ep.title,
-      ep.guest,
-      ep.company,
-      ...(ep.tags || []),
-      ...(transcript?.topics || []),
-      transcript?.summary || '',
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase();
-    return {
-      slug: ep.slug,
-      num: ep.num,
-      date: ep.date,
-      title: ep.title,
-      guest: ep.guest,
-      description: ep.description,
-      duration: ep.duration,
-      searchText,
-    };
-  });
-
   return {
     props: {
-      allEpisodes,
+      allEpisodes: await getEpisodeIndex(),
     },
     revalidate: 3600,
   };

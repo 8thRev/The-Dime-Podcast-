@@ -17,7 +17,9 @@ export default function Document() {
             twitter:title/twitter:description live in SeoHead per-page
             (next/head is not deduped against this Head, so anything
             page-specific declared here would render twice). */}
-        <meta name="robots" content="index, follow" />
+        {/* No robots meta here. "index, follow" is the default, and a global
+            copy sat beside SeoHead's per-page noindex (the /episodes search
+            result pages) as two conflicting tags. */}
 
         {/* Open Graph defaults. og:type is deliberately NOT here — it varies
             per page (SeoHead's `ogType` prop) and next/head isn't deduped

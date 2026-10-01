@@ -117,12 +117,31 @@ export function withUtm(raw: string | null | undefined, params: UtmParams): stri
   return url.toString();
 }
 
+/**
+ * The same URL with every utm_* param removed. For places a link is stated
+ * as a fact rather than clicked by a reader (JSON-LD, the .md twins), where a
+ * campaign tag is noise to an agent and makes one site look like many URLs.
+ */
+export function withoutUtm(raw: string | null | undefined): string {
+  if (!raw || typeof raw !== "string") return raw || "";
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return raw;
+  }
+  for (const key of [...url.searchParams.keys()]) {
+    if (key.toLowerCase().startsWith("utm_")) url.searchParams.delete(key);
+  }
+  return url.toString();
+}
+
 // Ampersands are the only entity that realistically shows up inside an href,
 // but both sources encode them and they encode them differently: the
 // Simplecast feed ships "&amp;" while remark-html emits "&#x26;". Decoding
 // before new URL() and re-encoding on the way out keeps the attribute valid —
 // the output of this function goes straight into dangerouslySetInnerHTML.
-function decodeHrefEntities(href: string): string {
+export function decodeHrefEntities(href: string): string {
   return href.replace(/&(?:amp|#38|#x26);/gi, "&");
 }
 

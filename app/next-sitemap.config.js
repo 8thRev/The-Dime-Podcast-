@@ -255,7 +255,9 @@ module.exports = {
   generateRobotsTxt: true,
   // Plain-text/XML endpoints, not indexable HTML pages. /rss.xml is
   // advertised through <link rel="alternate"> in _document.js instead.
-  exclude: ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newsletter/rss.xml'],
+  // /episodes/search is the server rendered result page behind /episodes?q=,
+  // reached only through a rewrite and noindex.
+  exclude: ['/llms.txt', '/llms-full.txt', '/rss.xml', '/newsletter/rss.xml', '/episodes/search'],
   robotsTxtOptions: {
     sitemaps: [
       `${siteUrl}/sitemap.xml`,
@@ -301,6 +303,10 @@ module.exports = {
         `# ${siteUrl}/answers (AI-written Q&A column, cites the episodes it draws from)
 ` +
         `# Markdown variant of any episode, guest, newsletter, answer or topic page: add .md to its URL
+` +
+        `# Episode search as Markdown: ${siteUrl}/episodes.md?q=<words>
+` +
+        `# MCP server (read only, Streamable HTTP): ${siteUrl}/mcp
 ` +
         `# Per topic indexes (one topic's episodes, essays, answers and AI written brief):
 ` +

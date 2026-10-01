@@ -1,8 +1,8 @@
 // lib/guests.ts
 // Guest entity page helpers. Unlike topics.ts, this needs no separate data
-// source — app/lib/rss.ts already extracts guest/company/companyUrl per
-// episode (from the RSS title + GUEST_COMPANY_MAP), so an entity page is
-// just that data grouped by guest.
+// source: app/lib/rss.ts already extracts the guest, the curated company
+// (GUEST_COMPANY_MAP only) and the show notes' guest link per episode, so an
+// entity page is just that data grouped by guest.
 //
 // Scope note: a composite credit like "Kristin & Eric Rogers" is treated as
 // one entity for now rather than split into two people — splitting these
@@ -16,8 +16,12 @@ export type GuestSummary = {
   slug: string;
   company: string;
   companyUrl: string;
+  guestLink: string;
+  guestLinkLabel: string;
   episodeCount: number;
 };
+
+type GuestAccumulator = Omit<GuestSummary, "slug" | "episodeCount"> & { count: number };
 
 export function guestToSlug(name: string): string {
   return name
@@ -36,7 +40,7 @@ function isRealGuest(name: string): boolean {
 
 export async function getAllGuests(): Promise<GuestSummary[]> {
   const episodes = await getAllEpisodes();
-  const bySlug = new Map<string, { name: string; company: string; companyUrl: string; count: number }>();
+  const bySlug = new Map<string, GuestAccumulator>();
 
   for (const ep of episodes) {
     if (!isRealGuest(ep.guest)) continue;
@@ -50,13 +54,25 @@ export async function getAllGuests(): Promise<GuestSummary[]> {
         existing.company = ep.company;
         existing.companyUrl = ep.companyUrl;
       }
+      // No backfill for the guest link, unlike the curated company above.
+      // Episodes arrive newest first, so `existing` already holds the newest
+      // appearance's link, or none. An older episode's link is what someone
+      // pointed to then, and on /guests/jamie-pearson that was a previous
+      // firm standing in for the current one.
     } else {
-      bySlug.set(slug, { name: ep.guest, company: ep.company, companyUrl: ep.companyUrl, count: 1 });
+      bySlug.set(slug, {
+        name: ep.guest,
+        company: ep.company,
+        companyUrl: ep.companyUrl,
+        guestLink: ep.guestLink,
+        guestLinkLabel: ep.guestLinkLabel,
+        count: 1,
+      });
     }
   }
 
   return Array.from(bySlug.entries())
-    .map(([slug, g]) => ({ slug, name: g.name, company: g.company, companyUrl: g.companyUrl, episodeCount: g.count }))
+    .map(([slug, { count, ...g }]) => ({ slug, ...g, episodeCount: count }))
     .sort((a, b) => b.episodeCount - a.episodeCount || a.name.localeCompare(b.name));
 }
 

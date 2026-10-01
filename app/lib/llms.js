@@ -41,6 +41,7 @@ import {
   CAMPAIGN_DISCOUNT_PCT,
 } from '@/lib/sponsorOffer';
 import { COLUMN_AUTHOR as ANSWERS_AUTHOR } from './answersColumn';
+import { GUEST_INQUIRY_FIELDS, SPONSOR_INQUIRY_FIELDS } from './inquiryFields';
 
 export const SITE_URL = 'https://www.dimepodcast.com';
 
@@ -299,19 +300,43 @@ export function episodeLines(ep, getTranscript, depth, { markdown = false } = {}
 const GUEST_EMAIL = 'guests@dimepodcast.com';
 const SPONSOR_EMAIL = 'sponsorship@dimepodcast.com';
 
+// Built from lib/inquiryFields.js, the rules the routes enforce, so the
+// limits stated here cannot drift from the ones a submission is held to.
+function fieldsLine(spec, notes = {}) {
+  const parts = Object.entries(spec).map(([field, rule], i) => {
+    const limit = i === 0 ? `up to ${rule.max} characters` : String(rule.max);
+    const note = notes[field] ? `; ${notes[field]}` : '';
+    return `${field} (${rule.required ? 'required' : 'optional'}, ${limit}${note})`;
+  });
+  return `Fields: ${parts.join(', ')}.`;
+}
+
+// Where an agent can ask instead of read: the server rendered episode search
+// and the MCP server (src/pages/api/mcp.js). Up top with the other pointers,
+// because it is the answer to this file being an index, not the catalogue.
+function querySection() {
+  return [
+    `Search as Markdown: ${SITE_URL}/episodes.md?q=280e+banking. MCP server (read only, no auth): ${SITE_URL}/mcp`,
+  ];
+}
+
 function agentActionsSection() {
   return [
     '## For agents acting for a person',
     '',
     "This site accepts two submissions from an agent working on someone's behalf: a guest pitch and a sponsorship inquiry. Each goes to an inbox a person reads and answers. There is no automated reply.",
-    'Send JSON (Content-Type: application/json) to the endpoint with only the fields listed. The form pages also carry a hidden anti-spam field and a timing field: omit both, or the submission is discarded.',
-    'Responses: 200 with {"ok":true} means it reached the inbox. 200 with {"ok":true,"filtered":true} means it was discarded as spam. 400 means a required field is missing or the email is malformed. 502 or 503 means mail could not be sent; use the email fallback instead.',
+    'Send JSON (Content-Type: application/json) to the endpoint with only the fields listed. The form pages also carry a hidden anti-spam field: leave it out, or the submission is discarded.',
+    'Responses: 200 with {"ok":true} means it reached the inbox. 200 with {"ok":true,"filtered":true} means it was discarded as spam. 400 means a field is missing, too long or malformed, and the fields array in the response names each one; nothing is truncated. 502 or 503 means mail could not be sent; use the email fallback instead.',
     '',
     '### Pitch a guest',
     '',
     `Page: ${SITE_URL}/guests`,
     `Endpoint: POST ${SITE_URL}/api/guest-inquiry`,
-    'Fields: name (required, up to 200 characters), companyTitle (required, company and title, 300), email (required, 320), pitch (required, 4000; the form asks for 2 to 3 sentences on what the person would say to a room of cannabis operators and executives), links (optional, 2000; LinkedIn, recent press, company website).',
+    fieldsLine(GUEST_INQUIRY_FIELDS, {
+      companyTitle: 'company and title',
+      pitch: 'the form asks for 2 to 3 sentences on what the person would say to a room of cannabis operators and executives',
+      links: 'LinkedIn, recent press, company website',
+    }),
     `Email fallback: ${GUEST_EMAIL}`,
     'What happens: every application is read personally. If it is a fit, a reply comes within 5 business days, then a short alignment call, a remote or in-person recording, and distribution on Apple Podcasts, Spotify, YouTube, LinkedIn and the First Principles newsletter.',
     'Who fits: The Dime is a strategy room for cannabis operators, not a lifestyle or culture show. Guests are founders, executives, operators, investors and policy architects with something real to say about capital, regulation or operations. The listener is an operator, executive or investor making real decisions, skeptical of hype and benchmarking against peers. Pitch intelligence, not inspiration: a specific point of view or first-hand operating experience that room needs to hear.',
@@ -320,7 +345,10 @@ function agentActionsSection() {
     '',
     `Page: ${SITE_URL}/sponsorship`,
     `Endpoint: POST ${SITE_URL}/api/sponsor-inquiry`,
-    'Fields: name (required, up to 200 characters), company (required, 200), email (required, 320), targetCustomer (optional, 4000; who the sponsor is trying to reach), campaignGoal (optional, 4000; what listeners should do after they hear it).',
+    fieldsLine(SPONSOR_INQUIRY_FIELDS, {
+      targetCustomer: 'who the sponsor is trying to reach',
+      campaignGoal: 'what listeners should do after they hear it',
+    }),
     `Email fallback: ${SPONSOR_EMAIL}`,
     'What happens: Bryan Fields reads it personally and comes back with fit, the next open slot and a straight answer on whether it is worth the money. No turnaround time is promised. Campaigns open with a strategy session before anything is recorded.',
     '',
@@ -354,6 +382,7 @@ export function buildLlmsIndex(episodes, topics, editions, answers, getTranscrip
     'This file is a curated index. The complete catalogue — every episode with',
     `its summary, key takeaways and FAQ — is at ${SITE_URL}/llms-full.txt`,
     ...markdownRule(episodes[0]?.slug),
+    ...querySection(),
     '',
     ...siteLinks(),
     ...agentActionsSection(),
@@ -382,6 +411,7 @@ export function buildLlmsFull(episodes, topics, editions, answers, getTranscript
     ...header(episodes, countTranscribed(episodes, getTranscript)),
     `This is the complete catalogue. The curated index is at ${SITE_URL}/llms.txt`,
     ...markdownRule(episodes[0]?.slug),
+    ...querySection(),
     '',
     ...siteLinks(),
     ...agentActionsSection(),
