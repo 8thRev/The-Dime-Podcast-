@@ -125,20 +125,6 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             {edition.wordCount > 0 && <span>{edition.wordCount} words</span>}
           </div>
 
-          {edition.topics.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '24px' }}>
-              {edition.topics.map((topic) => (
-                <Link
-                  key={topic}
-                  href={`/topics/${topicToSlug(topic)}`}
-                  className="mono"
-                  style={{ fontSize: '10px', color: 'var(--text-accent)', border: '1px solid var(--text-accent)', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
-                >
-                  {topic}
-                </Link>
-              ))}
-            </div>
-          )}
         </header>
 
         {episode && (
@@ -174,14 +160,34 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
-        <section style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
-          <h2 className="syne" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '8px' }}>
+        {edition.topics.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: '40px' }}>
+            {edition.topics.map((topic) => (
+              <Link
+                key={topic}
+                href={`/topics/${topicToSlug(topic)}`}
+                className="mono"
+                style={{ fontSize: '10px', color: 'var(--text-accent)', border: '1px solid var(--text-accent)', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
+              >
+                {topic}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <section style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
+          <h2 className="syne" style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '8px' }}>
             Get the next one by email
           </h2>
-          <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            One structural insight per episode. No recaps, no noise.
+          <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: '20px' }}>
+            First Principles is a weekly note on the structural insight behind each Dime episode. No recaps, no noise.
           </p>
           <ConvertKitEmbed location="newsletter_page" />
+          <p className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+            <Link href="/newsletter" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>All editions</Link>
+            <Link href="/newsletter/rss.xml" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>RSS</Link>
+            <Link href="/"style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>Listen to The Dime</Link>
+          </p>
         </section>
 
         {edition.linkedinUrl && (
