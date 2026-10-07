@@ -21,7 +21,7 @@ const linkStyle = {
 };
 
 const eyebrowStyle = {
-  fontSize: '10px',
+  fontSize: '12px',
   fontWeight: 700,
   letterSpacing: '.2em',
   textTransform: 'uppercase',

@@ -106,11 +106,12 @@ const GUEST_EMAIL = 'guests@dimepodcast.com';
 const EMPTY_FORM = FORM_FIELDS.reduce((acc, f) => ({ ...acc, [f.name]: '' }), { [HONEYPOT_FIELD]: '' });
 
 const FIELD_STYLE = {
-  background: 'var(--navy2)',
-  border: '1px solid var(--border)',
-  color: 'var(--white)',
-  fontFamily: 'var(--font-display)',
-  fontSize: '13px',
+  background: 'var(--bg-surface)',
+  border: '1px solid var(--border-default)',
+  borderRadius: 'var(--radius-md)',
+  color: 'var(--text-primary)',
+  fontFamily: 'var(--font-body)',
+  fontSize: '15px',
   padding: '14px 16px',
   width: '100%',
   outline: 'none',
@@ -281,23 +282,24 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
       />
       <Header />
 
-      <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
-          Guest Application
-        </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(44px,7vw,92px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, maxWidth: 760, marginBottom: 36 }}>
+      <section className="band">
+        <div className="wrap page-head">
+        <span className="eyebrow">Guest Application</span>
+        <h1 className="page-title" style={{ maxWidth: 760 }}>
           This is the room<br />
           serious operators<br />
-          <span style={{ color: 'var(--text-accent)' }}>want to be in.</span>
+          <span className="accent">want to be in.</span>
         </h1>
-        <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', maxWidth: 600, fontWeight: 300 }}>
+        <p className="lede">
           The Dime listener is an operator, executive, or investor making real decisions in cannabis. They are not looking for inspiration. They are looking for intelligence. If you have something real to say to that room, this is where you say it.
         </p>
+        </div>
       </section>
 
-      <section style={{ padding: '80px 48px', borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80 }}>
+      <section className="band">
+        <div className="wrap page-body grid-2">
         <div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
+          <div className="mono" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
             Who&apos;s Listening
           </div>
           {[
@@ -308,7 +310,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             ['Mindset', 'Survival-focused. Risk-aware. Skeptical of hype. Benchmarking against peers.'],
           ].map(([label, value]) => (
             <div key={label} style={{ padding: '22px 0', borderTop: '1px solid var(--faint)' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 8 }}>
+              <div className="mono" style={{ fontSize: '12px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 8 }}>
                 {label}
               </div>
               <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-secondary)', lineHeight: 1.8, fontWeight: 300 }}>
@@ -318,7 +320,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
           ))}
         </div>
         <div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
+          <div className="mono" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 20 }}>
             What Works Here
           </div>
           <div style={{ borderLeft: '2px solid var(--text-accent)', paddingLeft: 28, marginBottom: 48 }}>
@@ -329,10 +331,10 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               We do not do puff pieces. We do not do product launches dressed as conversations. The room will notice, and it will cost you credibility, not build it.
             </p>
           </div>
-          <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
+          <div className="mono" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
             Past Guests Include
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+          <div className="name-grid">
             {GUESTS_TICKER.slice(0, 32).map((g) => {
               const slug = guestToSlug(g);
               const hasProfile = !!guestSlugs[slug];
@@ -350,13 +352,13 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             })}
           </div>
         </div>
+        </div>
       </section>
 
-      <section style={{ padding: '80px 48px' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 32 }}>
-          Submit Your Application
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 60 }}>
+      <section id="apply">
+        <div className="wrap page-body">
+        <h2 className="section-label" style={{ marginBottom: 32 }}>Submit Your Application</h2>
+        <div className="grid-2">
           {/* method and action cover a submit before hydration or with JS
               failed: without them the browser sent a GET to this page with
               every field, email included, in the query string, which the
@@ -407,7 +409,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                       id={`guest-${field.name}-error`}
                       role="alert"
                       className="mono"
-                      style={{ fontSize: '10px', color: 'var(--color-danger)', marginTop: 6, letterSpacing: '.06em' }}
+                      style={{ fontSize: '12px', color: 'var(--color-danger)', marginTop: 6, letterSpacing: '.06em' }}
                     >
                       {error}
                     </div>
@@ -466,7 +468,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
             </div>
           </form>
           <div>
-            <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 20 }}>
+            <div className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 20 }}>
               What Happens Next
             </div>
             {[
@@ -476,7 +478,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               ['Distribution', 'Apple Podcasts, Spotify, YouTube, LinkedIn, and the First Principles newsletter.'],
             ].map(([step, detail]) => (
               <div key={step} style={{ marginBottom: 28 }}>
-                <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
+                <div className="mono" style={{ fontSize: '12px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                   {step}
                 </div>
                 <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
@@ -491,7 +493,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                 incentivized review under Apple's rating guidelines and the
                 FTC review rule (16 CFR 465). */}
             <div style={{ marginBottom: 28, padding: '18px 20px', border: '1px solid var(--border)', borderLeft: '2px solid var(--text-accent)' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
+              <div className="mono" style={{ fontSize: '12px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                 Already a Listener?
               </div>
               <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
@@ -509,7 +511,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
                 that clears the moment they touch a field again. Someone whose
                 mailto: does nothing needs this in front of them regardless. */}
             <div style={{ paddingTop: 12, borderTop: '1px solid var(--border)' }}>
-              <div className="mono" style={{ fontSize: '9px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
+              <div className="mono" style={{ fontSize: '12px', letterSpacing: '.2em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: 6 }}>
                 Prefer Email?
               </div>
               <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.82, fontWeight: 300 }}>
@@ -521,6 +523,7 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </section>
 

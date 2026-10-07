@@ -29,39 +29,32 @@ export default function Topics({ topics }) {
       <Schema schema={collectionSchema} />
       <Header />
 
-      <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>
-          {topics.length} Topics
-        </div>
-        <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9, marginBottom: 40 }}>
-          Topics
-        </h1>
-
-        {topics.length === 0 && (
-          <p className="crimson" style={{ color: 'var(--text-muted)', padding: '48px 0', fontSize: 16 }}>
-            No topics yet — check back as more episodes get transcript coverage.
+      <section className="band">
+        <div className="wrap page-head">
+          <span className="eyebrow">{topics.length} Topics</span>
+          <h1 className="page-title">Topics</h1>
+          <p className="lede">
+            Every episode with a transcript is tagged against one fixed taxonomy. Pick a
+            subject to get the episodes, the written analysis and the questions answered on it.
           </p>
-        )}
+        </div>
+      </section>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          {topics.map((t) => (
-            <Link
-              key={t.slug}
-              href={`/topics/${t.slug}`}
-              className="mono"
-              style={{
-                fontSize: '13px',
-                fontWeight: 700,
-                color: 'var(--text-accent)',
-                border: '1px solid var(--text-accent)',
-                borderRadius: '999px',
-                padding: '8px 18px',
-                textDecoration: 'none',
-              }}
-            >
-              {t.topic} <span style={{ color: 'var(--text-muted)' }}>· {t.count}</span>
-            </Link>
-          ))}
+      <section>
+        <div className="wrap page-body">
+          {topics.length === 0 && (
+            <p className="lede" style={{ marginTop: 0, color: 'var(--text-muted)' }}>
+              No topics yet — check back as more episodes get transcript coverage.
+            </p>
+          )}
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            {topics.map((t) => (
+              <Link key={t.slug} href={`/topics/${t.slug}`} className="pill" style={{ fontSize: '14px', padding: '10px 18px' }}>
+                {t.topic} <span className="count">· {t.count}</span>
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 

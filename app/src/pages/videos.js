@@ -37,6 +37,64 @@ export default function Videos({ allVideos }) {
 
   return (
     <>
+      <style>{`
+        .video-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+          gap: 24px;
+        }
+        .video-card {
+          display: block;
+          text-decoration: none;
+          color: inherit;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-subtle);
+          border-radius: var(--radius-md);
+          overflow: hidden;
+          transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+        }
+        .video-card:hover {
+          border-color: var(--card-border-hover);
+          box-shadow: var(--shadow-card);
+          transform: translateY(-2px);
+          text-decoration: none;
+        }
+        .video-card .thumb {
+          aspect-ratio: 16 / 9;
+          background: var(--bg-overlay);
+          overflow: hidden;
+        }
+        .video-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .video-card .body {
+          padding: 16px;
+        }
+        .video-card .title {
+          font-family: var(--font-body);
+          font-size: 15px;
+          font-weight: 600;
+          line-height: 1.35;
+          color: var(--text-headline);
+          margin-bottom: 8px;
+        }
+        .yt-bar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          align-items: center;
+          justify-content: space-between;
+          padding: 16px 20px;
+          margin-bottom: 32px;
+          background: var(--bg-surface);
+          border: 1px solid var(--border-default);
+          border-radius: var(--radius-md);
+        }
+      `}</style>
+
       <SeoHead
         title="Video Library"
         description={`Full video library from The Dime Podcast YouTube channel. ${allVideos.length} videos featuring cannabis founders, operators, and executives.`}
@@ -45,74 +103,72 @@ export default function Videos({ allVideos }) {
       <Schema schema={collectionSchema} />
       <Header />
 
-      <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>
-          Video Library · {allVideos.length} Videos
+      <section className="band">
+        <div className="wrap page-head">
+          <span className="eyebrow">Video Library · {allVideos.length} Videos</span>
+          <div className="page-head-row">
+            <h1 className="page-title">Video Library</h1>
+            <label style={{ flex: '1 1 280px', maxWidth: 360 }}>
+              <span style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Search videos</span>
+              <input
+                type="search"
+                className="search-input"
+                placeholder="Search title, topic..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={{ maxWidth: '100%' }}
+              />
+            </label>
+          </div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
-          <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9 }}>
-            Video Library
-          </h1>
-          <input
-            placeholder="Search title, topic..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: 'var(--font-display)', fontSize: '13px', padding: '14px 16px', outline: 'none' }}
-          />
-        </div>
+      </section>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', marginBottom: 48, background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px' }}>
-          <span className="crimson" style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
-            Subscribe on YouTube and never miss a new episode.
-          </span>
-          <a
-            href="https://www.youtube.com/@theDime_Cannabis?sub_confirmation=1"
-            onClick={(e) => trackPlatformClick(e.currentTarget.href, 'video_library')}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-teal"
-            style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-            Subscribe on YouTube
-          </a>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 24, marginBottom: 60 }}>
-          {filtered.map((v, i) => (
-            <Link
-              key={v.slug}
-              href={`/videos/${v.slug}`}
-              onClick={() => trackSearchResultClick(query, i, v.slug, 'video_library')}
-              style={{ textDecoration: 'none', color: 'inherit', transition: 'transform .15s', cursor: 'pointer', display: 'block' }}
-              onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-4px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+      <section>
+        <div className="wrap page-body">
+          <div className="yt-bar">
+            <span style={{ fontSize: '15px', color: 'var(--text-secondary)' }}>
+              Subscribe on YouTube and never miss a new episode.
+            </span>
+            <a
+              href="https://www.youtube.com/@theDime_Cannabis?sub_confirmation=1"
+              onClick={(e) => trackPlatformClick(e.currentTarget.href, 'video_library')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-teal"
+              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap' }}
             >
-              <div style={{ background: 'var(--navy2)', border: '1px solid var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{ aspectRatio: '16/9', background: 'var(--bg-elevated)', overflow: 'hidden' }}>
-                  <img src={v.thumbnail} alt={v.title} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                </div>
-                <div style={{ padding: '16px' }}>
-                  <div className="crimson" style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.3 }}>
-                    {v.title}
-                  </div>
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: 8 }}>
-                    {v.date} · {v.duration}
-                  </div>
-                  <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
-                    {v.viewCount}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              Subscribe on YouTube
+            </a>
+          </div>
 
-        {!filtered.length && (
-          <p className="crimson" style={{ color: 'var(--text-muted)', padding: '48px 0', fontSize: 16 }}>
-            No videos found.
-          </p>
-        )}
+          <div className="video-grid">
+            {filtered.map((v, i) => (
+              // The catalogue can carry the same slug twice (a video re-uploaded
+              // under one title), so the YouTube id is the key, not the slug.
+              <Link
+                key={v.id || v.slug}
+                href={`/videos/${v.slug}`}
+                className="video-card"
+                onClick={() => trackSearchResultClick(query, i, v.slug, 'video_library')}
+              >
+                <div className="thumb">
+                  <img src={v.thumbnail} alt="" loading="lazy" />
+                </div>
+                <div className="body">
+                  <div className="title">{v.title}</div>
+                  <div className="meta">{v.date} · {v.duration}{v.viewCount ? ` · ${v.viewCount}` : ''}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {!filtered.length && (
+            <p className="lede" style={{ padding: '48px 0', color: 'var(--text-muted)' }}>
+              No videos found.
+            </p>
+          )}
+        </div>
       </section>
 
       <Footer />

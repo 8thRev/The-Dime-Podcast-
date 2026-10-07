@@ -29,11 +29,12 @@ const FORM_STYLE = `
   [data-uid="101112441d"] .formkit-fields { display: flex; flex-direction: column; gap: 12px; }
   [data-uid="101112441d"] .formkit-field { flex: none; margin: 0; }
   [data-uid="101112441d"] .formkit-input {
-    background: var(--navy2);
-    border: 1px solid var(--border);
-    color: var(--white);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
     font-family: var(--font-body);
-    font-size: 13px;
+    font-size: 15px;
     padding: 14px 16px;
     width: 100%;
     outline: none;
@@ -44,11 +45,11 @@ const FORM_STYLE = `
     border: none;
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 14px 32px;
+    padding: 15px 32px;
     border-radius: var(--radius-md);
     width: 100%;
     flex: none;

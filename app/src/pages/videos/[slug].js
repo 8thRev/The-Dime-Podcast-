@@ -205,25 +205,25 @@ export default function VideoPage({
 
       <Header />
 
-      <article style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
-        <Link href="/videos" style={{ color: 'var(--text-secondary)', textDecoration: 'none', marginBottom: '32px', display: 'block' }}>
+      <article className="wrap wrap--prose page-body">
+        <Link href="/videos" className="back-link">
           ← All Videos
         </Link>
 
         <header style={{ marginBottom: '48px' }}>
           <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {video.date}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {video.duration}
             </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
               {video.viewCount}
             </span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 'normal', lineHeight: 1.2, marginBottom: '24px', fontFamily: 'var(--font-base)' }}>
+          <h1 className="page-title page-title--article" style={{ marginTop: 0, marginBottom: '24px' }}>
             {video.title}
           </h1>
 
@@ -232,13 +232,7 @@ export default function VideoPage({
               {video.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="mono"
-                  style={{
-                    fontSize: '10px',
-                    color: 'var(--text-accent)',
-                    border: '1px solid var(--text-accent)',
-                    padding: '4px 12px',
-                  }}
+                  className="pill"
                 >
                   {tag}
                 </span>
@@ -271,7 +265,7 @@ export default function VideoPage({
 
         {linkedEpisode && (
           <section style={{ marginBottom: '48px', background: 'var(--navy2)', border: '1px solid var(--border)', padding: '20px', borderRadius: '4px' }}>
-            <div className="mono" style={{ marginBottom: '8px', fontSize: '10px', fontWeight: '700', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            <div className="mono" style={{ marginBottom: '8px', fontSize: '12px', fontWeight: '700', letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
               Episode {linkedEpisode.num}
             </div>
             <Link
@@ -304,7 +298,7 @@ export default function VideoPage({
               color: 'var(--btn-primary-text)',
               textDecoration: 'none',
               fontFamily: 'var(--font-display)',
-              fontSize: '11px',
+              fontSize: '12px',
               fontWeight: '700',
               letterSpacing: '.14em',
               textTransform: 'uppercase',
@@ -411,7 +405,7 @@ export default function VideoPage({
                   <div style={{ fontSize: '13px', fontWeight: '500', marginBottom: '4px', fontFamily: 'var(--font-base)', lineHeight: 1.3 }}>
                     {v.title}
                   </div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
                     {v.date}
                   </div>
                 </Link>

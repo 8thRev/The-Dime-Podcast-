@@ -47,8 +47,8 @@ export default function Terms() {
       />
       <Header />
 
-      <section style={{ padding: '80px 48px', maxWidth: 800, margin: '0 auto' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
+      <section className="wrap wrap--prose page-head page-body">
+        <div className="mono" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 16 }}>
           Legal
         </div>
         <h1 className="syne" style={{ fontSize: 'clamp(36px,5vw,56px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 1, marginBottom: 40 }}>

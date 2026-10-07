@@ -96,7 +96,7 @@ export default function Header() {
               THE DIME
             </span>
             <span className="header-logo-divider" style={{ width: 1, height: 16, background: 'var(--border-default)' }} />
-            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '8px', color: 'var(--text-muted)', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
+            <span className="mono header-logo-tagline header-tagline" style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '.12em', whiteSpace: 'nowrap' }}>
               CANNABIS
             </span>
           </Link>
@@ -134,9 +134,13 @@ export default function Header() {
               color: 'var(--text-primary)',
               fontSize: '24px',
               cursor: 'pointer',
-              padding: '8px',
+              padding: '8px 10px',
               marginLeft: 'auto',
+              minWidth: 44,
+              minHeight: 44,
             }}
+            aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? '✕' : '☰'}
           </button>
@@ -160,12 +164,13 @@ export default function Header() {
                 href={nav.href}
                 onClick={() => setMobileMenuOpen(false)}
                 style={{
-                  padding: '12px',
-                  color: 'var(--text-secondary)',
+                  padding: '14px 12px',
+                  color: 'var(--text-primary)',
                   textDecoration: 'none',
                   borderBottom: '1px solid var(--border-subtle)',
-                  fontSize: '14px',
-                  fontFamily: 'var(--font-display)',
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  fontFamily: 'var(--font-body)',
                 }}
               >
                 {nav.label}
