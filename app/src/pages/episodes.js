@@ -89,74 +89,60 @@ export default function Episodes({ allEpisodes, initialQuery = '', searchPage = 
       <Schema schema={collectionSchema} />
       <Header />
 
-      <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Archive · {episodeCount} Episodes</div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 40 }}>
-          <h1 className="syne" style={{ fontSize: 'clamp(52px,8vw,88px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9 }}>
-            All Episodes
-          </h1>
-          <input
-            placeholder="Search guest, topic, title..."
-            value={query}
-            onChange={(e) => onSearch(e.target.value)}
-            style={{ width: 280, background: 'var(--navy2)', border: '1px solid var(--border)', color: 'var(--white)', fontFamily: 'var(--font-display)', fontSize: '13px', padding: '14px 16px', outline: 'none' }}
-          />
+      <section className="band">
+        <div className="wrap page-head">
+          <span className="eyebrow">Archive · {episodeCount} Episodes</span>
+          <div className="page-head-row">
+            <h1 className="page-title">All Episodes</h1>
+            <label style={{ flex: '1 1 280px', maxWidth: 360 }}>
+              <span className="sr-only" style={{ position: 'absolute', width: 1, height: 1, overflow: 'hidden', clip: 'rect(0 0 0 0)' }}>Search episodes</span>
+              <input
+                type="search"
+                className="search-input"
+                placeholder="Search guest, topic, title..."
+                value={query}
+                onChange={(e) => onSearch(e.target.value)}
+                style={{ maxWidth: '100%' }}
+              />
+            </label>
+          </div>
         </div>
+      </section>
 
-        {query.trim() && (
-          <p className="mono" role="status" style={{ fontSize: '11px', color: 'var(--text-muted)', letterSpacing: '.08em', marginBottom: 8 }}>
-            {filtered.length} of {episodeCount} episodes match &ldquo;{query.trim()}&rdquo;
-          </p>
-        )}
+      <section>
+        <div className="wrap" style={{ paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
+          {query.trim() && (
+            <p className="meta" role="status" style={{ paddingTop: 24 }}>
+              {filtered.length} of {episodeCount} episodes match &ldquo;{query.trim()}&rdquo;
+            </p>
+          )}
 
-        {filtered.map((ep, i) => (
-          <Link
-            key={i}
-            href={`/episodes/${ep.slug}`}
-            style={{
-              padding: '28px 0',
-              borderBottom: '1px solid var(--faint)',
-              transition: 'background .15s',
-              cursor: 'pointer',
-              display: 'grid',
-              gridTemplateColumns: '60px 1fr 80px',
-              gap: 28,
-              alignItems: 'start',
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            onClick={() => trackSearchResultClick(query, i, ep.slug)}
-          >
-            <div>
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: 4 }}>
-                {ep.date}
+          {filtered.map((ep, i) => (
+            <Link
+              key={ep.slug}
+              href={`/episodes/${ep.slug}`}
+              className="list-row"
+              onClick={() => trackSearchResultClick(query, i, ep.slug)}
+            >
+              <div className="list-meta">
+                <span className="num">Ep. {ep.num}</span>
+                <span>{ep.date}</span>
+                {ep.duration && <span>{ep.duration}</span>}
               </div>
-            </div>
-            <div>
-              <div className="crimson" style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.25 }}>
-                {ep.title}
+              <div>
+                <div className="list-title">{ep.title}</div>
+                {ep.guest && ep.guest !== 'Guest' && <div className="list-sub">{ep.guest}</div>}
+                <p className="list-desc">{ep.description}</p>
               </div>
-              <div className="syne" style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 10, letterSpacing: '.04em' }}>
-                {ep.guest}
-              </div>
-              <p className="crimson" style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.75, maxWidth: 600, fontWeight: 300 }}>
-                {ep.description}
-              </p>
-            </div>
-            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right', paddingTop: 2 }}>
-              {ep.duration}
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
 
-        {!filtered.length && (
-          <p className="crimson" style={{ color: 'var(--text-muted)', padding: '48px 0', fontSize: 16 }}>
-            No episodes found.
-          </p>
-        )}
+          {!filtered.length && (
+            <p className="lede" style={{ padding: '48px 0', color: 'var(--text-muted)' }}>
+              No episodes found.
+            </p>
+          )}
+        </div>
       </section>
 
       <Footer />

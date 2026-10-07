@@ -74,6 +74,19 @@ See [SEO_ROADMAP.md](SEO_ROADMAP.md) for what's shipped and what's planned
 (topic hub pages, guest entity pages, llms.txt, etc.). Keep that file
 updated as items ship rather than scattering roadmap notes in code comments.
 
+## Layout shell
+
+Every page puts its content in `<div className="wrap">` (1120px, centered,
+fluid gutter), `wrap--prose` (720px, for reading) or `wrap--wide` (1320px,
+home only). Labels are `.eyebrow`, `.meta` or `.section-label` (mono, 12px),
+never the display serif at label sizes. Two-column layouts use `.grid-2`,
+which stacks under 768px. Archive rows use `.list-row`. All of this is in
+`app/src/styles/globals.css` under "LAYOUT SHELL", and
+`app/scripts/check-layout.mjs` fails the build on a page that bypasses it.
+Newsletter pitch copy is shared from `app/lib/newsletterCopy.ts` so the
+home band, `/newsletter` and the edition page cannot describe the cadence
+three different ways again.
+
 ## Site verification
 
 `npm run verify` in `app/` runs `scripts/verify-site.mjs` against a built,

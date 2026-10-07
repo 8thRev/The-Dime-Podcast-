@@ -502,7 +502,7 @@ function Quote({ person, paragraphs, accent = false, caption }) {
         ))}
       </blockquote>
       {caption && (
-        <p className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '4px 0 0' }}>
+        <p className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: '4px 0 0' }}>
           {caption}
         </p>
       )}
@@ -516,7 +516,7 @@ function Quote({ person, paragraphs, accent = false, caption }) {
               <a href={person.linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{person.name}</a>
             ) : person.name}
           </div>
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.4 }}>
+          <div className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.4 }}>
             {person.title}
           </div>
         </div>
@@ -662,7 +662,8 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
 
       <style>{`
         .sp-section {
-          padding: clamp(64px,9vw,120px) clamp(24px,5vw,48px);
+          padding-top: clamp(64px,9vw,120px);
+          padding-bottom: clamp(64px,9vw,120px);
         }
         /* Small uppercase mono labels carry a lot of the proof on this page.
            9px at .18em tracking in --text-muted was legible on a big monitor
@@ -671,7 +672,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
            NOTE: keep this block ASCII. React escapes angle brackets, quotes
            and ampersands server-side only, which mismatches on hydrate. */
         .sp-label {
-          font-size: 11px;
+          font-size: 12px;
         }
         .sp-hero-stats {
           display: grid;
@@ -905,7 +906,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
           background: var(--tag-bg);
           border: 1px solid var(--tag-border);
           color: var(--tag-text);
-          font-size: 11px;
+          font-size: 12px;
           font-weight: 600;
           letter-spacing: .02em;
           white-space: nowrap;
@@ -975,7 +976,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
           SPONSOR
         </div>
 
-        <div style={{ position: 'relative', zIndex: 2, padding: 'clamp(64px,10vw,120px) clamp(24px,5vw,48px) 0' }}>
+        <div className="wrap--bleed" style={{ position: 'relative', zIndex: 2, paddingTop: 'clamp(64px,10vw,120px)' }}>
           <div className="fade-in" style={{ marginBottom: 32 }}>
             <Eyebrow>Sponsorship</Eyebrow>
           </div>
@@ -1036,7 +1037,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* THE REFRAME                                                       */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         <div className="sp-split">
           <div>
             <Eyebrow>The Difference</Eyebrow>
@@ -1077,7 +1078,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* THE ENGINE — the centerpiece                                      */}
       {/* ---------------------------------------------------------------- */}
-      <section id="engine" className="sp-section" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
+      <section id="engine" className="sp-section wrap--bleed" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
         <Eyebrow>What One Sponsorship Produces</Eyebrow>
         <SectionTitle>One recording. Six surfaces. Eight to ten assets.</SectionTitle>
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', fontWeight: 300, maxWidth: 660, marginBottom: 48 }}>
@@ -1090,7 +1091,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
           {ENGINE.map((item) => (
             <div key={item.n} className="sp-engine-cell">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-                <span className="syne" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-accent)', letterSpacing: '.1em' }}>
+                <span className="mono" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-accent)', letterSpacing: '.1em' }}>
                   {item.n}
                 </span>
                 <span className="sp-chip">{item.tag}</span>
@@ -1098,7 +1099,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
               <h3 className="syne" style={{ fontSize: '19px', fontWeight: 700, color: 'var(--text-headline)', lineHeight: 1.25, marginBottom: 8, letterSpacing: '.01em' }}>
                 {item.asset}
               </h3>
-              <div className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '.06em', marginBottom: 16, lineHeight: 1.6 }}>
+              <div className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', letterSpacing: '.06em', marginBottom: 16, lineHeight: 1.6 }}>
                 {item.channel}
               </div>
               <p className="crimson" style={{ fontSize: '14.5px', lineHeight: 1.7, color: 'var(--text-secondary)', fontWeight: 300, margin: 0 }}>
@@ -1133,7 +1134,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* WHERE IT LANDS — the placement argument, with live links          */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         <Eyebrow>Where It Lands</Eyebrow>
         <SectionTitle>Making the video is easy. Placing it is the hard part.</SectionTitle>
         <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', fontWeight: 300, maxWidth: 700, marginBottom: 20 }}>
@@ -1220,16 +1221,16 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
               ].map((item) => {
                 const inner = (
                   <>
-                    <span className="syne" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-accent)', letterSpacing: '.1em', display: 'block', marginBottom: 12 }}>
+                    <span className="mono" style={{ fontSize: '12px', fontWeight: 800, color: 'var(--text-accent)', letterSpacing: '.1em', display: 'block', marginBottom: 12 }}>
                       {item.n}
                     </span>
-                    <span className="syne" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-headline)', display: 'block', marginBottom: 6 }}>
+                    <span className="syne" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-headline)', display: 'block', marginBottom: 6 }}>
                       {item.label}
                     </span>
                     <span className="crimson" style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', fontWeight: 300, display: 'block', marginBottom: 14 }}>
                       {item.what}
                     </span>
-                    <span className="mono" style={{ fontSize: '11px', color: 'var(--text-accent)' }}>
+                    <span className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)' }}>
                       See it live →
                     </span>
                   </>
@@ -1270,7 +1271,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* REPURPOSE RIGHTS + PER-ASSET MATH                                 */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         <div className="sp-split">
           <div>
             <Eyebrow>You Keep the Files</Eyebrow>
@@ -1329,7 +1330,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                     <span className="syne" style={{ fontSize: '14.5px', fontWeight: 700, color: 'var(--text-headline)', display: 'block', lineHeight: 1.35 }}>
                       {m.item}
                     </span>
-                    <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', display: 'block', marginTop: 3, lineHeight: 1.5 }}>
+                    <span className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', display: 'block', marginTop: 3, lineHeight: 1.5 }}>
                       {m.note}
                     </span>
                   </span>
@@ -1359,7 +1360,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* PROOF                                                             */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
         <Eyebrow>Proof</Eyebrow>
         <SectionTitle>What it did for the last people who tried it.</SectionTitle>
         <div style={{ maxWidth: 780, marginTop: 40, marginBottom: 40, display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -1374,7 +1375,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
               <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-primary)', fontWeight: 400, fontStyle: 'italic', marginBottom: 10 }}>
                 &ldquo;{bobartGuestResult}&rdquo;
               </p>
-              <p className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
+              <p className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.6, margin: 0 }}>
                 Brandon Bobart, on his own guest appearance — not a paid placement.
                 Same audience doing the responding.
               </p>
@@ -1402,7 +1403,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* AUDIENCE — disqualify early, it converts better than a number     */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         {/* Deliberately short. An earlier draft spent three paragraphs
             arguing about reach; arguing about a metric keeps the reader
             thinking about it. This page sells the asset package, so the
@@ -1418,7 +1419,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
         <div className="sp-audience-grid">
           {AUDIENCE_COMPOSITION.map((a) => (
             <div key={a.role} style={{ background: 'var(--bg-base)', padding: 'clamp(24px,3vw,30px)' }}>
-              <div className="syne" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: 8, letterSpacing: '.01em' }}>
+              <div className="syne" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: 8, letterSpacing: '.01em' }}>
                 {a.role}
               </div>
               <p className="crimson" style={{ fontSize: '14.5px', lineHeight: 1.7, color: 'var(--text-secondary)', fontWeight: 300, margin: 0 }}>
@@ -1432,7 +1433,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* CHANNEL MATH — the structural argument nobody else can make       */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
         <div style={{ maxWidth: 760 }}>
           <Eyebrow>The Channel Math</Eyebrow>
           {/* Headline scoped to match the paragraph under it. The stronger
@@ -1456,7 +1457,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* PRICING                                                           */}
       {/* ---------------------------------------------------------------- */}
-      <section id="pricing" className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section id="pricing" className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         <Eyebrow>Sponsorship Options</Eyebrow>
         <SectionTitle>One read gets noticed. Four get remembered.</SectionTitle>
         <div className="sp-tier-grid" style={{ marginTop: 44 }}>
@@ -1486,7 +1487,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                 <span className="syne" style={{ fontSize: '38px', fontWeight: 800, color: 'var(--text-accent)', display: 'block', lineHeight: 1 }}>
                   {tier.price}
                 </span>
-                <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'block', marginTop: 8 }}>
+                <span className="mono" style={{ fontSize: '12px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'block', marginTop: 8 }}>
                   {tier.priceSub}
                 </span>
               </div>
@@ -1533,7 +1534,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* CAMPAIGN SUPPORT                                                  */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
         <div className="sp-split">
           <div>
             <Eyebrow>Campaign Support</Eyebrow>
@@ -1569,13 +1570,13 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* FAQ — also emitted as FAQPage schema above                        */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--faint)' }}>
         <Eyebrow>Before You Ask</Eyebrow>
         <SectionTitle>The questions everyone asks on the call.</SectionTitle>
         <div className="sp-faq-list" style={{ marginTop: 40 }}>
           {FAQ.map((item) => (
             <div key={item.question} className="sp-faq-item">
-              <h3 className="syne" style={{ fontSize: '17px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: 10, lineHeight: 1.35 }}>
+              <h3 className="syne" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: 10, lineHeight: 1.35 }}>
                 {item.question}
               </h3>
               <p className="crimson" style={{ fontSize: '15.5px', lineHeight: 1.75, color: 'var(--text-secondary)', fontWeight: 300, margin: 0 }}>
@@ -1589,7 +1590,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* QUALIFICATION — a trust play, not fine print                      */}
       {/* ---------------------------------------------------------------- */}
-      <section className="sp-section" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
+      <section className="sp-section wrap--bleed" style={{ background: 'var(--bg-base)', borderBottom: '1px solid var(--faint)' }}>
         <div className="sp-split">
           <div>
             <Eyebrow>Qualification</Eyebrow>
@@ -1611,7 +1612,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
       {/* ---------------------------------------------------------------- */}
       {/* INQUIRY FORM                                                      */}
       {/* ---------------------------------------------------------------- */}
-      <section id="sponsor-inquiry" className="sp-section" style={{ background: 'var(--bg-surface)' }}>
+      <section id="sponsor-inquiry" className="sp-section wrap--bleed" style={{ background: 'var(--bg-surface)' }}>
         <Eyebrow>Inquiry Form</Eyebrow>
         <h2 className="syne" style={{ fontSize: 'clamp(30px,4.5vw,44px)', fontWeight: 800, color: 'var(--text-headline)', marginBottom: 16, maxWidth: 620, lineHeight: 1.06 }}>
           Let&apos;s find out if this fits.
@@ -1632,7 +1633,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
                 <label
                   key={field.name}
                   className={field.span === 2 ? 'sp-field-span-2' : undefined}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'flex', flexDirection: 'column', gap: 8 }}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--text-secondary)', letterSpacing: '.06em', display: 'flex', flexDirection: 'column', gap: 8 }}
                 >
                   <span>
                     {field.label}
@@ -1696,7 +1697,7 @@ export default function Sponsorship({ trail, libraryEpisodes, libraryHours }) {
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
                 {NEXT_STEPS.map((step, i) => (
                   <li key={step} style={{ display: 'flex', gap: 12 }}>
-                    <span className="syne" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-accent)', flexShrink: 0 }}>{i + 1}.</span>
+                    <span className="mono" style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-accent)', flexShrink: 0 }}>{i + 1}.</span>
                     <span className="crimson" style={{ fontSize: '14px', lineHeight: 1.6, color: 'var(--text-secondary)', fontWeight: 300 }}>{step}</span>
                   </li>
                 ))}

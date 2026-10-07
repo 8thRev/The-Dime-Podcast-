@@ -69,18 +69,17 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
 
       <Header />
 
-      <section style={{ padding: '72px 48px 60px', borderBottom: '1px solid var(--faint)' }}>
-        <Link href="/guests" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
+      <section className="band">
+        <div className="wrap page-head">
+        <Link href="/guests" className="back-link">
           ← All Guests
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 24 }}>
           <GuestAvatar name={guest.name} size={72} />
           <div>
-            <div className="mono" style={{ fontSize: '9px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>
-              Guest · {guest.episodeCount} Episode{guest.episodeCount === 1 ? '' : 's'}
-            </div>
-            <h1 className="syne" style={{ fontSize: 'clamp(32px,5vw,56px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 1 }}>
+            <span className="eyebrow">Guest · {guest.episodeCount} Episode{guest.episodeCount === 1 ? '' : 's'}</span>
+            <h1 className="page-title page-title--article" style={{ marginTop: 8 }}>
               {guest.name}
             </h1>
             {guest.company ? (
@@ -105,55 +104,32 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
             ) : null}
           </div>
         </div>
+        </div>
       </section>
 
-      <section style={{ padding: '48px' }}>
-        <h2 className="mono" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 24 }}>
-          Episodes with {guest.name}
-        </h2>
+      <section>
+        <div className="wrap" style={{ paddingTop: 'clamp(32px, 5vw, 48px)' }}>
+        <h2 className="section-label">Episodes with {guest.name}</h2>
 
         {episodes.map((ep) => (
-          <Link
-            key={ep.slug}
-            href={`/episodes/${ep.slug}`}
-            style={{
-              padding: '28px 0',
-              borderBottom: '1px solid var(--faint)',
-              transition: 'background .15s',
-              cursor: 'pointer',
-              display: 'grid',
-              gridTemplateColumns: '60px 1fr 80px',
-              gap: 28,
-              alignItems: 'start',
-              textDecoration: 'none',
-              color: 'inherit',
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-          >
-            <div>
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', letterSpacing: '.12em' }}>Ep.{ep.num}</div>
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', marginTop: 4 }}>
-                {ep.date}
-              </div>
+          <Link key={ep.slug} href={`/episodes/${ep.slug}`} className="list-row">
+            <div className="list-meta">
+              <span className="num">Ep. {ep.num}</span>
+              <span>{ep.date}</span>
+              {ep.duration && <span>{ep.duration}</span>}
             </div>
             <div>
-              <div className="crimson" style={{ fontSize: '21px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.25 }}>
-                {ep.title}
-              </div>
-            </div>
-            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', textAlign: 'right', paddingTop: 2 }}>
-              {ep.duration}
+              <div className="list-title">{ep.title}</div>
             </div>
           </Link>
         ))}
+        </div>
       </section>
 
       {editions.length > 0 && (
-        <section style={{ padding: '0 48px 48px' }}>
-          <h2 className="mono" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 24 }}>
-            Written analysis
-          </h2>
+        <section>
+          <div className="wrap" style={{ paddingTop: 'clamp(32px, 5vw, 48px)', paddingBottom: 'clamp(56px, 8vw, 96px)' }}>
+          <h2 className="section-label">Written analysis</h2>
           {editions.map((e) => (
             <Link
               key={e.slug}
@@ -162,14 +138,15 @@ export default function GuestPage({ guest, episodes, editions = [] }) {
               onMouseEnter={(ev) => { ev.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
               onMouseLeave={(ev) => { ev.currentTarget.style.background = 'transparent'; }}
             >
-              <div className="crimson" style={{ fontSize: '19px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 6, lineHeight: 1.3 }}>
+              <div className="list-title" style={{ fontSize: '22px' }}>
                 {e.title}
               </div>
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)' }}>
+              <div className="meta" style={{ marginTop: 6 }}>
                 First Principles{e.dateDisplay && ` · ${e.dateDisplay}`}
               </div>
             </Link>
           ))}
+          </div>
         </section>
       )}
 

@@ -14,6 +14,7 @@ import { trackPlatformClick } from '@/lib/platformClicks';
 import { trackVideoOutboundClick } from '@/lib/videoClicks';
 import testimonials from '@/content/testimonials.json';
 import { PODCAST_RATING } from '@/lib/ratings';
+import { NEWSLETTER_PITCH, NEWSLETTER_FORMAT, NEWSLETTER_CADENCE } from '@/lib/newsletterCopy';
 
 const GUESTS_TICKER = [
   'Aubrey Amatelli', 'Gretchen Gailey', 'Dan McDermitt', 'Margaret Brodie',
@@ -42,30 +43,7 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
   return (
     <>
       <style>{`
-        @keyframes ticker {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-
         @media (max-width: 767px) {
-          .hero-main-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .hero-content {
-            padding: clamp(24px, 5vw, 48px) !important;
-            border-right: none !important;
-          }
-          .hero-title {
-            font-size: clamp(32px, 6vw, 52px) !important;
-            line-height: 1.1 !important;
-          }
-          .hero-subtitle {
-            font-size: clamp(14px, 3vw, 19px) !important;
-          }
-          .newsletter-section {
-            grid-template-columns: 1fr !important;
-            gap: clamp(24px, 5vw, 48px) !important;
-          }
           .guest-wall-section {
             grid-template-columns: 1fr !important;
             gap: clamp(24px, 5vw, 48px) !important;
@@ -76,64 +54,12 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
           .topic-grid {
             gap: clamp(8px, 2vw, 10px) !important;
           }
-          .stats-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: clamp(20px, 4vw, 32px) !important;
-          }
-          .stat-item {
-            padding-right: clamp(12px, 3vw, 24px) !important;
-            margin-right: clamp(12px, 3vw, 24px) !important;
-          }
         }
-
         @media (max-width: 480px) {
-          .hero-content {
-            padding: 16px !important;
-          }
-          .hero-title {
-            font-size: clamp(24px, 5vw, 32px) !important;
-          }
-          .stats-grid {
-            gap: 12px !important;
-          }
-          .stat-item {
-            padding-right: 12px !important;
-            margin-right: 12px !important;
-            border-right-width: 0 !important;
-          }
           .topic-chip {
             padding: 8px 12px !important;
-            font-size: 9px !important;
+            font-size: 12px !important;
           }
-        }
-        .hero-main-grid {
-          grid-template-columns: 1fr;
-        }
-        .hero-aside {
-          padding: 0 clamp(24px, 5vw, 48px) clamp(32px, 5vw, 56px);
-        }
-        @media (min-width: 1024px) {
-          .hero-main-grid {
-            grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.85fr);
-            gap: 48px;
-          }
-          .hero-aside {
-            padding: 64px 48px 64px 0;
-          }
-        }
-        .hero-latest-title {
-          font-family: var(--font-display);
-          font-size: clamp(24px, 2.4vw, 32px);
-          line-height: 1.15;
-          color: var(--text-headline);
-          text-decoration: none;
-          text-wrap: balance;
-          transition: color var(--transition-fast);
-        }
-        .hero-latest-title:hover { color: var(--text-accent); }
-        @media (max-width: 767px) {
-          .listen-row { gap: 8px !important; }
-          .listen-chip { font-size: 12px; padding: 10px 13px; }
         }
       `}</style>
 
@@ -150,52 +76,30 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
       <Header />
 
       {/* HERO */}
-      <section style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border-default)' }}>
-        <div style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, background: 'linear-gradient(to bottom,transparent,var(--text-accent) 20%,var(--text-accent) 80%,transparent)', pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(var(--border-subtle) 1px,transparent 1px),linear-gradient(90deg,var(--border-subtle) 1px,transparent 1px)', backgroundSize: '80px 80px', opacity: 0.3, pointerEvents: 'none' }} />
-        <div className="syne" style={{ position: 'absolute', bottom: -60, right: -40, fontSize: 'clamp(200px,28vw,440px)', fontWeight: 800, color: 'transparent', WebkitTextStroke: '1px var(--watermark-stroke)', lineHeight: 1, userSelect: 'none', pointerEvents: 'none', letterSpacing: '.04em', zIndex: 0 }}>
-          DIME
-        </div>
+      <section className="hero band">
+        <div className="hero-rule" aria-hidden="true" />
+        <div className="hero-grid-bg" aria-hidden="true" />
+        <div className="hero-watermark syne" aria-hidden="true">DIME</div>
 
         {/* GUEST TICKER */}
         <Ticker items={GUESTS_TICKER} />
 
-        {/* MAIN HERO CONTENT */}
-        <div className="hero-main-grid" style={{ flex: 1, display: 'grid', gap: 0, position: 'relative', zIndex: 2, width: '100%', maxWidth: 1320, margin: '0 auto', alignItems: 'center' }}>
-          <div className="hero-content" style={{ padding: '64px 48px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px 16px', flexWrap: 'wrap', marginBottom: 40 }} className="fade-in">
-              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 600, whiteSpace: 'nowrap' }}>CANNABIS BUSINESS INTELLIGENCE</span>
-              <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{PODCAST_RATING.value}★ ({PODCAST_RATING.count}) · TOP 5% GLOBALLY</span>
+        <div className="wrap wrap--wide hero-main-grid">
+          <div className="hero-content">
+            <div className="hero-kicker fade-in">
+              <span className="eyebrow eyebrow--accent">Cannabis business intelligence</span>
+              <span className="meta">{PODCAST_RATING.value}★ · {PODCAST_RATING.count} ratings · Top 5% globally</span>
             </div>
 
-            <h1 className="syne fade-in hero-title" style={{ fontSize: 'clamp(56px,8vw,104px)', fontWeight: 800, lineHeight: 0.92, letterSpacing: '-.02em', marginBottom: 32, color: 'var(--text-headline)', maxWidth: '100%' }}>
-              How the cannabis industry<br />
-              <span style={{ color: 'var(--accent-display)' }}>actually</span> works.
+            <h1 className="hero-title fade-in">
+              How the cannabis industry <span className="accent">actually</span> works.
             </h1>
 
-            <p className="crimson fade-in hero-subtitle" style={{ fontSize: 'clamp(18px, 2vw, 21px)', lineHeight: 1.75, color: 'var(--text-secondary)', maxWidth: '58ch', marginBottom: 40, fontWeight: 400, fontStyle: 'normal' }}>
+            <p className="lede hero-subtitle fade-in">
               Conversations with founders, executives, investors, and operators on strategy, competition, and the decisions shaping cannabis.
             </p>
 
-            <div className="stats-grid fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 40, marginBottom: 40, paddingBottom: 40, borderBottom: '1px solid var(--border-subtle)' }}>
-              {[
-                { n: episodeCount, l: 'Episodes' },
-                { n: `${PODCAST_RATING.value}★`, l: `${PODCAST_RATING.count} Ratings` },
-                { n: 'Top 5%', l: 'Global Ranking' },
-                { n: 'Since 2020', l: 'On Air' },
-              ].map((s) => (
-                <div key={s.l} className="stat-item">
-                  <div className="syne" style={{ fontSize: 'clamp(26px, 3vw, 34px)', fontWeight: 800, color: 'var(--text-headline)', marginBottom: 8 }}>
-                    {s.n}
-                  </div>
-                  <div className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                    {s.l}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-<div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', alignItems: 'center' }} className="fade-in">
+            <div className="hero-ctas fade-in">
               <a href="#newsletter" className="btn-primary" style={{ textDecoration: 'none', display: 'inline-block' }}>
                 Get the First Principles newsletter
               </a>
@@ -203,20 +107,20 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
                 Browse all {episodeCount} episodes
               </Link>
             </div>
-
-
           </div>
 
           <aside className="hero-aside" aria-label="Latest episode">
-            {/* LATEST EPISODE */}
             {latestEpisodes[0] && (
-              <div className="fade-in hero-latest-card" style={{ background: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-lg)', padding: 'clamp(24px, 3vw, 36px)', display: 'grid', gap: 14, boxShadow: 'var(--shadow-card)' }}>
-                <div className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 600, textTransform: 'uppercase' }}>
+              <div className="card-panel hero-latest-card fade-in">
+                <span className="eyebrow eyebrow--accent">
                   New episode · Ep. {latestEpisodes[0].num}{latestEpisodes[0].duration ? ` · ${latestEpisodes[0].duration}` : ''}
-                </div>
+                </span>
                 <Link href={`/episodes/${latestEpisodes[0].slug}`} className="hero-latest-title">
                   {latestEpisodes[0].title}
                 </Link>
+                {latestEpisodes[0].guest && latestEpisodes[0].guest !== 'Guest' && (
+                  <span className="meta">with {latestEpisodes[0].guest}</span>
+                )}
                 <div className="listen-row" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', marginTop: 6 }}>
                   <Link href={`/episodes/${latestEpisodes[0].slug}`} className="listen-chip is-primary">
                     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
@@ -240,46 +144,46 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
           </aside>
         </div>
 
-        {/* GUEST VIDEO TESTIMONIALS */}
-        <div style={{ borderTop: '1px solid var(--border-subtle)' }}>
-          <Testimonials items={testimonials} filter="video" heading="Hear From Recent Guests" maxWidth={800} borderBottom={false} />
+        <div className="wrap wrap--wide">
+          <dl className="hero-proof fade-in">
+            {[
+              { n: episodeCount, l: 'Episodes' },
+              { n: `${PODCAST_RATING.value}★`, l: `${PODCAST_RATING.count} Ratings` },
+              { n: 'Top 5%', l: 'Global Ranking' },
+              { n: 'Since 2020', l: 'On Air' },
+            ].map((s) => (
+              <div key={s.l}>
+                <dd className="n">{s.n}</dd>
+                <dt className="l">{s.l}</dt>
+              </div>
+            ))}
+          </dl>
         </div>
+      </section>
 
-        {/* LATEST EPISODES */}
-        <div style={{ borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-base)' }}>
-          <div style={{ padding: '48px', maxWidth: '1200px', margin: '0 auto' }}>
-            <div style={{ marginBottom: 40 }}>
-              <h2 className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: 0 }}>Latest Episodes</h2>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 32 }}>
-              {latestEpisodes.slice(0, 6).map((ep, i) => (
-                <Link key={i} href={`/episodes/${ep.slug}`} style={{ padding: '24px', border: '1px solid var(--border-subtle)', borderRadius: 4, transition: 'all .2s', cursor: 'pointer', textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column', background: 'var(--bg-surface)' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--text-accent)'; e.currentTarget.style.background = 'var(--card-bg-hover)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border-subtle)'; e.currentTarget.style.background = 'var(--bg-surface)'; }}>
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-accent)', letterSpacing: '.1em', marginBottom: 8, fontWeight: 700 }}>
-                    Ep. {ep.num}
-                  </div>
-                  <div className="crimson" style={{ fontSize: '15px', color: 'var(--text-headline)', lineHeight: 1.4, marginBottom: 8, fontWeight: 600, flex: 1 }}>
-                    {ep.title}
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                    {ep.guest && ep.guest !== 'Guest' && (
-                      <div className="mono" style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {ep.guest}
-                      </div>
-                    )}
-                    <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: 'auto', flexShrink: 0 }}>
-                      {ep.duration}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div style={{ textAlign: 'center', marginTop: 48 }}>
-              <Link href="/episodes" className="btn-outline" style={{ textDecoration: 'none', display: 'inline-block' }}>
-                View All {episodeCount} Episodes →
+      {/* GUEST VIDEO TESTIMONIALS */}
+      <div className="band">
+        <Testimonials items={testimonials} filter="video" heading="Hear From Recent Guests" maxWidth={800} borderBottom={false} />
+      </div>
+
+      {/* LATEST EPISODES */}
+      <section className="band">
+        <div className="wrap wrap--wide page-body">
+          <div className="page-head-row" style={{ marginBottom: 32 }}>
+            <h2 className="section-label" style={{ margin: 0 }}>Latest Episodes</h2>
+            <Link href="/episodes" className="meta" style={{ textDecoration: 'none' }}>All {episodeCount} episodes →</Link>
+          </div>
+          <div className="ep-card-grid">
+            {latestEpisodes.slice(0, 6).map((ep) => (
+              <Link key={ep.slug} href={`/episodes/${ep.slug}`} className="ep-card">
+                <span className="eyebrow eyebrow--accent">Ep. {ep.num}</span>
+                <span className="ep-card-title">{ep.title}</span>
+                <span className="ep-card-foot">
+                  {ep.guest && ep.guest !== 'Guest' && <span className="ep-card-guest">{ep.guest}</span>}
+                  <span className="meta">{ep.duration}</span>
+                </span>
               </Link>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -287,8 +191,8 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
       {/* FEATURED ON VIDEO */}
       {latestVideos && latestVideos.length > 0 && (
         <section style={{ background: 'var(--bg-surface)', borderBottom: '1px solid var(--border-subtle)', padding: '64px 0', overflow: 'hidden' }}>
-          <div style={{ padding: '0 clamp(24px, 5vw, 48px)', marginBottom: 40 }}>
-            <h2 className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: 0 }}>Watch on YouTube</h2>
+          <div className="wrap wrap--wide" style={{ marginBottom: 40 }}>
+            <h2 className="section-label" style={{ margin: 0 }}>Watch on YouTube</h2>
           </div>
           <div style={{ display: 'flex', gap: 24, overflowX: 'auto', paddingLeft: 'clamp(24px, 5vw, 48px)', paddingRight: 'clamp(24px, 5vw, 48px)', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             {latestVideos.map((video) => (
@@ -309,14 +213,14 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
                   />
                   <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 60%)' }} />
                   <div style={{ position: 'absolute', bottom: 8, right: 8 }}>
-                    <span className="mono" style={{ fontSize: '10px', background: 'rgba(0,0,0,.75)', color: '#EEE', padding: '2px 6px', borderRadius: 2 }}>{video.duration}</span>
+                    <span className="mono" style={{ fontSize: '12px', background: 'rgba(0,0,0,.75)', color: '#EEE', padding: '2px 6px', borderRadius: 2 }}>{video.duration}</span>
                   </div>
                 </div>
                 <div className="crimson" style={{ fontSize: '14px', color: 'var(--text-headline)', lineHeight: 1.4, fontWeight: 600, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                   {video.title}
                 </div>
                 {video.viewCount && (
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 4 }}>{video.viewCount}</div>
+                  <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 4 }}>{video.viewCount}</div>
                 )}
               </a>
             ))}
@@ -328,36 +232,27 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
       <Testimonials items={testimonials} filter="quote" />
 
       {/* NEWSLETTER BAND */}
-      <section id="newsletter" className="newsletter-section" style={{ padding: '96px 48px', scrollMarginTop: 80, borderBottom: '1px solid var(--faint)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 80, alignItems: 'center' }}>
-        <div>
-          <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 14 }}>First Principles Newsletter</div>
-          <h2 className="syne" style={{ fontSize: 'clamp(36px,5vw,60px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.95, marginBottom: 24 }}>
-            The insight<br />
-            behind<br />
-            the episode.
-          </h2>
-          <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-secondary)', fontWeight: 300 }}>
-            Not a recap. The structural principle underneath each conversation. Written for operators who need to understand what&apos;s actually happening before the market makes it obvious.
-          </p>
-        </div>
-        <div>
-          {/* "No third-party sponsorships" rather than the previous "no
-              sponsorship content" — the archive carries Newton Insights reads,
-              and Newton is a sister company (both Eighth Revolution LLC), not
-              a paid placement. The old wording read as false the moment a
-              reader opened an edition. */}
-          <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 24, lineHeight: 1.9, fontWeight: 500, letterSpacing: '.04em' }}>
-            550-650 WORDS. ONE IDEA. NO FLUFF. FREE.<br />
-            NO THIRD-PARTY SPONSORSHIPS. NO PAID PLACEMENTS.
-          </p>
-          <ConvertKitEmbed location="home_hero" />
-          <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 14 }}>
-            Operator intelligence only. Unsubscribe anytime.{' '}
-            <Link href="/newsletter" style={{ color: 'var(--text-accent)' }}>
-              Read the archive
-            </Link>
-            .
-          </p>
+      <section id="newsletter" className="band" style={{ scrollMarginTop: 80 }}>
+        <div className="wrap wrap--wide grid-2" style={{ paddingTop: 'clamp(56px, 8vw, 96px)', paddingBottom: 'clamp(56px, 8vw, 96px)', alignItems: 'center' }}>
+          <div>
+            <span className="eyebrow eyebrow--accent">First Principles Newsletter</span>
+            <h2 className="page-title" style={{ fontSize: 'clamp(38px, 5vw, 64px)' }}>
+              The insight<br />
+              behind<br />
+              the episode.
+            </h2>
+            <p className="lede">{NEWSLETTER_PITCH}</p>
+          </div>
+          <div>
+            <p className="meta" style={{ marginBottom: 20, color: 'var(--text-secondary)' }}>
+              {NEWSLETTER_FORMAT} {NEWSLETTER_CADENCE}
+            </p>
+            <ConvertKitEmbed location="home_hero" />
+            <p className="meta" style={{ marginTop: 14 }}>
+              Operator intelligence only. Unsubscribe anytime.{' '}
+              <Link href="/newsletter">Read the archive</Link>.
+            </p>
+          </div>
         </div>
       </section>
 

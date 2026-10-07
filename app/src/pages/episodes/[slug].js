@@ -198,29 +198,23 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
 
       <Header />
 
-      <article ref={articleRef} style={{ padding: '48px', maxWidth: '900px', margin: '0 auto' }}>
-        <Link href="/episodes" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
+      <article ref={articleRef} className="wrap wrap--prose page-body">
+        <Link href="/episodes" className="back-link">
           ← All Episodes
         </Link>
 
-        <header style={{ marginBottom: '48px' }}>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '20px', flexWrap: 'wrap' }}>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-accent)', fontWeight: 700 }}>
-              Ep. {episode.num}
-            </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-              {episode.date}
-            </span>
-            <span className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-              {episode.duration}
-            </span>
+        <header className="ep-header">
+          <div className="meta ep-meta">
+            <span className="num">Ep. {episode.num}</span>
+            <span>{episode.date}</span>
+            <span>{episode.duration}</span>
           </div>
 
-          <h1 style={{ fontSize: 'clamp(28px, 4vw, 48px)', fontWeight: 800, lineHeight: 1.2, marginBottom: '24px', fontFamily: 'var(--font-display)', color: 'var(--text-headline)' }}>
+          <h1 className="page-title page-title--article" style={{ marginTop: 0 }}>
             {episode.title}
           </h1>
 
-          <div style={{ fontSize: '18px', color: 'var(--text-secondary)', marginBottom: '32px', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 500 }}>
+          <p className="ep-guest">
             {episode.guest && episode.guest !== 'Guest' ? (
               <Link href={`/guests/${guestToSlug(episode.guest)}`} style={{ color: 'inherit', textDecoration: 'underline', textDecorationColor: 'var(--border-subtle)' }}>
                 {episode.guest}
@@ -249,25 +243,17 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
                 </a>
               </span>
             ) : null}
-          </div>
+          </p>
 
           {displayTags.length > 0 && (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '40px' }}>
+            <div className="ep-tags">
               {displayTags.map((tag) => {
-                const tagStyle = {
-                  fontSize: '10px',
-                  color: 'var(--text-accent)',
-                  border: '1px solid var(--text-accent)',
-                  padding: '4px 12px',
-                  fontWeight: 700,
-                  textDecoration: 'none',
-                };
                 return hasTopics ? (
-                  <Link key={tag} href={`/topics/${topicToSlug(tag)}`} className="mono" style={tagStyle}>
+                  <Link key={tag} href={`/topics/${topicToSlug(tag)}`} className="pill">
                     {tag}
                   </Link>
                 ) : (
-                  <span key={tag} className="mono" style={tagStyle}>
+                  <span key={tag} className="pill">
                     {tag}
                   </span>
                 );
@@ -276,22 +262,10 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
           )}
         </header>
 
-        {transcript && transcript.summary && (
-          <section style={{ marginBottom: '48px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              TL;DR
-            </h2>
-            <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
-              {transcript.summary}
-            </p>
-          </section>
-        )}
-
-        <section style={{ marginBottom: '48px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', padding: '24px', borderRadius: '8px' }}>
-          <div style={{ marginBottom: '16px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-            Listen Now
-          </div>
+        {/* The player first. A visitor from search came to hear the episode;
+            everything below is what they read while it plays. */}
+        <section className="card-panel ep-player">
+          <span className="eyebrow" style={{ marginBottom: 12 }}>Listen</span>
           <audio
             ref={audioRef}
             controls
@@ -311,7 +285,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
               head. Tracked as link_location "episode_page", which Part 1 of
               docs/analytics-spec.md already enumerates for exactly this. */}
           <div style={{ marginTop: '14px', display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '6px 16px', fontSize: '13px' }}>
-            <span className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+            <span className="mono" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
               Subscribe
             </span>
             {LISTEN_LINKS.map((p) => (
@@ -327,10 +301,9 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
               </a>
             ))}
           </div>
-
           {episodeVideos.length > 0 && (
             <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-subtle)' }}>
-              <div style={{ marginBottom: '12px', fontSize: '11px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+              <div style={{ marginBottom: '12px', fontSize: '12px', fontWeight: '600', letterSpacing: '.1em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                 {episodeVideos.length > 1 ? 'Watch this episode on YouTube' : 'Watch this episode'}
               </div>
               {episodeVideos.map((v) => (
@@ -341,7 +314,7 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
                 >
                   ▶ {v.title}
                   {v.duration && (
-                    <span className="mono" style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '11px', marginLeft: '8px' }}>
+                    <span className="mono" style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '12px', marginLeft: '8px' }}>
                       {v.duration}
                     </span>
                   )}
@@ -351,199 +324,156 @@ export default function EpisodePage({ episode, relatedEpisodes, transcript, epis
           )}
         </section>
 
+        {transcript && transcript.summary && (
+          <section className="ep-section">
+            <AIDisclosure />
+            <h2 className="ep-h2">In brief</h2>
+            <p className="ep-body">{transcript.summary}</p>
+          </section>
+        )}
+
+        <section className="ep-section">
+          <p className="ep-standfirst">{episode.description}</p>
+
+          {/* The show notes carry links and the feed's boilerplate credit,
+              so they fold. The text stays in the HTML for crawlers and the
+              .md twin renders it in full; Chrome opens a closed <details>
+              on find-in-page. */}
+          {episode.showNotes && (
+            <details className="ep-fold">
+              <summary>Full show notes</summary>
+              <div
+                className="ep-fold-body ep-notes-body"
+                dangerouslySetInnerHTML={{ __html: episode.showNotes }}
+              />
+            </details>
+          )}
+        </section>
+
         {/* Sits alongside the audio player and video link deliberately: this
             is the third format of the same episode, and it's the only
             human-written long-form text on the page. */}
         {edition && (
-          <section style={{ marginBottom: '48px', borderLeft: '3px solid var(--text-accent)', paddingLeft: '20px' }}>
-            <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
-              The analysis behind this episode
-            </div>
-            <Link href={`/newsletter/${edition.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '19px', fontWeight: 600, lineHeight: 1.3, fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
+          <section className="ep-section ep-edition">
+            <span className="eyebrow eyebrow--accent" style={{ marginBottom: 10 }}>The analysis behind this episode</span>
+            <Link href={`/newsletter/${edition.slug}`} className="list-title" style={{ display: 'block', fontSize: '24px', marginBottom: 8 }}>
               {edition.title}
             </Link>
-            <p style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 10px' }}>
-              {edition.description}
-            </p>
-            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+            <p className="list-desc" style={{ marginTop: 0 }}>{edition.description}</p>
+            <div className="meta" style={{ marginTop: 8 }}>
               First Principles{edition.dateDisplay && ` · ${edition.dateDisplay}`}
             </div>
           </section>
         )}
 
-        <section style={{ marginBottom: '80px' }}>
-          <p style={{ fontSize: '16px', lineHeight: '1.8', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontStyle: 'italic', fontWeight: 400 }}>
-            {episode.description}
-          </p>
-
-          {episode.showNotes && (
-            <div style={{ marginTop: '32px', padding: '24px', background: 'var(--bg-surface)', borderLeft: '3px solid var(--text-accent)', borderRadius: '4px' }}>
-              <h2 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-headline)' }}>
-                Full Show Notes
-              </h2>
-              <div
-                style={{ fontSize: '14px', lineHeight: '1.6', color: 'var(--text-secondary)' }}
-                dangerouslySetInnerHTML={{ __html: episode.showNotes }}
-              />
-            </div>
-          )}
-        </section>
-
         {/* Directly after the show notes: the point where a reader has
             finished the human-facing summary and before the long AI
             sections most visitors never scroll through. */}
-        <section style={{ marginBottom: '56px', padding: '28px 24px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '8px' }}>
-          <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-accent)', marginBottom: '10px' }}>
-            First Principles Newsletter
-          </div>
-          <h2 style={{ fontSize: '20px', fontWeight: 700, lineHeight: 1.3, marginBottom: '10px', color: 'var(--text-headline)' }}>
-            Get the insight behind the conversation.
-          </h2>
-          <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 20px' }}>
-            One structural idea from the episode, written for operators. 550–650 words, no fluff, free.
+        <section className="card-panel ep-section">
+          <span className="eyebrow eyebrow--accent" style={{ marginBottom: 10 }}>First Principles Newsletter</span>
+          <h2 className="ep-h2" style={{ marginTop: 0, fontSize: '24px' }}>Get the insight behind the conversation.</h2>
+          <p className="list-desc" style={{ marginTop: 0, marginBottom: 20 }}>
+            One structural idea from the episode, written for operators. 550 to 650 words, free.
           </p>
           <ConvertKitEmbed location="episode_inline" episodeSlug={episode.slug} />
         </section>
 
-        {transcript && transcript.takeaways?.length > 0 && (
-          <section style={{ marginBottom: '56px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              Key Takeaways
-            </h2>
-            <ul style={{ paddingLeft: '20px', margin: 0 }}>
-              {transcript.takeaways.map((point, i) => (
-                <li key={i} style={{ fontSize: '15px', lineHeight: '1.8', color: 'var(--text-secondary)', marginBottom: '10px' }}>
-                  {point}
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
+        {transcript && (transcript.takeaways?.length > 0 || transcript.quotes?.length > 0 || transcript.faq?.length > 0 || transcript.cleaned_transcript) && (
+          <div className="ep-ai">
+            {/* One banner for the whole AI block. Every section below it is
+                generated from the audio, and six identical chips in a row
+                taught readers to stop seeing them. */}
+            <AIDisclosure>The sections below were generated by AI from the episode audio and may contain errors</AIDisclosure>
+            <nav className="ep-jump" aria-label="Sections">
+              {transcript.takeaways?.length > 0 && <a href="#takeaways">Takeaways</a>}
+              {transcript.quotes?.length > 0 && <a href="#quotes">Quotes</a>}
+              {transcript.faq?.length > 0 && <a href="#faq">Questions</a>}
+              {(transcript.entities?.companies?.length > 0 || transcript.entities?.people?.length > 0) && <a href="#mentioned">Mentioned</a>}
+              {transcript.cleaned_transcript && <a href="#transcript">Transcript</a>}
+            </nav>
 
-        {transcript && transcript.quotes?.length > 0 && (
-          <section style={{ marginBottom: '56px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              Notable Quotes
-            </h2>
-            {transcript.quotes.map((item, i) => (
-              <blockquote
-                key={i}
-                style={{
-                  borderLeft: '3px solid var(--text-accent)',
-                  paddingLeft: '20px',
-                  margin: '0 0 20px 0',
-                  fontSize: '17px',
-                  fontStyle: 'italic',
-                  fontFamily: 'var(--font-body)',
-                  color: 'var(--text-headline)',
-                }}
-              >
-                “{item.quote}”
-                <footer style={{ fontSize: '13px', fontStyle: 'normal', fontFamily: 'var(--font-display)', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  — {item.speaker}
-                </footer>
-              </blockquote>
-            ))}
-          </section>
-        )}
+            {transcript.takeaways?.length > 0 && (
+              <section className="ep-section" id="takeaways">
+                <h2 className="ep-h2">Key takeaways</h2>
+                <ul className="ep-takeaways">
+                  {transcript.takeaways.map((point, i) => (
+                    <li key={i}>{point}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
-        {transcript && transcript.faq?.length > 0 && (
-          <section style={{ marginBottom: '56px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              Frequently Asked Questions
-            </h2>
-            {transcript.faq.map((item, i) => (
-              <div key={i} style={{ marginBottom: '20px' }}>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-headline)', marginBottom: '6px' }}>
-                  {item.question}
+            {transcript.quotes?.length > 0 && (
+              <section className="ep-section" id="quotes">
+                <h2 className="ep-h2">Notable quotes</h2>
+                {transcript.quotes.map((item, i) => (
+                  <blockquote key={i} className="ep-quote">
+                    “{item.quote}”
+                    <footer className="meta">{item.speaker}</footer>
+                  </blockquote>
+                ))}
+              </section>
+            )}
+
+            {transcript.faq?.length > 0 && (
+              <section className="ep-section" id="faq">
+                <h2 className="ep-h2">Questions this episode answers</h2>
+                <dl className="ep-faq">
+                  {transcript.faq.map((item, i) => (
+                    <div key={i}>
+                      <dt>{item.question}</dt>
+                      <dd>{item.answer}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </section>
+            )}
+
+            {(transcript.entities?.companies?.length > 0 || transcript.entities?.people?.length > 0) && (
+              <section className="ep-section" id="mentioned">
+                <h2 className="ep-h2">Mentioned in this episode</h2>
+                <div className="ep-chips">
+                  {[...(transcript.entities.people || []), ...(transcript.entities.companies || [])].map((name) => (
+                    <span key={name} className="ep-chip">{name}</span>
+                  ))}
                 </div>
-                <div style={{ fontSize: '15px', lineHeight: '1.75', color: 'var(--text-secondary)' }}>
-                  {item.answer}
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
+              </section>
+            )}
 
-        {transcript && (transcript.entities?.companies?.length > 0 || transcript.entities?.people?.length > 0) && (
-          <section style={{ marginBottom: '56px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              Mentioned in This Episode
-            </h2>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {[...(transcript.entities.people || []), ...(transcript.entities.companies || [])].map((name) => (
-                <span
-                  key={name}
-                  className="mono"
-                  style={{
-                    fontSize: '11px',
-                    color: 'var(--text-secondary)',
-                    border: '1px solid var(--border-default)',
-                    padding: '4px 12px',
-                    borderRadius: '4px',
-                  }}
-                >
-                  {name}
-                </span>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {transcript && transcript.cleaned_transcript && (
-          <section ref={transcriptRef} style={{ marginBottom: '80px' }}>
-            <AIDisclosure />
-            <h2 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '20px', color: 'var(--text-headline)' }}>
-              Full Transcript
-            </h2>
-            <div
-              style={{
-                fontSize: '14px',
-                lineHeight: '1.8',
-                color: 'var(--text-secondary)',
-                whiteSpace: 'pre-wrap',
-              }}
-            >
-              {transcript.cleaned_transcript}
-            </div>
-          </section>
+            {transcript.cleaned_transcript && (
+              <section className="ep-section" id="transcript">
+                <h2 className="ep-h2">Full transcript</h2>
+                {/* The ref is on the body, not the <details>: a closed fold
+                    has no box, so transcript_open fires only once a reader
+                    has opened it and scrolled it into view. */}
+                <details className="ep-fold">
+                  <summary>Read the transcript ({transcript.cleaned_transcript.split(/\s+/).length.toLocaleString('en-US')} words)</summary>
+                  <div ref={transcriptRef} className="ep-fold-body ep-transcript">
+                    {transcript.cleaned_transcript}
+                  </div>
+                </details>
+              </section>
+            )}
+          </div>
         )}
 
         <SponsorSlot slug={episode.slug} compact={sponsorInShowNotes} />
 
         {relatedEpisodes.length > 0 && (
-          <aside style={{ paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
-            <h2 style={{ fontSize: '12px', fontWeight: '600', marginBottom: '24px', textTransform: 'uppercase', letterSpacing: '.1em', color: 'var(--text-muted)' }}>
-              More Episodes
-            </h2>
-            <div style={{ display: 'grid', gap: '0' }}>
-              {relatedEpisodes.map((ep) => (
-                <Link
-                  key={ep.slug}
-                  href={`/episodes/${ep.slug}`}
-                  style={{
-                    padding: '16px 0',
-                    borderBottom: '1px solid var(--border-subtle)',
-                    textDecoration: 'none',
-                    color: 'inherit',
-                    transition: 'background .15s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--bg-surface)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '4px', fontFamily: 'var(--font-body)', color: 'var(--text-headline)' }}>
-                    {ep.title}
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>
-                    {ep.guest} · {ep.date.split(',')[0]}
-                  </div>
-                </Link>
-              ))}
-            </div>
+          <aside className="ep-related">
+            <h2 className="section-label">More episodes</h2>
+            {relatedEpisodes.map((ep) => (
+              <Link key={ep.slug} href={`/episodes/${ep.slug}`} className="list-row" style={{ padding: '16px 0' }}>
+                <div className="list-meta">
+                  <span className="num">Ep. {ep.num}</span>
+                  <span>{ep.date.split(',')[0]}</span>
+                </div>
+                <div>
+                  <div className="list-title" style={{ fontSize: '20px' }}>{ep.title}</div>
+                  {ep.guest && ep.guest !== 'Guest' && <div className="list-sub">{ep.guest}</div>}
+                </div>
+              </Link>
+            ))}
           </aside>
         )}
       </article>

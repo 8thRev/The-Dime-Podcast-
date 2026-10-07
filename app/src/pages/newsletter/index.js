@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
@@ -6,6 +7,7 @@ import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import { getAllEditions, toCard } from '@/lib/newsletter';
 import { createCollectionPageSchema } from '@/lib/schema';
+import { NEWSLETTER_PITCH, NEWSLETTER_CADENCE } from '@/lib/newsletterCopy';
 
 export async function getStaticProps() {
   // toCard() keeps only what this page renders — date, guest, title, blurb.
@@ -14,6 +16,16 @@ export async function getStaticProps() {
   // payload-bloat trap already fixed on /episodes (see SEO_ROADMAP.md).
   const editions = getAllEditions().map(toCard);
   return { props: { editions }, revalidate: 3600 };
+}
+
+// "Aug 4, 2026": the archive's meta column is 104px wide, and the prose
+// form ("August 4, 2026") wrapped the year onto its own line in every row.
+// `date` is the full ISO timestamp normalizeDate() produces, read in UTC so
+// a midnight date does not slip a day on a server west of Greenwich.
+function shortDate(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 export default function Newsletter({ editions }) {
@@ -32,6 +44,19 @@ export default function Newsletter({ editions }) {
       )
     : null;
 
+  const latest = editions[0] || null;
+  const firstYear = editions.length ? editions[editions.length - 1].date.slice(0, 4) : '';
+
+  // Group by year, newest first. getAllEditions() already sorts by date
+  // descending, so the first edition seen in each year is its newest.
+  const byYear = [];
+  for (const edition of editions) {
+    const year = edition.date.slice(0, 4);
+    const group = byYear[byYear.length - 1];
+    if (group && group.year === year) group.items.push(edition);
+    else byYear.push({ year, items: [edition] });
+  }
+
   return (
     <>
       <SeoHead
@@ -44,78 +69,104 @@ export default function Newsletter({ editions }) {
 
       <Header />
 
-      <section style={{ padding: '80px 48px 60px', maxWidth: 680 }}>
-        <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
-          First Principles
+      <section className="band">
+        <div className="wrap page-head nl-hero">
+          <div>
+            <span className="eyebrow eyebrow--accent">First Principles</span>
+            <h1 className="page-title">
+              The insight<br />
+              behind<br />
+              the episode.
+            </h1>
+            <p className="lede">{NEWSLETTER_PITCH}</p>
+            {/* The byline is on this page, not only on each edition, because
+                /answers has an archive index that names its author and
+                labels him AI. Two archive pages where only the AI one is
+                attributed reads backwards. Says "written by", not just the
+                name, so the contrast with the Answers banner is explicit. */}
+            <p className="meta" style={{ marginTop: 24 }}>
+              Written by Bryan Fields. Every edition by hand.
+            </p>
+            <p className="meta">
+              {NEWSLETTER_CADENCE}
+              {editions.length > 0 && (
+                <>
+                  {' '}{editions.length} editions since {firstYear}.{' '}
+                  <Link href="/newsletter/rss.xml">RSS feed</Link>
+                </>
+              )}
+            </p>
+          </div>
+
+          <div className="card-panel">
+            <span className="eyebrow" style={{ marginBottom: 14 }}>Free, by email</span>
+            <ul className="nl-benefits">
+              <li>One structural idea per edition, 550 to 650 words.</li>
+              <li>Written after the episode, not transcribed from it.</li>
+              <li>Every edition links back to the episode it came from.</li>
+            </ul>
+            <ConvertKitEmbed location="newsletter_page" />
+            <p className="meta" style={{ marginTop: 14 }}>
+              Operator intelligence only. Unsubscribe anytime.
+            </p>
+            {latest && (
+              <p className="meta">
+                Not sure yet? <Link href={`/newsletter/${latest.slug}`}>Read the latest edition</Link> first.
+              </p>
+            )}
+          </div>
         </div>
-        {/* Floor lowered from 52px, which is what "the episode." needed: at
-            52px the headline was 358px of content in a 279px box at 375px
-            viewport, so this page scrolled sideways on a phone. Caught while
-            measuring the same failure on /answers. Re-measure before raising
-            it. */}
-        <h1 className="syne" style={{ fontSize: 'clamp(38px,8vw,84px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.88, marginBottom: 32 }}>
-          The insight<br />
-          behind<br />
-          the episode.
-        </h1>
-        <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', marginBottom: 16, fontWeight: 300 }}>
-          Every episode produces a newsletter. Not a recap. The structural principle underneath the conversation, written for operators who need to understand what&apos;s actually happening before the market makes it obvious.
-        </p>
-        <p className="syne" style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: 16, letterSpacing: '.08em', fontWeight: 600, textTransform: 'uppercase' }}>
-          550-650 WORDS · ONE IDEA · NO NOISE · FREE
-        </p>
-        {/* The byline is on this page, not only on each edition, because
-            /answers now has an archive index that names its author and
-            labels him AI. Two archive pages where only the AI one is
-            attributed reads backwards. Says "written by", not just the
-            name, so the contrast with the Answers banner is explicit. */}
-        <p className="mono" style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: 48 }}>
-          Written by Bryan Fields. Every edition, by hand.
-        </p>
-
-        <ConvertKitEmbed location="newsletter_page" />
-
-        <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 16 }}>
-          Operator intelligence only. Unsubscribe anytime.
-        </p>
       </section>
 
       {editions.length > 0 && (
-        <section style={{ padding: '0 48px 80px', maxWidth: 860 }}>
-          <h2 className="syne" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8, paddingTop: 40, borderTop: '1px solid var(--border-default)' }}>
-            The Archive
-          </h2>
-          <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: 40 }}>
-            {editions.length} edition{editions.length === 1 ? '' : 's'}
-          </p>
+        <section>
+          <div className="wrap page-body archive-grid">
+            <div>
+              <h2 className="section-label" style={{ marginBottom: 0 }}>
+                The archive · {editions.length} edition{editions.length === 1 ? '' : 's'}
+              </h2>
 
-          {editions.map((edition) => (
-            <Link
-              key={edition.slug}
-              href={`/newsletter/${edition.slug}`}
-              style={{
-                display: 'block',
-                padding: '28px 0',
-                borderBottom: '1px solid var(--border-subtle)',
-                textDecoration: 'none',
-                color: 'inherit',
-                transition: 'background .15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(60,184,240,.04)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              <div className="mono" style={{ fontSize: '9px', color: 'var(--text-muted)', letterSpacing: '.12em', marginBottom: 8 }}>
-                {edition.dateDisplay}
-                {edition.guest && <span style={{ color: 'var(--text-accent)' }}> · {edition.guest}</span>}
+              {byYear.map((group) => (
+                <Fragment key={group.year}>
+                  <div className="archive-year" id={`year-${group.year}`}>{group.year}</div>
+                  {group.items.map((edition) => (
+                    <Link key={edition.slug} href={`/newsletter/${edition.slug}`} className="list-row">
+                      <div className="list-meta">
+                        <span>{shortDate(edition.date)}</span>
+                        {edition.guest && <span>{edition.guest}</span>}
+                      </div>
+                      <div>
+                        <div className="list-title">
+                          {edition.title}
+                          {latest && edition.slug === latest.slug && <>{' '}<span className="is-latest">Latest</span></>}
+                        </div>
+                        <p className="list-desc">{edition.description}</p>
+                      </div>
+                    </Link>
+                  ))}
+                </Fragment>
+              ))}
+            </div>
+
+            <aside className="archive-aside" aria-label="Browse the archive">
+              <div className="archive-aside-inner">
+                <span className="eyebrow" style={{ marginBottom: 12 }}>Jump to</span>
+                <nav className="year-nav">
+                  {byYear.map((group) => (
+                    <a key={group.year} href={`#year-${group.year}`}>
+                      {group.year} <span className="count">· {group.items.length}</span>
+                    </a>
+                  ))}
+                </nav>
+                <span className="eyebrow" style={{ margin: '28px 0 12px' }}>Also on The Dime</span>
+                <nav className="year-nav">
+                  <Link href="/answers">Answers, the AI-written column</Link>
+                  <Link href="/topics">Browse by topic</Link>
+                  <Link href="/episodes">All episodes</Link>
+                </nav>
               </div>
-              <div className="crimson" style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-headline)', marginBottom: 8, lineHeight: 1.25 }}>
-                {edition.title}
-              </div>
-              <div style={{ fontSize: '14px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-                {edition.description}
-              </div>
-            </Link>
-          ))}
+            </aside>
+          </div>
         </section>
       )}
 

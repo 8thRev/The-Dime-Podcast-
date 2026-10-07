@@ -112,17 +112,17 @@ export default function AnswerPostPage({ post, html, cited, others }) {
 
       <Header />
 
-      <article style={{ padding: '48px', maxWidth: '760px', margin: '0 auto' }}>
-        <Link href="/answers" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
+      <article className="wrap wrap--prose page-body">
+        <Link href="/answers" className="back-link">
           &larr; Answers
         </Link>
 
         <header style={{ marginBottom: '40px' }}>
-          <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
+          <div className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
             Answers
           </div>
 
-          <h1 className="syne" style={{ fontSize: 'clamp(28px, 4.2vw, 46px)', fontWeight: 800, lineHeight: 1.12, letterSpacing: '.01em', marginBottom: '24px', color: 'var(--text-headline)' }}>
+          <h1 className="page-title page-title--article" style={{ marginTop: 12, marginBottom: '24px' }}>
             {post.title}
           </h1>
 
@@ -130,7 +130,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
             Written by {COLUMN_AUTHOR}, {COLUMN_AUTHOR_ROLE}. Sourced from our episodes and reviewed before publishing.
           </AIDisclosure>
 
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+          <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <span>{COLUMN_AUTHOR}</span>
             {post.dateDisplay && <span>{post.dateDisplay}</span>}
             {post.wordCount > 0 && <span>{post.wordCount} words</span>}
@@ -142,8 +142,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
                 <Link
                   key={topic}
                   href={`/topics/${topicToSlug(topic)}`}
-                  className="mono"
-                  style={{ fontSize: '10px', color: 'var(--text-accent)', border: '1px solid var(--text-accent)', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
+                  className="pill"
                 >
                   {topic}
                 </Link>
@@ -159,7 +158,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
             paddingLeft: '20px',
           }}
         >
-          <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
+          <div className="mono" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
             Short answer
           </div>
           <p className="crimson" style={{ fontSize: '19px', lineHeight: 1.7, color: 'var(--text-headline)', margin: 0, fontWeight: 400 }}>
@@ -169,13 +168,13 @@ export default function AnswerPostPage({ post, html, cited, others }) {
 
         <div
           className="prose-body"
-          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}
+          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
         {cited.length > 0 && (
           <section style={{ marginTop: '56px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', padding: '20px 24px', borderRadius: '8px' }}>
-            <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '14px' }}>
+            <div className="mono" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '14px' }}>
               Where this comes from
             </div>
             {cited.map((episode) => (
@@ -183,7 +182,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
                 <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '16px', fontWeight: 600, lineHeight: 1.35, fontFamily: 'var(--font-body)' }}>
                   {episode.title}
                 </Link>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
                   Ep. {episode.num}
                   {episode.guest && ` · ${episode.guest}`}
                   {episode.date && ` · ${episode.date}`}
@@ -195,12 +194,12 @@ export default function AnswerPostPage({ post, html, cited, others }) {
 
         {post.faq.length > 0 && (
           <section style={{ marginTop: '56px', paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
-            <h2 className="syne" style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '24px' }}>
+            <h2 className="syne" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '24px' }}>
               Related questions
             </h2>
             {post.faq.map((pair) => (
               <div key={pair.question} style={{ marginBottom: '28px' }}>
-                <h3 className="syne" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '8px', lineHeight: 1.4 }}>
+                <h3 className="syne" style={{ fontSize: '18px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '8px', lineHeight: 1.4 }}>
                   {pair.question}
                 </h3>
                 <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.75, color: 'var(--text-secondary)', margin: 0 }}>
@@ -225,7 +224,7 @@ export default function AnswerPostPage({ post, html, cited, others }) {
                 <div className="crimson" style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text-headline)', marginBottom: '4px' }}>
                   {p.title}
                 </div>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                   {p.dateDisplay}
                 </div>
               </Link>

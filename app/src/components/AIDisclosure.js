@@ -9,7 +9,7 @@ export default function AIDisclosure({
     <div
       className="mono"
       style={{
-        fontSize: '10px',
+        fontSize: '12px',
         fontWeight: 700,
         letterSpacing: '.08em',
         textTransform: 'uppercase',

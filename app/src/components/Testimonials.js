@@ -17,7 +17,7 @@ export default function Testimonials({ items, heading = 'What Listeners Say', fi
   return (
     <section style={{ padding: 'clamp(48px, 8vw, 96px) clamp(24px, 5vw, 48px)', borderBottom: borderBottom ? '1px solid var(--border-subtle)' : 'none', background: 'var(--bg-base)' }}>
       <div style={{ textAlign: 'center', marginBottom: 56 }}>
-        <span className="mono" style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+        <span className="mono" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
           {heading}
         </span>
       </div>
@@ -48,7 +48,7 @@ export default function Testimonials({ items, heading = 'What Listeners Say', fi
                       <a href={t.linkedinUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{t.name}</a>
                     ) : t.name}
                   </div>
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 2 }}>
+                  <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 2 }}>
                     {t.title}
                   </div>
                 </div>
@@ -97,7 +97,7 @@ export default function Testimonials({ items, heading = 'What Listeners Say', fi
                       <a href={linkUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>{t.name}</a>
                     ) : t.name}
                   </div>
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: 2 }}>
+                  <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: 2 }}>
                     {t.title}
                   </div>
                 </div>

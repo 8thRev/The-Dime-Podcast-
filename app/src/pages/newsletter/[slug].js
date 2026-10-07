@@ -105,13 +105,13 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
 
       <Header />
 
-      <article style={{ padding: '48px', maxWidth: '760px', margin: '0 auto' }}>
-        <Link href="/newsletter" style={{ color: 'var(--text-accent)', textDecoration: 'none', marginBottom: '32px', display: 'block', fontWeight: 600 }}>
+      <article className="wrap wrap--prose page-body">
+        <Link href="/newsletter" className="back-link">
           ← First Principles
         </Link>
 
         <header style={{ marginBottom: '40px' }}>
-          <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
+          <div className="mono" style={{ fontSize: '12px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
             First Principles
           </div>
 
@@ -119,7 +119,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             {edition.title}
           </h1>
 
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+          <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
             <span>Bryan Fields</span>
             {edition.dateDisplay && <span>{edition.dateDisplay}</span>}
             {edition.wordCount > 0 && <span>{edition.wordCount} words</span>}
@@ -129,13 +129,13 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
 
         {episode && (
           <section style={{ marginBottom: '48px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', padding: '20px 24px', borderRadius: '8px' }}>
-            <div className="mono" style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
+            <div className="mono" style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '.14em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
               Written after
             </div>
             <Link href={`/episodes/${episode.slug}`} style={{ display: 'block', color: 'var(--text-headline)', textDecoration: 'none', fontSize: '17px', fontWeight: 600, lineHeight: 1.35, fontFamily: 'var(--font-body)' }}>
               {episode.title}
             </Link>
-            <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '8px' }}>
+            <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
               Ep. {episode.num}
               {episode.guest && (
                 <>
@@ -156,7 +156,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
 
         <div
           className="prose-body"
-          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-secondary)', fontFamily: 'var(--font-body)' }}
+          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
@@ -167,7 +167,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
                 key={topic}
                 href={`/topics/${topicToSlug(topic)}`}
                 className="mono"
-                style={{ fontSize: '10px', color: 'var(--text-accent)', border: '1px solid var(--text-accent)', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
+                style={{ fontSize: '12px', color: 'var(--text-accent)', border: '1px solid var(--text-accent)', padding: '4px 12px', fontWeight: 700, textDecoration: 'none' }}
               >
                 {topic}
               </Link>
@@ -183,7 +183,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             First Principles is a weekly note on the structural insight behind each Dime episode. No recaps, no noise.
           </p>
           <ConvertKitEmbed location="newsletter_page" />
-          <p className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <p className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link href="/newsletter" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>All editions</Link>
             <Link href="/newsletter/rss.xml" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>RSS</Link>
             <Link href="/"style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>Listen to The Dime</Link>
@@ -191,7 +191,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
         </section>
 
         {edition.linkedinUrl && (
-          <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '32px' }}>
+          <p className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '32px' }}>
             Originally published on{' '}
             <a href={edition.linkedinUrl} rel="noopener" style={{ color: 'var(--text-muted)', textDecoration: 'underline' }}>
               LinkedIn
@@ -214,7 +214,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
                 <div className="crimson" style={{ fontSize: '15px', fontWeight: 500, color: 'var(--text-headline)', marginBottom: '4px' }}>
                   {e.title}
                 </div>
-                <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                   {e.dateDisplay}
                 </div>
               </Link>

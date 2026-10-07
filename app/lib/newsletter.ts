@@ -250,8 +250,9 @@ export function toListItem(e: NewsletterEdition): EditionListItem {
 }
 
 /** Adds the blurb and guest, for surfaces that render a summary line. */
-export type EditionCard = EditionListItem & Pick<NewsletterEdition, "description" | "guest">;
+export type EditionCard = EditionListItem & Pick<NewsletterEdition, "description" | "guest" | "date">;
 
 export function toCard(e: NewsletterEdition): EditionCard {
-  return { ...toListItem(e), description: e.description, guest: e.guest };
+  // `date` (ISO) is what the archive groups by year on; dateDisplay is prose.
+  return { ...toListItem(e), description: e.description, guest: e.guest, date: e.date };
 }

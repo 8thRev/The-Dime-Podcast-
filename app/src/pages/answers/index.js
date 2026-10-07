@@ -56,70 +56,56 @@ export default function AnswersIndex({ posts }) {
 
       <Header />
 
-      <section style={{ padding: '80px 48px 60px', maxWidth: 680 }}>
-        <div className="mono" style={{ fontSize: '9px', color: 'var(--text-accent)', fontWeight: 700, letterSpacing: '.25em', textTransform: 'uppercase', marginBottom: 16 }}>
-          Answers
+      <section className="band">
+        <div className="wrap wrap--prose page-head">
+          <span className="eyebrow eyebrow--accent">Answers</span>
+          <h1 className="page-title">
+            One question.<br />
+            One answer.<br />
+            Receipts attached.
+          </h1>
+          <p className="lede">
+            Operators keep asking the same questions about capital, licensing, margin and
+            regulation. This column answers one at a time, takes a position, and cites the
+            episodes the answer came from so you can hear the operator say it themselves.
+          </p>
+          <div style={{ marginTop: 28 }}>
+            <AIDisclosure>
+              Written by {COLUMN_AUTHOR}, {COLUMN_AUTHOR_ROLE}. Sourced from our episodes and reviewed before publishing.
+            </AIDisclosure>
+          </div>
         </div>
-        {/* The 34px floor is set by the longest word in the headline, not by
-            taste. At 48px, "question." and "attached." are 384px wide inside a
-            279px content box at 375px viewport, which gave the whole page a
-            horizontal scroll. Re-measure before raising it. */}
-        <h1 className="syne" style={{ fontSize: 'clamp(34px,7.5vw,78px)', fontWeight: 800, color: 'var(--text-headline)', letterSpacing: '.02em', lineHeight: 0.9, marginBottom: 32 }}>
-          One question.<br />
-          One answer.<br />
-          Receipts attached.
-        </h1>
-        <p className="crimson" style={{ fontSize: '17px', lineHeight: 1.85, color: 'var(--text-secondary)', marginBottom: 24, fontWeight: 300 }}>
-          Operators keep asking the same questions about capital, licensing, margin and
-          regulation. This column answers one at a time, takes a position, and cites the
-          episodes the answer came from so you can hear the operator say it themselves.
-        </p>
-
-        <AIDisclosure>
-          Written by {COLUMN_AUTHOR}, {COLUMN_AUTHOR_ROLE}. Sourced from our episodes and reviewed before publishing.
-        </AIDisclosure>
       </section>
 
       {posts.length > 0 ? (
-        <section style={{ padding: '0 48px 80px', maxWidth: 860 }}>
-          <h2 className="syne" style={{ fontSize: '12px', fontWeight: 700, letterSpacing: '.18em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8, paddingTop: 40, borderTop: '1px solid var(--border-default)' }}>
-            Every question
-          </h2>
-          <p className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: 40 }}>
-            {posts.length} answer{posts.length === 1 ? '' : 's'}
-          </p>
+        <section>
+          <div className="wrap wrap--prose page-body">
+            <h2 className="section-label">
+              Every question · {posts.length} answer{posts.length === 1 ? '' : 's'}
+            </h2>
 
-          {posts.map((post) => (
-            <Link
-              key={post.slug}
-              href={`/answers/${post.slug}`}
-              style={{ display: 'block', padding: '24px 0', borderBottom: '1px solid var(--border-subtle)', textDecoration: 'none', color: 'inherit' }}
-            >
-              <h3 className="syne" style={{ fontSize: '19px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '10px', lineHeight: 1.35 }}>
-                {post.title}
-              </h3>
-              <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 10px' }}>
-                {post.summary}
-              </p>
-              <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
-                {post.dateDisplay}
-              </div>
-            </Link>
-          ))}
+            {posts.map((post) => (
+              <Link key={post.slug} href={`/answers/${post.slug}`} className="list-row">
+                <div className="list-meta">
+                  <span>{post.dateDisplay}</span>
+                </div>
+                <div>
+                  <h3 className="list-title">{post.title}</h3>
+                  <p className="list-desc">{post.summary}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
       ) : (
-        <section style={{ padding: '0 48px 80px', maxWidth: 680 }}>
-          <p className="crimson" style={{ fontSize: '16px', lineHeight: 1.8, color: 'var(--text-muted)' }}>
-            The first answers are on their way. In the meantime, the{' '}
-            <Link href="/episodes" style={{ color: 'var(--text-accent)' }}>
-              episode archive
-            </Link>{' '}
-            and{' '}
-            <Link href="/newsletter" style={{ color: 'var(--text-accent)' }}>
-              First Principles
-            </Link>{' '}
-            are where the source material lives.
-          </p>
+        <section>
+          <div className="wrap wrap--prose page-body">
+            <p className="lede" style={{ marginTop: 0 }}>
+              The first answers are on their way. In the meantime, the{' '}
+              <Link href="/episodes">episode archive</Link> and{' '}
+              <Link href="/newsletter">First Principles</Link> are where the source material lives.
+            </p>
+          </div>
         </section>
       )}
 
