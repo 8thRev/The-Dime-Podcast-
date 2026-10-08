@@ -2,7 +2,9 @@
   {
     "name": "Hirsh Jain",
     "title": "CEO, Ananda Strategy",
+    "audience": "guest",
     "quote": null,
+    "pull": null,
     "linkedinUrl": "https://www.linkedin.com/in/hirsh-jain/",
     "photo": "/testimonials/hirsh-jain.png",
     "video": "https://youtu.be/lTm_z2-BzWM"
@@ -10,7 +12,9 @@
   {
     "name": "Seth Yakatan",
     "title": "Co-Founder, Katan Associates",
+    "audience": "guest",
     "quote": null,
+    "pull": null,
     "linkedinUrl": "https://www.linkedin.com/in/seth-yakatan/?skipRedirect=true",
     "photo": "/testimonials/seth-yakatan.png",
     "video": "https://youtube.com/shorts/QlaU0BoR1H4"
@@ -18,7 +22,9 @@
   {
     "name": "Brandon Bobart",
     "title": "Founder, Pisgah Peaks Ventures",
+    "audience": "guest",
     "quote": "I had a great time on the Dime Podcast! From a podcast guest perspective, it's a true pleasure to join thoughtful & intelligent people within the cannabis industry who ask quality questions, research you as a guest, & truly get some thought provoking topics out into the world. Booking the time was painless and easy, requiring no heavy lifting on my part to prepare.\n\nFrom an outcome point of view, I had 3 high-quality inbound leads come to us within 60 days of being on the podcast. One converted to a paid client, so the ROI for our firm was fantastic.\n\nWe also had one of our clients do a paid sponsorship of the podcast & we saw a healthy uptick in brand awareness as a result. A few leads specifically mentioned the podcast as a conversion point for them.\n\nI highly recommend the Dime to anyone considering being a guest or sponsor!",
+    "pull": "I had 3 high-quality inbound leads come to us within 60 days of being on the podcast. One converted to a paid client, so the ROI for our firm was fantastic.",
     "linkedinUrl": "https://www.linkedin.com/in/brandon-bobart/",
     "photo": "/testimonials/brandon-bobart.webp",
     "video": null
@@ -26,7 +32,9 @@
   {
     "name": "Jake Kuczeruk",
     "title": "Head of Growth, Baked Bags",
+    "audience": "listener",
     "quote": "The Dime podcast is my top recommendation for helping others to understand what is transpiring within the cannabis industry.\n\nBryan and Kellan curate speakers who not only represent every side of this constantly evolving market but also take care to feature ground-level workers, sharing real insights and anecdotes about what they're witnessing firsthand.\n\nCEOs, budtenders, investors - look no further if you want a true understanding of this industry. No filter. No endless shill sessions. Look no further if you're aiming to understand the nuances of working in cannabis and not just be fed more marketing-approved loglines.",
+    "pull": "CEOs, budtenders, investors - look no further if you want a true understanding of this industry. No filter. No endless shill sessions.",
     "linkedinUrl": "https://www.linkedin.com/in/kuczeruk/",
     "photo": "/testimonials/jake-kuczeruk.webp",
     "video": null
@@ -34,7 +42,9 @@
   {
     "name": "Patrick Aylward",
     "title": "Multi-State Brand Engagement Manager, Standard Wellness",
+    "audience": "listener",
     "quote": "The Dime podcast has been great. There are so many vantage points to view the industry from and The Dime shares perspective from those view points. I'm always picking up a new gem when tuning into The Dime.",
+    "pull": "There are so many vantage points to view the industry from and The Dime shares perspective from those view points. I'm always picking up a new gem when tuning into The Dime.",
     "linkedinUrl": "https://www.linkedin.com/in/patrick-aylward-aa5b6094/",
     "photo": "/testimonials/patrick-aylward.png",
     "video": null
@@ -42,7 +52,9 @@
   {
     "name": "Damien Padilla",
     "title": "Master Data Analyst & Consultant, Weedlink",
+    "audience": "listener",
     "quote": "With the industry being as young and chaotic as it is, finding insights can be hard, especially understanding the lingo and jargon if you're not initiated. The Dime podcast has exposed me to countless guests across the industry, giving me valuable insights into how different markets and sectors are handling this ongoing learning experience. Even if I am unfamiliar with a topic, or disagree with the guests, I always learn something new listening to the Dime Podcast.",
+    "pull": "Even if I am unfamiliar with a topic, or disagree with the guests, I always learn something new listening to the Dime Podcast.",
     "linkedinUrl": "https://www.linkedin.com/in/damien-padilla-a69362240/",
     "photo": "/testimonials/damien-padilla.webp",
     "video": null
@@ -50,7 +62,9 @@
   {
     "name": "Brett Puffenbarger",
     "title": "Managing Partner, Good Highdeas · CEO, Old Dominion Cannabis",
+    "audience": "guest",
     "quote": "Best podcast I've ever been a guest on. Sent me questions ahead of time, prompt and professional, and provided ample clips and social content after the fact. Oh, and the conversation was fun and informative. Generally what I consider to be the best podcast in the industry as a fan too.",
+    "pull": "Best podcast I've ever been a guest on. Sent me questions ahead of time, prompt and professional, and provided ample clips and social content after the fact.",
     "linkedinUrl": "https://www.linkedin.com/in/brettpuffenbarger/",
     "photo": "/testimonials/brett-puffenbarger.webp",
     "video": null
@@ -58,7 +72,9 @@
   {
     "name": "Mitch Pfeifer",
     "title": "Director of Community Relations & Brand Partnerships, ACTIVE",
+    "audience": "listener",
     "quote": "The Dime Podcast is a leading industry media platform for a reason. Bryan and Kellan's industry experience combined with their diversity of guest backgrounds, creates a recipe for conversations that simply add value. In a sea of the same topics being discussed, this podcast rises to the top with substance, data backed talking points, and actionable insights.",
+    "pull": "In a sea of the same topics being discussed, this podcast rises to the top with substance, data backed talking points, and actionable insights.",
     "linkedinUrl": "https://www.linkedin.com/in/mitch-pfeifer/",
     "photo": "/testimonials/mitch-pfeifer.webp",
     "video": null

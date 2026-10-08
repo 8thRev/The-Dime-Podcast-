@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import SeoHead from '@/src/components/SeoHead';
+import Testimonials from '@/src/components/Testimonials';
+import testimonials from '@/content/testimonials.json';
 import { PODCAST_RATING } from '@/lib/ratings';
 import { getAllGuests, guestToSlug } from '@/lib/guests';
 import { getAllEpisodes } from '@/lib/rss';
@@ -354,6 +356,10 @@ export default function ForGuests({ guestSlugs, episodeCount }) {
         </div>
         </div>
       </section>
+
+      {/* Guest-side proof: what the chair did for the last people in it. The
+          listener-side quotes stay on the home page. */}
+      <Testimonials items={testimonials} filter="quote" audience="guest" heading="What Past Guests Say" />
 
       <section id="apply">
         <div className="wrap page-body">
