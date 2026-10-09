@@ -1715,3 +1715,239 @@ a.pill:hover .count {
     text-align: center;
   }
 }
+
+
+/* ============================================================
+   GUEST VIDEO TESTIMONIALS
+   Same-size square posters whatever the clip's own shape (one is a
+   16:9 upload, one is a 9:16 Short). The video itself plays in a
+   lightbox sized to its real aspect. See src/components/Testimonials.js.
+   ============================================================ */
+.vt-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+@media (max-width: 639px) {
+  .vt-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    max-width: 400px;
+  }
+}
+
+.vt-tile {
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.vt-poster {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: var(--text-headline);
+  cursor: pointer;
+  overflow: hidden;
+  color: #FFFFFF;
+}
+
+.vt-poster:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: -2px;
+}
+
+.vt-poster img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 500ms ease;
+}
+
+.vt-poster::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(21, 19, 15, .55) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.vt-poster:hover img {
+  transform: scale(1.03);
+}
+
+.vt-play {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.vt-play > span {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 4px;
+  background: rgba(21, 19, 15, .72);
+  border: 1px solid rgba(255, 255, 255, .4);
+  backdrop-filter: blur(4px);
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.vt-poster:hover .vt-play > span,
+.vt-poster:focus-visible .vt-play > span {
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+  transform: scale(1.06);
+}
+
+.vt-caption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.vt-watch {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+
+/* Lightbox */
+.vt-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--gutter);
+  background: rgba(21, 19, 15, .9);
+}
+
+.vt-lightbox-body {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.vt-lightbox-frame {
+  position: relative;
+  background: #000;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+}
+
+.vt-lightbox-frame.is-landscape {
+  width: min(100%, 960px, calc(85vh * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+
+.vt-lightbox-frame.is-portrait {
+  width: min(100%, calc(85vh * 9 / 16));
+  aspect-ratio: 9 / 16;
+}
+
+.vt-lightbox-frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.vt-lightbox-name {
+  margin-top: 14px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #D9D3C8;
+  text-align: center;
+}
+
+.vt-lightbox-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .35);
+  background: rgba(21, 19, 15, .6);
+  color: #FFFFFF;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.vt-lightbox-close:hover,
+.vt-lightbox-close:focus-visible {
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-poster img,
+  .vt-play > span {
+    transition: none;
+  }
+  .vt-poster:hover img {
+    transform: none;
+  }
+}
+
+
+/* Written testimonial cards. Quotes are short pulls of near-equal length, so
+   the cards come out near-equal without any height tricks; four fit one row
+   at the content width. */
+.tq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+}
+
+.tq-card {
+  display: flex;
+  flex-direction: column;
+  padding: 28px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: var(--bg-surface);
+}
+
+.tq-quote {
+  flex: 1;
+  margin: 0 0 24px;
+  font-size: 17px;
+  line-height: 1.6;
+  font-style: italic;
+  color: var(--text-headline);
+  text-wrap: pretty;
+}

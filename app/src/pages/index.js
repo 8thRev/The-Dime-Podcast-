@@ -163,7 +163,7 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
 
       {/* GUEST VIDEO TESTIMONIALS */}
       <div className="band">
-        <Testimonials items={testimonials} filter="video" heading="Hear From Recent Guests" maxWidth={800} borderBottom={false} />
+        <Testimonials items={testimonials} filter="video" heading="Hear From Recent Guests" borderBottom={false} />
       </div>
 
       {/* LATEST EPISODES */}
@@ -229,7 +229,7 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
       )}
 
       {/* SOCIAL PROOF / TESTIMONIALS */}
-      <Testimonials items={testimonials} filter="quote" />
+      <Testimonials items={testimonials} filter="quote" audience="listener" />
 
       {/* NEWSLETTER BAND */}
       <section id="newsletter" className="band" style={{ scrollMarginTop: 80 }}>
