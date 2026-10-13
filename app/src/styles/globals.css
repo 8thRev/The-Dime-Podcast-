@@ -1114,37 +1114,6 @@ a.pill:hover .count {
 }
 
 /* ------------------------------------------------------------
-   HOST CARDS (/about)
-   ------------------------------------------------------------ */
-.host-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  background: var(--border-default);
-}
-
-.host-card {
-  background: var(--bg-surface);
-  padding: clamp(32px, 5vw, 64px) var(--gutter);
-}
-
-@media (max-width: 767px) {
-  .host-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (min-width: 768px) {
-  .host-grid > .host-card:first-child {
-    padding-left: max(var(--gutter), calc((100vw - var(--wrap-content)) / 2));
-  }
-
-  .host-grid > .host-card:last-child {
-    padding-right: max(var(--gutter), calc((100vw - var(--wrap-content)) / 2));
-  }
-}
-
-/* ------------------------------------------------------------
    NAME COLUMNS (/guests past-guest list)
    ------------------------------------------------------------ */
 .name-grid {

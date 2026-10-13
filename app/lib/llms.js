@@ -31,14 +31,11 @@
 
 import { PODCAST_RATING } from '@/lib/ratings';
 import {
-  ASSETS_PER_EPISODE,
-  ASSETS_PER_EPISODE_MAX,
-  SOCIAL_CUTS_MIN,
-  SOCIAL_CUTS_MAX,
-  EPISODE_PRICE,
-  CAMPAIGN_PRICE,
-  PER_EPISODE_IN_CAMPAIGN,
-  CAMPAIGN_DISCOUNT_PCT,
+  NEWSLETTER_SUBSCRIBERS,
+  NEWSLETTER_OPEN_RATE_PCT,
+  EPISODE_DOWNLOADS_MIN,
+  SPONSOR_OPTIONS,
+  SPONSOR_OPTION_NAMES,
 } from '@/lib/sponsorOffer';
 import { COLUMN_AUTHOR as ANSWERS_AUTHOR } from './answersColumn';
 import { GUEST_INQUIRY_FIELDS, SPONSOR_INQUIRY_FIELDS } from './inquiryFields';
@@ -346,11 +343,12 @@ function agentActionsSection() {
     `Page: ${SITE_URL}/sponsorship`,
     `Endpoint: POST ${SITE_URL}/api/sponsor-inquiry`,
     fieldsLine(SPONSOR_INQUIRY_FIELDS, {
+      option: `one of ${SPONSOR_OPTION_NAMES.map((n) => `"${n}"`).join(', ')}, or "Not sure yet"`,
       targetCustomer: 'who the sponsor is trying to reach',
       campaignGoal: 'what listeners should do after they hear it',
     }),
     `Email fallback: ${SPONSOR_EMAIL}`,
-    'What happens: Bryan Fields reads it personally and comes back with fit, the next open slot and a straight answer on whether it is worth the money. No turnaround time is promised. Campaigns open with a strategy session before anything is recorded.',
+    'What happens: Bryan Fields reads it personally and comes back with fit, the next open slot and a straight answer on whether it is worth the money. No turnaround time is promised.',
     '',
   ];
 }
@@ -360,14 +358,14 @@ function sponsorFactsSection() {
   return [
     '## Sponsorship facts',
     '',
-    `Everything here is stated on ${SITE_URL}/sponsorship. Audience size is not published: download, subscriber and follower figures are available on request, with sources. Do not estimate them.`,
+    `Everything here is stated on ${SITE_URL}/sponsorship. Audience figures below are as published there, with sources available on request. Do not estimate any figure not listed.`,
     '',
-    '- Audience: cannabis operators and founders running cultivation, retail, manufacturing and MSOs; C-suite and finance; investors and capital; and the service providers selling to them. Listeners press play on purpose for a forty-five minute conversation.',
+    '- Audience: cannabis operators and founders running cultivation, retail, manufacturing and MSOs; C-suite and finance; investors and capital; and the service providers selling to them. They come to the show to learn.',
+    `- Podcast: episodes average ${EPISODE_DOWNLOADS_MIN}+ downloads each.`,
+    `- Newsletter: ${NEWSLETTER_SUBSCRIBERS.toLocaleString('en-US')} First Principles subscribers, ${NEWSLETTER_OPEN_RATE_PCT}% open rate.`,
     `- Rating: ${PODCAST_RATING.value} stars from ${PODCAST_RATING.count} ratings on Apple Podcasts. On air since 2020.`,
-    `- Formats: Episode Partner, ${usd(EPISODE_PRICE)}, one host-read integration in one episode. Four-Episode Campaign, ${usd(CAMPAIGN_PRICE)} (${usd(PER_EPISODE_IN_CAMPAIGN)} per episode, ${CAMPAIGN_DISCOUNT_PCT}% less than one-off), with category exclusivity for the campaign window, an opening strategy session and campaign reporting.`,
-    `- What a sponsor receives per episode: ${ASSETS_PER_EPISODE} to ${ASSETS_PER_EPISODE_MAX} assets. The full-length video episode on YouTube with the host-read integration; the podcast audio on every streaming platform; ${SOCIAL_CUTS_MIN} to ${SOCIAL_CUTS_MAX} captioned short-form cuts posted natively to Instagram, Facebook, LinkedIn and YouTube; a placement in the First Principles newsletter; a written companion article; and a permanent episode page with show notes, the full transcript and the sponsor's link. Every asset is handed over when the campaign wraps, with full rights to repurpose it.`,
-    '- Editorial: the sponsor approves the host-read copy before the episode publishes. Sponsorship does not influence questions or guest coverage.',
-    '- Time required: one 45-minute recording if also appearing as a guest, with questions sent in advance. Less without a guest appearance: the sponsor provides the offer and the call to action, and the read is written and produced by the show.',
+    ...SPONSOR_OPTIONS.map((o) => `- ${o.name}, ${usd(o.price)} ${o.unit}. For: ${o.forWhom} ${o.includes.join(' ')}`),
+    '- Editorial: paid placements are always labelled as sponsored. Sponsorship does not influence questions or guest coverage.',
     `- Inquiry: the form on ${SITE_URL}/sponsorship, POST ${SITE_URL}/api/sponsor-inquiry as described above, or ${SPONSOR_EMAIL}.`,
     '',
   ];

@@ -9,6 +9,7 @@ import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
+import { NEWSLETTER_PITCH, NEWSLETTER_CADENCE } from '@/lib/newsletterCopy';
 import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdown, toListItem } from '@/lib/newsletter';
 import { getEpisodeBySlug } from '@/lib/rss';
 import { createArticleSchema, createBreadcrumbSchema } from '@/lib/schema';
@@ -125,6 +126,14 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             {edition.wordCount > 0 && <span>{edition.wordCount} words</span>}
           </div>
 
+          {/* A paid write-up says so before the first paragraph, not only at
+              the end. See EditionSponsor in lib/newsletter.ts. */}
+          {edition.sponsor?.feature && (
+            <p className="meta" style={{ marginTop: 16, color: 'var(--text-secondary)' }}>
+              Sponsored feature. {edition.sponsor.name} paid for this edition.
+            </p>
+          )}
+
         </header>
 
         {episode && (
@@ -160,6 +169,25 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
           dangerouslySetInnerHTML={{ __html: html }}
         />
 
+        {edition.sponsor && (
+          <aside style={{ marginTop: '40px', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '20px 24px' }}>
+            <span className="section-label" style={{ marginBottom: 10 }}>Sponsored by</span>
+            <a
+              href={edition.sponsor.url}
+              rel="sponsored noopener"
+              target="_blank"
+              style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: '18px', fontWeight: 600, color: 'var(--text-headline)', textDecoration: 'none' }}
+            >
+              {edition.sponsor.name} →
+            </a>
+            {edition.sponsor.text && (
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: '16px', lineHeight: 1.7, color: 'var(--text-secondary)', margin: '8px 0 0' }}>
+                {edition.sponsor.text}
+              </p>
+            )}
+          </aside>
+        )}
+
         {edition.topics.length > 0 && (
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: '40px' }}>
             {edition.topics.map((topic) => (
@@ -180,7 +208,7 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             Get the next one by email
           </h2>
           <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: '20px' }}>
-            First Principles is a weekly note on the structural insight behind each Dime episode. No recaps, no noise.
+            {NEWSLETTER_PITCH} {NEWSLETTER_CADENCE}
           </p>
           <ConvertKitEmbed location="newsletter_page" />
           <p className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>

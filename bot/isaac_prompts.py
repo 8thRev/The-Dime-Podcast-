@@ -30,8 +30,10 @@ from transcript_prompts import CANONICAL_TOPICS
 MIN_WORDS = 350
 MAX_WORDS = 700
 
-# The show's hosts. They ask questions and sometimes make claims of their
-# own, and a post that credits a host's line to the guest is misattribution.
+# The show's hosts, past and present. Kellan Finney has left the show but
+# co-hosted most of the back catalogue, so he stays here: drop him and the
+# writer reads his lines in old transcripts as a guest's, which is the
+# misattribution this list exists to prevent. Not rendered anywhere public.
 HOSTS = ("Bryan Fields", "Kellan Finney")
 
 # Fact check verdicts. Anything but "supported" or "opinion" rejects the post.

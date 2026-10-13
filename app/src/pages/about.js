@@ -12,12 +12,6 @@ const HOSTS = [
     handle: '@Bryanfields24',
     bio: 'Operator-first. Strategy-driven. Bryan built The Dime as the show he wished existed when he entered the industry. He asks the questions operators need answered, to the people who have the real answers.',
   },
-  {
-    name: 'Kellan Finney',
-    role: 'Co-Host',
-    handle: '@Kellan_Finney',
-    bio: 'Deep technical and scientific background across cannabis operations. Kellan brings the precision layer: cultivation science, extraction economics, and the operational systems that separate operators.',
-  },
 ];
 
 export default function About() {
@@ -27,7 +21,7 @@ export default function About() {
     <>
       <SeoHead
         title="About"
-        description="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields and Kellan Finney. Long-form conversations with founders, executives, investors, and policy architects."
+        description="The Dime is a strategy podcast for cannabis operators. Hosted by Bryan Fields. Long-form conversations with founders, executives, investors, and policy architects."
         path="/about"
       />
       <Schema schema={schema} />
@@ -46,7 +40,7 @@ export default function About() {
           </h1>
           <div className="grid-2">
             <p className="lede" style={{ marginTop: 0 }}>
-              The Dime is not a cannabis lifestyle show. It is not a culture podcast. It is a strategy room, open to the public. More than 300 episodes in, Bryan Fields and Kellan Finney have built the most operator-focused conversation in cannabis. CEOs, investors, founders, and policy architects. The conversations that don&apos;t happen in earnings calls.
+              The Dime is not a cannabis lifestyle show. It is not a culture podcast. It is a strategy room, open to the public. More than 300 episodes in, Bryan Fields has built the most operator-focused conversation in cannabis. CEOs, investors, founders, and policy architects. The conversations that don&apos;t happen in earnings calls.
             </p>
             <p className="lede" style={{ marginTop: 0 }}>
               The listener is making decisions under margin compression, regulatory uncertainty, and capital scarcity. They tune in because The Dime gives them intelligence they cannot get anywhere else, before the market makes it obvious. Rated {PODCAST_RATING.value} stars by {PODCAST_RATING.count} reviewers. Top 5% most shared globally.
@@ -55,9 +49,9 @@ export default function About() {
         </div>
       </section>
 
-      <section className="host-grid band">
+      <section className="band band--surface">
         {HOSTS.map((host) => (
-          <div key={host.name} className="host-card">
+          <div key={host.name} className="wrap page-body">
             <span className="eyebrow">{host.role}</span>
             <h2 className="page-title page-title--article" style={{ marginTop: 10, marginBottom: 8 }}>
               {host.name}

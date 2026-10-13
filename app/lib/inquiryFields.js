@@ -20,6 +20,9 @@ export const SPONSOR_INQUIRY_FIELDS = {
   name: { required: true, max: 200 },
   company: { required: true, max: 200 },
   email: { required: true, max: 320, email: true },
+  // Which of the SPONSOR_OPTIONS (lib/sponsorOffer.js) they want. A plain
+  // string rather than an enum so an agent's "not sure yet" still arrives.
+  option: { required: false, max: 200 },
   targetCustomer: { required: false, max: 4000 },
   campaignGoal: { required: false, max: 4000 },
 };
