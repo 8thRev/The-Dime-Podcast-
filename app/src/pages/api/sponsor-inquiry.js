@@ -61,7 +61,7 @@ export default async function handler(req, res) {
   // to learn what did not arrive.
   const { values, errors } = validateInquiry(body, SPONSOR_INQUIRY_FIELDS);
   if (errors.length) return reply(req, res, 400, invalidFieldsBody(errors), REPLY_CONTEXT);
-  const { name, company, email, targetCustomer, campaignGoal } = values;
+  const { name, company, email, option, targetCustomer, campaignGoal } = values;
   // Too fast for a person is not discarded any more, only flagged for the
   // reader; see lib/formSpam.js.
   const flag = fastFillFlag(body);
@@ -77,6 +77,7 @@ export default async function handler(req, res) {
         `Name:    ${name}`,
         `Company: ${company}`,
         `Email:   ${email}`,
+        `Option:  ${option || '(not chosen)'}`,
         '',
         'Who are they trying to reach?',
         targetCustomer || '(not provided)',

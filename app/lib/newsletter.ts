@@ -23,6 +23,40 @@ import { guestToSlug } from "./guests";
 import { topicToSlug } from "./topicSlug";
 import { UTM, tagHtmlLinks } from "./utm";
 
+// A paid placement, set in an edition's frontmatter:
+//
+//   sponsor:
+//     name: "Acme"
+//     url: "https://acme.com"
+//     text: "One or two sentences, in the sponsor's words."
+//     feature: true   # only when the whole edition is a paid write-up
+//
+// The edition page prints it as a labelled "Sponsored by" block and, for a
+// feature, says so under the byline before the first paragraph. The label
+// is the point: the newsletter is worth sponsoring because readers trust it
+// is not for sale, so a paid word is never allowed to read as editorial.
+export type EditionSponsor = {
+  name: string;
+  url: string;
+  text: string;
+  feature: boolean;
+};
+
+function parseSponsor(raw: unknown, fileName: string): EditionSponsor | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  const name = String(r.name || "").trim();
+  const url = String(r.url || "").trim();
+  // A sponsor block with no name or no working link would print an
+  // unlabelled ad or a dead one. Throwing lands in parseEdition's catch,
+  // which logs it and leaves the edition out: a paid feature must not
+  // publish without its disclosure.
+  if (!name || !/^https?:\/\//.test(url)) {
+    throw new Error(`newsletter: ${fileName} has a sponsor block without a name and an http(s) url`);
+  }
+  return { name, url, text: String(r.text || "").trim(), feature: r.feature === true };
+}
+
 export type NewsletterEdition = {
   slug: string;
   /** Editorial headline. Rendered as the <h1> and in listings. */
@@ -49,6 +83,8 @@ export type NewsletterEdition = {
   topics: string[];
   /** The original LinkedIn URL. Kept for provenance, not rendered as canonical. */
   linkedinUrl: string;
+  /** Paid placement in this edition, or null. See EditionSponsor. */
+  sponsor: EditionSponsor | null;
   /** Raw markdown body. */
   body: string;
   /** Rough word count of the body, for display. */
@@ -131,6 +167,7 @@ function parseEdition(fileName: string): NewsletterEdition | null {
       guest: String(data.guest || "").trim(),
       topics: Array.isArray(data.topics) ? data.topics.map((t: unknown) => String(t).trim()).filter(Boolean) : [],
       linkedinUrl: String(data.linkedinUrl || "").trim(),
+      sponsor: parseSponsor(data.sponsor, fileName),
       body,
       wordCount: countWords(body),
     };

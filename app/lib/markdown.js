@@ -252,6 +252,10 @@ export function buildEditionMarkdown({ edition, episode = null }) {
     lines.push(`- Topics: ${edition.topics.map((t) => `[${t}](${SITE_URL}/topics/${topicToSlug(t)})`).join(', ')}`);
   }
   if (edition.linkedinUrl) lines.push(`- Originally published: ${edition.linkedinUrl}`);
+  if (edition.sponsor) {
+    const kind = edition.sponsor.feature ? 'Sponsored feature, paid for by' : 'Sponsored by';
+    lines.push(`- ${kind}: [${edition.sponsor.name}](${edition.sponsor.url})${edition.sponsor.text ? `. ${oneLine(edition.sponsor.text)}` : ''}`);
+  }
 
   // The essay itself, exactly as written in content/newsletter/<slug>.md.
   lines.push('', edition.body);

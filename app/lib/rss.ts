@@ -393,7 +393,7 @@ function unescapeMarkdownUnderscores(html: string): string {
 // visible "Full Show Notes" block, so without this the site publishes a named
 // person's name wrong on ~30 episode pages.
 //
-// Canonical spelling is "Kellan Finney" (src/pages/about.js). Fixing the bare
+// Canonical spelling is "Kellan Finney" (former co-host, on most of the back catalogue). Fixing the bare
 // first name covers "Kellen Finney" and standalone "Kellen" in the timestamped
 // chapter lists both; the follow-up passes then repair the surname where the
 // notes also garble it.
