@@ -27,6 +27,7 @@ for that part; the departures are summarised here.
 | 2.9 Video outbound clicks | Shipped | `app/lib/videoClicks.ts` | Added after Part 2. Reuses `link_location` rather than adding a location parameter. Non-key event by design. |
 | 2.10 Video library search | Shipped | `app/src/pages/videos.js` | Added after Part 2. Call site for the 2.4 hook. No `?q=` sync on `/videos`, deliberately. `search_result_click` gained `search_location` and a `video_slug` variant. |
 | Change D (admin) | Done Aug 5, 2026 | GA4 admin | "Page changes based on browser history events" turned off after Part 2 reached production. "Page loads" left on (GA4 locks it). See 2.1. |
+| Edition signups and shares | Shipped Oct 14, 2026 | `app/lib/newsletterSignup.ts`, `app/lib/editionShare.ts`, `app/src/components/ShareRow.js` | Added after Part 2. Two new `signup_location` values, `edition_inline` and `edition_end`; the edition page used to report `newsletter_page`, the same value as the archive. Each embed's listener now only counts a success from its own form, since two embeds on one page both hear every success. New event `edition_share`, not Part 3's `episode_share`: an edition is not an episode. `share_method` is **not yet registered** (owner action). |
 | Dimension registration | Done Aug 5, 2026 | GA4 admin | `video_id`, `video_slug`, `search_location` registered, event scoped. 15 of 15. See Part 1. |
 
 Three events named in Part 3 have no Part 2 section and no code: `topic_filter`
@@ -106,7 +107,7 @@ Registration is not retroactive: only events received *after* it takes effect po
 | Video ID | `video_id` | string | `dQw4w9WgXcQ` |
 | Video Slug | `video_slug` | string | `hirsh-jain-on-rescheduling` |
 | Search Location | `search_location` | string | `episodes_archive` `video_library` |
-| Signup Location | `signup_location` | string | `newsletter_page` `footer` `episode_inline` `home_hero` |
+| Signup Location | `signup_location` | string | `newsletter_page` `footer` `episode_inline` `home_hero` `edition_inline` `edition_end` |
 | Search Term | `search_term` | string | lowercased, trimmed |
 | CTA Location | `cta_location` | string | `hero` `pricing` `inline` `footer` |
 
@@ -594,6 +595,7 @@ query: nothing. Type an email address: nothing.
 | `search_result_click` | result click with active query | `search_term` `result_position` `search_location` `episode_slug` or `video_slug` | |
 | `topic_filter` | topic selected | `episode_topic` `results_count` | |
 | `episode_share` | share control (add if absent) | `share_method` `episode_slug` | |
+| `edition_share` | share row on an edition page | `share_method` (`copy_link` `linkedin` `x` `email` `native`) `content_type` | |
 
 ### Convert
 | Event | Trigger | Parameters | Key event |

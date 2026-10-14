@@ -55,6 +55,22 @@ reporting stays continuous across the change. Do not "correct" the casing.
 The first four are applied by the site with no action from you. The last two are
 manual — see below.
 
+## Reader shares (inbound)
+
+The share row on each First Principles edition (`app/src/components/ShareRow.js`)
+tags the link a reader shares, so their share is separable from the show's own
+LinkedIn and X posts. These are links *to* this site, the one case where tagging
+our own URL is right: the click arrives as a new visit from that network.
+
+| Share button | `utm_source` | `utm_medium` | `utm_campaign` |
+|---|---|---|---|
+| LinkedIn | `linkedin` | `reader_share` | `fp_{edition-slug}` |
+| X | `x` | `reader_share` | `fp_{edition-slug}` |
+| Email | `email` | `reader_share` | `fp_{edition-slug}` |
+
+Copy link and the phone share sheet send the clean URL on purpose: those links
+get pasted into chats, where a long tracked URL is what people trim by hand.
+
 ## What the site does *not* tag
 
 Two surfaces are outside the repo's reach, because readers there get the

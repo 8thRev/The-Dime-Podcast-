@@ -24,21 +24,38 @@
 // goes uncounted. Undercounting a key event is the right side to fail on.
 
 import { useEffect } from 'react';
+import type { RefObject } from 'react';
 import { track, once } from './analytics';
 
-// Part 1 enumerates these four.
-export type SignupLocation = 'newsletter_page' | 'footer' | 'episode_inline' | 'home_hero';
+// Part 1 enumerates these six. `newsletter_page` is the /newsletter archive;
+// an edition page carries two forms of its own, `edition_inline` partway
+// through the body and `edition_end` after it, so the two placements can be
+// compared. Adding a value here needs no GA4 admin change (the dimension is
+// registered per parameter, not per value), but it does need the Part 1 row.
+export type SignupLocation =
+  | 'newsletter_page'
+  | 'footer'
+  | 'episode_inline'
+  | 'home_hero'
+  | 'edition_inline'
+  | 'edition_end';
 
 const KIT_SUCCESS_EVENT = 'ckjs:submission:complete';
 const FALLBACK_FORM_ID = '2466258';
 
+// `containerRef` scopes the listener to its own embed. The success event
+// bubbles to document, so with two embeds on one page (an edition has two)
+// every listener hears every success, and once() would credit the signup to
+// whichever embed registered first rather than the form that was used.
 export function useNewsletterSignupTracking(
   location: SignupLocation,
-  episodeSlug?: string
+  episodeSlug: string | undefined,
+  containerRef: RefObject<HTMLElement | null>
 ): void {
   useEffect(() => {
     const onKitSuccess = (event: Event) => {
       const form = (event.target as HTMLElement | null)?.closest?.('form.formkit-form');
+      if (!form || !containerRef.current?.contains(form)) return;
       once('newsletter_signup', () =>
         track('newsletter_signup', {
           signup_location: location,
@@ -50,5 +67,5 @@ export function useNewsletterSignupTracking(
 
     document.addEventListener(KIT_SUCCESS_EVENT, onKitSuccess);
     return () => document.removeEventListener(KIT_SUCCESS_EVENT, onKitSuccess);
-  }, [location, episodeSlug]);
+  }, [location, episodeSlug, containerRef]);
 }
