@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import Script from 'next/script';
 import { useNewsletterSignupTracking } from '@/lib/newsletterSignup';
 
@@ -60,15 +61,19 @@ const FORM_STYLE = `
 `;
 
 // `location` names the placement for GA4's signup_location dimension and must be
-// one of the four values Part 1 enumerates (see lib/newsletterSignup.ts).
+// one of the values Part 1 enumerates (see lib/newsletterSignup.ts).
+//
+// Two embeds on one page are fine: ck.6.js binds every [data-sv-form] in the
+// document when it loads, and next/script loads it once per id.
 export default function ConvertKitEmbed({ location = 'newsletter_page', episodeSlug }) {
-  useNewsletterSignupTracking(location, episodeSlug);
+  const containerRef = useRef(null);
+  useNewsletterSignupTracking(location, episodeSlug, containerRef);
 
   return (
     <>
       <Script id="convertkit-loader" src="https://f.convertkit.com/ckjs/ck.6.js" strategy="afterInteractive" />
       <style dangerouslySetInnerHTML={{ __html: FORM_STYLE }} />
-      <div dangerouslySetInnerHTML={{ __html: FORM_HTML }} />
+      <div ref={containerRef} dangerouslySetInnerHTML={{ __html: FORM_HTML }} />
     </>
   );
 }

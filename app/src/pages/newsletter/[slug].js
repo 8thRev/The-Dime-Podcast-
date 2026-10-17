@@ -3,18 +3,21 @@
 // AI artifacts — hence a Person byline, Article schema, and deliberately no
 // <AIDisclosure> (which every transcript-derived section on the site carries).
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import Header from '@/src/components/Header';
 import Footer from '@/src/components/Footer';
 import Schema from '@/src/components/Schema';
 import SeoHead from '@/src/components/SeoHead';
 import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
-import { NEWSLETTER_PITCH, NEWSLETTER_CADENCE } from '@/lib/newsletterCopy';
-import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdown, toListItem } from '@/lib/newsletter';
+import ShareRow from '@/src/components/ShareRow';
+import { NEWSLETTER_PITCH, NEWSLETTER_FORMAT, NEWSLETTER_CADENCE } from '@/lib/newsletterCopy';
+import { getAllEditions, getEditionBySlug, getRelatedEditions, renderMarkdownSplit, toListItem } from '@/lib/newsletter';
 import { getEpisodeBySlug } from '@/lib/rss';
 import { createArticleSchema, createBreadcrumbSchema } from '@/lib/schema';
 import { topicToSlug } from '@/lib/topicSlug';
 import { guestToSlug, getAllGuests } from '@/lib/guests';
+import { useAudioTracking } from '@/lib/useAudioTracking';
 
 export async function getStaticPaths() {
   return {
@@ -57,6 +60,8 @@ export async function getStaticProps({ params }) {
         guestSlug: hasGuestPage ? guestSlug : '',
         date: match.date,
         num: match.num,
+        duration: match.duration || '',
+        audioUrl: match.audioUrl || '',
       };
     }
   }
@@ -64,11 +69,15 @@ export async function getStaticProps({ params }) {
   const others = getRelatedEditions(edition.slug, 4).map(toListItem);
 
   const { body, ...meta } = edition;
+  // Split for the mid-article signup form. `htmlAfter` is empty when the
+  // edition is too short for one (see renderMarkdownSplit).
+  const { before: html, after: htmlAfter } = renderMarkdownSplit(body, edition.slug);
 
   return {
     props: {
       edition: meta,
-      html: renderMarkdown(body, edition.slug),
+      html,
+      htmlAfter,
       episode,
       others,
     },
@@ -76,7 +85,20 @@ export async function getStaticProps({ params }) {
   };
 }
 
-export default function NewsletterEditionPage({ edition, html, episode, others }) {
+const PROSE_STYLE = { fontSize: '18px', lineHeight: 1.8, color: 'var(--text-primary)', fontFamily: 'var(--font-body)' };
+
+export default function NewsletterEditionPage({ edition, html, htmlAfter, episode, others }) {
+  // The episode the edition was written after plays right here, so a reader
+  // can hear the conversation without leaving the piece. Same listen events
+  // as the episode page; page_location tells the two surfaces apart.
+  const audioRef = useRef(null);
+  const episodeNumber = episode ? parseInt(episode.num, 10) : NaN;
+  useAudioTracking(audioRef, {
+    slug: episode ? episode.slug : '',
+    number: Number.isFinite(episodeNumber) ? episodeNumber : undefined,
+    guest: episode ? episode.guest || undefined : undefined,
+  });
+
   const articleSchema = createArticleSchema({
     title: edition.title,
     description: edition.description,
@@ -124,6 +146,12 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
             <span>Bryan Fields</span>
             {edition.dateDisplay && <span>{edition.dateDisplay}</span>}
             {edition.wordCount > 0 && <span>{edition.wordCount} words</span>}
+            {/* A link, not a form: nobody signs up before reading a word.
+                It jumps to the form at the end for the reader who already
+                knows they want it. */}
+            <a href="#subscribe" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>
+              Get it by email ↓
+            </a>
           </div>
 
           {/* A paid write-up says so before the first paragraph, not only at
@@ -159,15 +187,37 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
                 </>
               )}
               {episode.date && ` · ${episode.date}`}
+              {episode.duration && ` · ${episode.duration}`}
             </div>
+            {episode.audioUrl && (
+              <audio
+                ref={audioRef}
+                controls
+                preload="none"
+                src={episode.audioUrl}
+                title={episode.title}
+                style={{ width: '100%', height: '40px', marginTop: '16px', accentColor: 'var(--text-accent)' }}
+              />
+            )}
           </section>
         )}
 
-        <div
-          className="prose-body"
-          style={{ fontSize: '18px', lineHeight: 1.8, color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}
-          dangerouslySetInnerHTML={{ __html: html }}
-        />
+        <div className="prose-body" style={PROSE_STYLE} dangerouslySetInnerHTML={{ __html: html }} />
+
+        {htmlAfter && (
+          <>
+            <aside className="card-panel edition-inline-signup" aria-label="Subscribe to First Principles">
+              <span className="section-label" style={{ marginBottom: 8 }}>First Principles by email</span>
+              <p style={{ fontSize: '15px', lineHeight: 1.6, color: 'var(--text-secondary)', margin: '0 0 16px' }}>
+                {NEWSLETTER_FORMAT} {NEWSLETTER_CADENCE}
+              </p>
+              <ConvertKitEmbed location="edition_inline" />
+            </aside>
+            <div className="prose-body" style={PROSE_STYLE} dangerouslySetInnerHTML={{ __html: htmlAfter }} />
+          </>
+        )}
+
+        <ShareRow slug={edition.slug} title={edition.title} />
 
         {edition.sponsor && (
           <aside style={{ marginTop: '40px', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '20px 24px' }}>
@@ -203,14 +253,14 @@ export default function NewsletterEditionPage({ edition, html, episode, others }
           </div>
         )}
 
-        <section style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--border-default)' }}>
+        <section id="subscribe" style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid var(--border-default)', scrollMarginTop: 80 }}>
           <h2 className="syne" style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text-headline)', marginBottom: '8px' }}>
             Get the next one by email
           </h2>
           <p style={{ fontSize: '15px', lineHeight: 1.7, color: 'var(--text-secondary)', marginBottom: '20px' }}>
             {NEWSLETTER_PITCH} {NEWSLETTER_CADENCE}
           </p>
-          <ConvertKitEmbed location="newsletter_page" />
+          <ConvertKitEmbed location="edition_end" />
           <p className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
             <Link href="/newsletter" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>All editions</Link>
             <Link href="/newsletter/rss.xml" style={{ color: 'var(--text-accent)', textDecoration: 'none' }}>RSS</Link>
