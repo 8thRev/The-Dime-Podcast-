@@ -747,6 +747,28 @@ h1, h2, h3 {
 }
 
 
+button.listen-chip {
+  cursor: pointer;
+}
+
+/* Edition page: the share row under the body and the mid-article signup. */
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 40px;
+}
+
+.share-row-label {
+  margin-right: 4px;
+}
+
+.edition-inline-signup {
+  margin: 40px 0;
+}
+
+
 /* ============================================================
    LAYOUT SHELL
    One container, one gutter, three widths. Every page puts its content
@@ -1320,6 +1342,56 @@ a.pill:hover .count {
 .hero-latest-card {
   display: grid;
   gap: 14px;
+}
+
+/* The edition line under the hero's newest episode, when they pair. */
+.hero-latest-edition {
+  display: grid;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-subtle);
+  text-decoration: none;
+}
+
+.hero-latest-edition-title {
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--text-headline);
+}
+
+.hero-latest-edition:hover .hero-latest-edition-title {
+  color: var(--text-accent);
+}
+
+/* The newest edition in the home newsletter band. */
+.home-latest-edition {
+  display: grid;
+  gap: 10px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-default);
+}
+
+.home-latest-edition-title {
+  font-family: var(--font-body);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-headline);
+  text-decoration: none;
+}
+
+.home-latest-edition-title:hover {
+  color: var(--text-accent);
+}
+
+.home-latest-edition-desc {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .hero-latest-title {

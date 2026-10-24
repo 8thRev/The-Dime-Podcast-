@@ -271,6 +271,44 @@ export function renderMarkdown(body: string, slug?: string): string {
   return tagHtmlLinks(rendered, { ...UTM.newsletter, content: slug });
 }
 
+// Where the mid-article signup form goes. Editions run 280 to 1,150 words,
+// most around 400, and a second form in a short piece reads as a growth hack
+// rather than an invitation, so below INLINE_SIGNUP_MIN_WORDS there is no
+// split and the edition keeps only the form at the end.
+export const INLINE_SIGNUP_MIN_WORDS = 450;
+
+/**
+ * Render an edition body as two HTML halves, cut after the first top-level
+ * paragraph that takes the running word count past half. The cut is made on
+ * the markdown's own block boundaries (mdast positions), never inside a list
+ * or blockquote, and needs at least three blocks up to the cut and two after.
+ * Returns `after: ""` when the edition is too short or has no clean cut, in
+ * which case the page renders `before` as the whole body.
+ */
+export function renderMarkdownSplit(body: string, slug?: string): { before: string; after: string } {
+  const whole = { before: renderMarkdown(body, slug), after: "" };
+  const total = countWords(body);
+  if (total < INLINE_SIGNUP_MIN_WORDS) return whole;
+
+  const blocks = (remark().parse(body).children || []) as Array<{
+    type: string;
+    position?: { start: { offset?: number }; end: { offset?: number } };
+  }>;
+  let running = 0;
+  for (let i = 0; i < blocks.length; i++) {
+    const { start, end } = blocks[i].position || { start: {}, end: {} };
+    if (start.offset === undefined || end.offset === undefined) return whole;
+    running += countWords(body.slice(start.offset, end.offset));
+    if (running < total / 2) continue;
+    if (blocks[i].type !== "paragraph" || i < 2 || blocks.length - i - 1 < 2) return whole;
+    return {
+      before: renderMarkdown(body.slice(0, end.offset), slug),
+      after: renderMarkdown(body.slice(end.offset), slug),
+    };
+  }
+  return whole;
+}
+
 // Projections for list/cross-link contexts. These are allow-lists, not
 // `Omit<…, "body">`, because dropping only the body still shipped every
 // listed edition's `linkedinUrl`, `topics`, `episodeSlug` and `wordCount`

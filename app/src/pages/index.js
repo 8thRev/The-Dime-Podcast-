@@ -9,6 +9,7 @@ import ConvertKitEmbed from '@/src/components/ConvertKitEmbed';
 import Testimonials from '@/src/components/Testimonials';
 import { getAllEpisodes, getLatestEpisodeNumber } from '@/lib/rss';
 import { getAllVideos } from '@/lib/youtube';
+import { getAllEditions } from '@/lib/newsletter';
 import { createPodcastSchema, createWebsiteSchema } from '@/lib/schema';
 import { trackPlatformClick } from '@/lib/platformClicks';
 import { trackVideoOutboundClick } from '@/lib/videoClicks';
@@ -35,7 +36,7 @@ const TOPICS = [
   'Debt Walls', 'Cash Flow', 'Operational Frameworks', 'Hemp vs Cannabis',
 ];
 
-export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber, latestVideos }) {
+export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber, latestVideos, latestEdition }) {
   const topicItems = [...TOPICS, ...TOPICS];
   const schema = createPodcastSchema('https://www.dimepodcast.com', PODCAST_RATING);
   const websiteSchema = createWebsiteSchema('https://www.dimepodcast.com');
@@ -139,6 +140,16 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
                     YouTube
                   </a>
                 </div>
+                {/* Only when the newest edition was written after the newest
+                    episode. Editions land a few days after their episode, so
+                    in that gap this stays off and the newsletter band below
+                    carries the edition instead. */}
+                {latestEdition && latestEdition.episode?.slug === latestEpisodes[0].slug && (
+                  <Link href={`/newsletter/${latestEdition.slug}`} className="hero-latest-edition">
+                    <span className="eyebrow">First Principles on this episode</span>
+                    <span className="hero-latest-edition-title">{latestEdition.title} →</span>
+                  </Link>
+                )}
               </div>
             )}
           </aside>
@@ -242,6 +253,23 @@ export default function Home({ latestEpisodes, episodeCount, latestEpisodeNumber
               the episode.
             </h2>
             <p className="lede">{NEWSLETTER_PITCH}</p>
+            {/* The newest edition, so the pitch above has a sample next to
+                it, paired with the episode it was written after. */}
+            {latestEdition && (
+              <div className="home-latest-edition">
+                <span className="eyebrow">Latest edition{latestEdition.dateDisplay ? ` · ${latestEdition.dateDisplay}` : ''}</span>
+                <Link href={`/newsletter/${latestEdition.slug}`} className="home-latest-edition-title">
+                  {latestEdition.title}
+                </Link>
+                {latestEdition.description && <p className="home-latest-edition-desc">{latestEdition.description}</p>}
+                <p className="meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 18px', margin: 0 }}>
+                  <Link href={`/newsletter/${latestEdition.slug}`}>Read it →</Link>
+                  {latestEdition.episode && (
+                    <Link href={`/episodes/${latestEdition.episode.slug}`}>Listen to Ep. {latestEdition.episode.num} →</Link>
+                  )}
+                </p>
+              </div>
+            )}
           </div>
           <div>
             <p className="meta" style={{ marginBottom: 20, color: 'var(--text-secondary)' }}>
@@ -275,12 +303,28 @@ export async function getStaticProps() {
   const episodeCount = episodes.length;
   const latestEpisodeNumber = getLatestEpisodeNumber(episodes);
 
+  // The newest First Principles edition and the episode it was written
+  // after, resolved here so both links are in server HTML. An episodeSlug
+  // that is empty or not in the feed just drops the listen link.
+  const edition = getAllEditions()[0];
+  const editionEpisode = edition?.episodeSlug ? episodes.find((e) => e.slug === edition.episodeSlug) : null;
+  const latestEdition = edition
+    ? {
+        slug: edition.slug,
+        title: edition.title,
+        dateDisplay: edition.dateDisplay || '',
+        description: edition.description || '',
+        episode: editionEpisode ? { slug: editionEpisode.slug, num: editionEpisode.num } : null,
+      }
+    : null;
+
   return {
     props: {
       latestEpisodes: episodes.slice(0, 10),
       episodeCount,
       latestEpisodeNumber,
       latestVideos: videos.slice(0, 8),
+      latestEdition,
     },
     revalidate: 3600,
   };
