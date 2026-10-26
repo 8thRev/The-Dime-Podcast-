@@ -2,10 +2,10 @@
 title: "The Best Advantage Is Scar Tissue"
 metaTitle: "Operating Memory Is Cannabis's Real Moat"
 slug: the-best-advantage-is-scar-tissue
-date: 2026-10-08
+date: 2026-10-26
 description: "Capital can buy equipment, but not years of mistakes already turned into systems and judgment. Why the best cannabis advantage may be what a company survived somewhere else."
-episodeSlug: ""
-guest: ""
+episodeSlug: "how-ayrloom-built-its-advantage-in-new-york-cannabis-ft-eddie-brennan"
+guest: "Eddie Brennan"
 topics: ["Cultivation & Extraction", "Regulatory & Compliance"]
 linkedinUrl: ""
 ---
