@@ -2,7 +2,7 @@
 title: "When the KPI Hurts the Business"
 metaTitle: "When the KPI Hurts the Business"
 slug: when-the-kpi-hurts-the-business
-date: 2026-11-02
+date: 2026-10-29
 description: "Cannabis operators can hit their KPI and still hurt the business. Why an immature industry mistakes activity for performance, and who owns picking the right metric."
 episodeSlug: ""
 guest: ""
