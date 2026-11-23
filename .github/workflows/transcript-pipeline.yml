@@ -69,7 +69,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No new transcripts to commit."
           else
-            git commit -m "Add auto-generated episode transcripts [skip ci]"
+            git commit -m "Add auto-generated episode transcripts [skip ci]" -m "$(cd bot && python spend_guard.py)"
             # Long backfill runs can overlap with other pushes to main (a
             # merged PR, the daily schedule, another manual run); rebase
             # onto the latest main and retry rather than losing the run's

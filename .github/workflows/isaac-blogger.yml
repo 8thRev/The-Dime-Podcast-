@@ -133,6 +133,8 @@ jobs:
               echo "Each renders only in its topic's \`/topics/<slug>/llms.txt\` on the preview, under an AI disclosure. Each has passed the five section structure check, citation checks, a word for word check of every quotation against the cited transcripts, and a fact check of every claim against the full transcripts of the episodes it cites (claim counts in the run log). Read \`The short version\` and \`Where guests disagree\` first: those are the parts an assistant will quote, and the parts most likely to flatten a real disagreement."
               echo
             fi
+            COST="$(cd bot && python spend_guard.py)"
+            if [ -n "$COST" ]; then echo "$COST"; echo; fi
             echo "Edit the markdown directly on this branch if it is close, or close the PR if it is not. A closed post's question goes back in the pool, and a closed brief's topic is picked up again next run."
             echo
             echo "Generated with [Claude Code](https://claude.com/claude-code)"

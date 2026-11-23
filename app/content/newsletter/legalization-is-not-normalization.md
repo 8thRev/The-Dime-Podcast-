@@ -10,6 +10,8 @@ topics: ["Consumer Trends", "Branding & Marketing"]
 linkedinUrl: ""
 ---
 
+**TLDR**
+
 Cannabis can be legal, available, and increasingly visible while people remain uncomfortable discussing it publicly. Ethan Zohn discovered that firsthand while interviewing World Cup fans.
 
 **For operators, legalization creates access. Normalization builds the comfort and confidence that help people participate in the market.** Those are two very different challenges.
