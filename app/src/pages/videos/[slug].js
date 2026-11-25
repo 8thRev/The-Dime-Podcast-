@@ -128,7 +128,7 @@ export async function getStaticProps({ params }) {
       transcript,
       chapters,
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

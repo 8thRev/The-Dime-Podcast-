@@ -61,7 +61,7 @@ export async function getStaticProps() {
     const slug = guestToSlug(name);
     return { name, slug: guestSlugs.has(slug) ? slug : null };
   });
-  return { props: { libraryEpisodes, latestEdition, notableGuests }, revalidate: 3600 };
+  return { props: { libraryEpisodes, latestEdition, notableGuests }, revalidate: 86400 };
 }
 
 const SPONSOR_EMAIL = 'sponsorship@dimepodcast.com';

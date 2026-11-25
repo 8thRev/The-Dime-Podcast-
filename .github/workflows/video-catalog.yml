@@ -7,15 +7,15 @@ name: Video Catalog
 # returns the entire channel and runs in getStaticProps on ~400 ISR pages, so
 # every cold lambda used to repeat a full ~16-request catalogue pull; that
 # multiplied out to >10k requests/day, exhausted the shared quota, and took the
-# bot pipelines and production builds down with it. One scheduled pull a day
+# bot pipelines and production builds down with it. One scheduled pull per run
 # costs ~16 units total and the site costs nothing.
 on:
   workflow_dispatch:
   schedule:
-    # 08:00 UTC daily — just after YouTube's quota reset (midnight Pacific)
+    # 08:00 UTC Mondays and Thursdays — just after YouTube's quota reset (midnight Pacific)
     # and well before the transcript pipeline at 13:00, so a runaway anywhere
     # else in the day can never starve the one job the website depends on.
-    - cron: '0 8 * * *'
+    - cron: '0 8 * * 1,4'
 
 jobs:
   catalog:

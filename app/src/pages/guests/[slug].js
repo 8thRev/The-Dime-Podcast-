@@ -33,7 +33,7 @@ export async function getStaticProps({ params }) {
       episodes: result.episodes,
       editions: getEditionsForGuest(params.slug).map(toListItem),
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

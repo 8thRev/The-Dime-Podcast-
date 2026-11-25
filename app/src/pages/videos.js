@@ -182,6 +182,6 @@ export async function getStaticProps() {
     props: {
       allVideos: allVideos.length > 0 ? allVideos : [],
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }

@@ -155,7 +155,7 @@ export async function getStaticProps() {
     // five episodes behind the feed on the one page whose job is to look
     // credible to a prospective guest.
     props: { guestSlugs, episodeCount: episodes.length },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

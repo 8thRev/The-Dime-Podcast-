@@ -15,7 +15,7 @@ export async function getStaticProps() {
   // linkedinUrl/topics/episodeSlug fields, into __NEXT_DATA__ is the
   // payload-bloat trap already fixed on /episodes (see SEO_ROADMAP.md).
   const editions = getAllEditions().map(toCard);
-  return { props: { editions }, revalidate: 3600 };
+  return { props: { editions }, revalidate: 86400 };
 }
 
 // "Aug 4, 2026": the archive's meta column is 104px wide, and the prose

@@ -11,7 +11,7 @@
 // Same request-time shape as src/pages/llms.txt.js, and for the same reason:
 // a static path segment (`llms.txt`) under a dynamic one is a valid page
 // file, unlike the .md variants, so no rewrite is needed. The CDN cache
-// policy matches the hub page's hourly revalidation.
+// policy matches the hub page's daily revalidation.
 
 import { getTranscriptBySlug } from '@/lib/transcripts';
 import { getEpisodesByTopicSlug } from '@/lib/topics';
@@ -27,7 +27,7 @@ export async function getServerSideProps({ params, res }) {
   }
 
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-  res.setHeader('Cache-Control', 's-maxage=3600, stale-while-revalidate');
+  res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
   res.write(
     buildTopicLlms({
       topic: result.topic,

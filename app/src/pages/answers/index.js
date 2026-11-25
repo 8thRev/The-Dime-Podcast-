@@ -25,7 +25,7 @@ export async function getStaticProps() {
   // shipping them into __NEXT_DATA__ is the payload trap already fixed on
   // /episodes and /newsletter.
   const posts = getAllAnswers().map(toCard);
-  return { props: { posts }, revalidate: 3600 };
+  return { props: { posts }, revalidate: 86400 };
 }
 
 export default function AnswersIndex({ posts }) {

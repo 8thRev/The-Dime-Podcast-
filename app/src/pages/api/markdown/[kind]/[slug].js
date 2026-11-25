@@ -22,10 +22,10 @@
 //   the plain form of that: it sets the header and ends the response, with
 //   no dummy React component to export (the pattern src/pages/llms.txt.js
 //   needs because it lives at a static path where a page file works).
-// - ISR equivalence: the HTML pages revalidate hourly. This sets the same
-//   `s-maxage=3600, stale-while-revalidate` policy /llms.txt and /rss.xml
+// - ISR equivalence: the HTML pages revalidate daily. This sets the same
+//   `s-maxage=86400, stale-while-revalidate` policy /llms.txt and /rss.xml
 //   use, so the CDN serves each .md from cache and refreshes it in the
-//   background on the same hourly cadence, and a new transcript reaches the
+//   background on the same daily cadence, and a new transcript reaches the
 //   .md within the hour just as it reaches the page.
 // - outputFileTracingIncludes keys on the route file, so the transcript and
 //   newsletter directories this reads at request time are bundled under
@@ -38,7 +38,7 @@
 
 import { buildMarkdownDoc } from '@/lib/markdownDocs';
 
-const CACHE_CONTROL = 's-maxage=3600, stale-while-revalidate';
+const CACHE_CONTROL = 's-maxage=86400, stale-while-revalidate';
 
 function notFound(res) {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
