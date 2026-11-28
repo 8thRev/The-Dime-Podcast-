@@ -120,7 +120,7 @@ export async function getStaticProps({ params }) {
       episodeVideos,
       edition,
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

@@ -67,6 +67,6 @@ export async function getStaticProps() {
   const topics = await getAllTopics();
   return {
     props: { topics },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }

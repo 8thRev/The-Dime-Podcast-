@@ -326,6 +326,6 @@ export async function getStaticProps() {
       latestVideos: videos.slice(0, 8),
       latestEdition,
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }

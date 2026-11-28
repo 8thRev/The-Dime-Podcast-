@@ -69,7 +69,7 @@ export async function getStaticProps({ params }) {
       cited,
       others,
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

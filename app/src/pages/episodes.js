@@ -155,6 +155,6 @@ export async function getStaticProps() {
     props: {
       allEpisodes: await getEpisodeIndex(),
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }

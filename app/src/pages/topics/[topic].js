@@ -30,7 +30,7 @@ export async function getStaticProps({ params }) {
       topicSlug: params.topic,
       editions: getEditionsForTopic(params.topic).map(toCard),
     },
-    revalidate: 3600,
+    revalidate: 86400,
   };
 }
 

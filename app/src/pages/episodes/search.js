@@ -27,7 +27,7 @@ export async function getServerSideProps({ query, res }) {
   // error the next request retries.
   if (!allEpisodes.length) throw new Error('Episode feed unavailable');
 
-  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+  res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
   return {
     props: {
       allEpisodes,
