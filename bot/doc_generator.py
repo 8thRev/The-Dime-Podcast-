@@ -31,7 +31,8 @@ class DocGenerator:
         return sanitized.strip("_")
 
     def generate_document(
-        self, guest_name: str, company: str, title: str, research_content: str
+        self, guest_name: str, company: str, title: str, research_content: str,
+        cost_note: str = "",
     ) -> tuple[bool, str]:
         """
         Generate a formatted Word document from research content.
@@ -57,6 +58,10 @@ class DocGenerator:
 
             # Add research content
             self._add_content(doc, research_content)
+
+            # Footer: what this sheet cost to produce (list-price estimate).
+            if cost_note:
+                self._add_cost_footer(doc, cost_note)
 
             # Generate filename
             sanitized_name = self._sanitize_filename(guest_name)
@@ -138,6 +143,16 @@ class DocGenerator:
 
             # Regular paragraph
             doc.add_paragraph(line)
+
+    def _add_cost_footer(self, doc: Document, cost_note: str) -> None:
+        """Divider plus one small grey line with the estimated API cost."""
+        doc.add_paragraph()
+        divider = doc.add_paragraph()
+        divider.add_run("_" * 80).font.color.rgb = RGBColor(192, 192, 192)
+        run = doc.add_paragraph().add_run(cost_note)
+        run.font.size = Pt(9)
+        run.font.italic = True
+        run.font.color.rgb = RGBColor(102, 102, 102)
 
     def _is_section_header(self, line: str) -> bool:
         """

@@ -31,10 +31,14 @@ class Config:
     # web_search is billed per use ($10/1,000 searches) in addition to token
     # costs; web_fetch has no per-use fee but its content still counts as
     # input tokens. These cap both per guest as a cost/runaway-loop guard.
-    ANTHROPIC_MAX_WEB_SEARCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_SEARCHES", "20"))
-    ANTHROPIC_MAX_WEB_FETCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_FETCHES", "10"))
+    # Lowered Nov 2026 from 20/10/50K: three live guests cost $2.96 to $6.13
+    # (avg $4.50), 93% of it input tokens re-read on every search/fetch step.
+    # The $2 spend_guard cap cannot stop this (research is one call, and the
+    # cap is checked between calls), so these limits are the real bound.
+    ANTHROPIC_MAX_WEB_SEARCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_SEARCHES", "10"))
+    ANTHROPIC_MAX_WEB_FETCHES: int = int(os.getenv("ANTHROPIC_MAX_WEB_FETCHES", "5"))
     ANTHROPIC_MAX_FETCH_CONTENT_TOKENS: int = int(
-        os.getenv("ANTHROPIC_MAX_FETCH_CONTENT_TOKENS", "50000")
+        os.getenv("ANTHROPIC_MAX_FETCH_CONTENT_TOKENS", "15000")
     )
 
     # Email Configuration

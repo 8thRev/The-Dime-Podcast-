@@ -134,8 +134,11 @@ def process_guest(
 
     # Step 2: Generate Word document
     print("Step 2: Generating Word document...")
+    # The research call is finished, so the log already holds this guest's
+    # full cost. Empty on a dry run.
+    cost_note = spend_guard.cost_note(guest_name)
     success, doc_path = doc_generator.generate_document(
-        guest_name, company, title, research_content
+        guest_name, company, title, research_content, cost_note=cost_note
     )
 
     if not success or not doc_path:
@@ -147,7 +150,7 @@ def process_guest(
     # Step 3: Send email
     print("Step 3: Sending email with document...")
     success = email_client.send_research_document(
-        guest_name, doc_path, cost_note=spend_guard.cost_note(guest_name)
+        guest_name, doc_path, cost_note=cost_note
     )
 
     if not success:

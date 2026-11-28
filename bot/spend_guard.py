@@ -198,7 +198,7 @@ def run_summary(label: str | None = None) -> dict:
     """Estimated spend for this workflow run (all steps share GITHUB_RUN_ID and
     the log file), or for this process when run locally. Optionally only the
     rows for one label (a guest name)."""
-    out = {"usd": 0.0, "calls": 0, "searches": 0, "input": 0, "output": 0, "by_purpose": {}}
+    out = {"usd": 0.0, "calls": 0, "searches": 0, "fetches": 0, "input": 0, "output": 0, "by_purpose": {}}
     path = log_path()
     if not path.exists():
         return out
@@ -215,6 +215,7 @@ def run_summary(label: str | None = None) -> dict:
         out["usd"] += r.get("est_usd", 0)
         out["calls"] += 1
         out["searches"] += r.get("searches", 0)
+        out["fetches"] += r.get("fetches", 0)
         out["input"] += r.get("input", 0)
         out["output"] += r.get("output", 0)
         bp = out["by_purpose"].setdefault(r.get("purpose", "?"), {"usd": 0.0, "calls": 0})
@@ -230,7 +231,7 @@ def cost_note(label: str | None = None) -> str:
     if not m["calls"]:
         return ""
     return (f"Estimated API cost: ${m['usd']:.2f} ({m['calls']} calls, {m['searches']} web searches, "
-            f"{m['input'] // 1000}K tokens in, {m['output'] // 1000}K out). "
+            f"{m['fetches']} page fetches, {m['input'] // 1000}K tokens in, {m['output'] // 1000}K out). "
             "List-price estimate; the Anthropic Console is the bill.")
 
 
@@ -387,13 +388,25 @@ def _summary_line() -> None:
         f.write("\n".join(lines))
 
 
+_CLI = False
+
+
 @atexit.register
 def _fail_if_capped() -> None:
     try:
-        _summary_line()
+        if not _CLI:
+            _summary_line()
     except Exception:
         pass
     if _capped:
         print("CAPPED: " + "; ".join(_capped), file=sys.stderr, flush=True)
         sys.stdout.flush()
         os._exit(CAP_EXIT_CODE)
+
+
+if __name__ == "__main__":
+    # `python spend_guard.py` prints this run's cost note (empty if nothing was
+    # spent). Workflows use it to put the estimate in a PR body or commit
+    # message. Skips the step summary, which the bot's own process already wrote.
+    _CLI = True
+    print(cost_note())
